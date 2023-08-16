@@ -16,6 +16,9 @@
     "vite-plugin-solid": "^2.7.0"
   },
   "dependencies": {
-    "solid-js": "^1.7.6"
+    "@kobalte/core": "^0.10.0",
+    "@unocss/preset-uno": "^0.55.1",
+    "solid-js": "^1.7.6",
+    "unocss": "^0.55.0"
   }
 }
