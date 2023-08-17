@@ -19,6 +19,10 @@
     "@kobalte/core": "^0.10.0",
     "@solidjs/router": "^0.8.3",
     "@unocss/preset-uno": "^0.55.1",
+    "dexie": "^3.2.4",
+    "solid-dexie": "^0.0.5",
+    "solid-forms": "^0.4.8",
+    "solid-icons": "^1.0.11",
     "solid-js": "^1.7.11",
     "unocss": "^0.55.1",
     "unocss-preset-primitives": "0.0.1-beta.10"

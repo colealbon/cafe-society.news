@@ -6,6 +6,7 @@ import {
 } from 'solid-js'
 import {
   Button,
+  Separator
 } from "@kobalte/core"
 import {
   useSearchParams
@@ -89,6 +90,7 @@ const Profile = (props: {
       <h1>
         Profile
       </h1>
+      <Separator.Root />
       <Show
         when={props.albyTokenReadInvoice() != ''}
         fallback={
