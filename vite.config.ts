@@ -3,6 +3,7 @@ import solidPlugin from 'vite-plugin-solid';
 // import devtools from 'solid-devtools/vite';
 import unocssPlugin from "unocss/vite"
 import { presetUno, presetAttributify} from 'unocss'
+import { presetKobalte } from 'unocss-preset-primitives'
 
 export default defineConfig({
   plugins: [
@@ -14,7 +15,8 @@ export default defineConfig({
     unocssPlugin({
       presets: [
         presetAttributify({ /* preset options */}),
-        presetUno()
+        presetUno(),
+        presetKobalte()
         // ...custom presets
       ]
     }),
