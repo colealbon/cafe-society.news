@@ -14,6 +14,18 @@ dependencies:
   '@unocss/preset-uno':
     specifier: ^0.55.1
     version: 0.55.1
+  dexie:
+    specifier: ^3.2.4
+    version: 3.2.4
+  solid-dexie:
+    specifier: ^0.0.5
+    version: 0.0.5(dexie@3.2.4)(solid-js@1.7.11)
+  solid-forms:
+    specifier: ^0.4.8
+    version: 0.4.8(solid-js@1.7.11)
+  solid-icons:
+    specifier: ^1.0.11
+    version: 1.0.11(solid-js@1.7.11)
   solid-js:
     specifier: ^1.7.11
     version: 1.7.11
@@ -1353,6 +1365,11 @@ packages:
     resolution: {integrity: sha512-M1Ob1zPSIvlARiJUkKqvAZ3VAqQY6Jcuth/pBKQ2b1dX/Qx0OnJ8Vux6J2H5PTMQeRzWrrbTu70VxBfv/OPDJA==}
     dev: false
 
+  /dexie@3.2.4:
+    resolution: {integrity: sha512-VKoTQRSv7+RnffpOJ3Dh6ozknBqzWw/F3iqMdsZg958R0AS8AnY9x9d1lbwENr0gzeGJHXKcGhAMRaqys6SxqA==}
+    engines: {node: '>=6.0'}
+    dev: false
+
   /duplexer@0.1.2:
     resolution: {integrity: sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg==}
     dev: false
@@ -1417,6 +1434,10 @@ packages:
       onetime: 5.1.2
       signal-exit: 3.0.7
       strip-final-newline: 2.0.0
+    dev: false
+
+  /fast-deep-equal@3.1.3:
+    resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
     dev: false
 
   /fast-glob@3.3.1:
@@ -1833,6 +1854,34 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: true
+
+  /solid-dexie@0.0.5(dexie@3.2.4)(solid-js@1.7.11):
+    resolution: {integrity: sha512-rRcg3IgJSo1+MhF2/3RKCFu3ibvv01OCPq0tNfjcDp3RhHS8VypkMLzGDZrthTrkr2OSluJrC6BXE3DYLEstyQ==}
+    peerDependencies:
+      dexie: ^3.2.2
+      solid-js: ^1.4.6
+    dependencies:
+      dexie: 3.2.4
+      solid-js: 1.7.11
+    dev: false
+
+  /solid-forms@0.4.8(solid-js@1.7.11):
+    resolution: {integrity: sha512-ygNQBdrNvmMeWziA5WQK5qKOS/DUOnRYXl2Nn0TzG5/Ey5RVm37AoRK1JHIm3+3Bv1wEOjTpCaNSFE0fDnVESg==}
+    peerDependencies:
+      solid-js: ^1.4.0
+    dependencies:
+      fast-deep-equal: 3.1.3
+      solid-js: 1.7.11
+    dev: false
+
+  /solid-icons@1.0.11(solid-js@1.7.11):
+    resolution: {integrity: sha512-shEL5Otrl73LPZukpanJKi6ISnQhpIvhqqAb8haKyCGrixHOYC6yGfNkSE7jpkKSikZ0rGtSMRiFETRrec2Uzw==}
+    engines: {node: '>= 16'}
+    peerDependencies:
+      solid-js: '*'
+    dependencies:
+      solid-js: 1.7.11
+    dev: false
 
   /solid-js@1.7.11:
     resolution: {integrity: sha512-JkuvsHt8jqy7USsy9xJtT18aF9r2pFO+GB8JQ2XGTvtF49rGTObB46iebD25sE3qVNvIbwglXOXdALnJq9IHtQ==}
