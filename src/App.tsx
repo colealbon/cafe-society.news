@@ -1,12 +1,16 @@
-import type { Component} from 'solid-js'
+import type { Component, Signal} from 'solid-js';
 import { createSignal } from 'solid-js';
 import { Button, Tabs } from "@kobalte/core";
 import { createDexieArrayQuery } from "solid-dexie";
 
-import Contact from './Contact'
-import CorsProxies from './CorsProxies'
+import Contact from './Contact';
+import CorsProxies from './CorsProxies';
+import NostrRelays from './NostrRelays';
+import NostrKeys from './NostrKeys';
 import defaultCorsProxies from './defaultCorsProxies';
-import Profile from './Profile'
+import defaultNostrRelays from './defaultNostrRelays';
+import defaultNostrKeys from './defaultNostrKeys';
+import Profile from './Profile';
 import {
   DbFixture,
   NostrRelay,
@@ -24,8 +28,8 @@ const db = new DbFixture();
 // const its = nlp.its;
 
 db.on("populate", () => {
-  // db.nostrkeys.bulkAdd(defaultNostrKeys as NostrKey[]);
-  // db.nostrrelays.bulkAdd(defaultNostrRelays as NostrRelay[]);
+  db.nostrkeys.bulkAdd(defaultNostrKeys as NostrKey[]);
+  db.nostrrelays.bulkAdd(defaultNostrRelays as NostrRelay[]);
   // db.feeds.bulkAdd(defaultFeeds as Feed[]);
   db.corsproxies.bulkAdd(defaultCorsProxies as CorsProxy[]);
   // db.trainlabels.bulkAdd(defaultTrainLabels as TrainLabel[]);
@@ -57,20 +61,36 @@ const App: Component = () => {
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
   const [albyTokenReadInvoice, setAlbyTokenReadInvoice] = createStoredSignal('albyTokenReadInvoice', '')
   const corsProxies = createDexieArrayQuery(() => db.corsproxies.toArray());
-
   const putCorsProxy = async (newCorsProxy: CorsProxy) => {
     await db.corsproxies.put(newCorsProxy)
   }
   const removeCorsProxy = async (corsProxyToRemove: CorsProxy) => {
     await db.corsproxies.where('id').equals(corsProxyToRemove?.id).delete()
   }
-
+  const nostrRelays = createDexieArrayQuery(() => db.nostrrelays.toArray());
+  const checkedNostrRelays = createDexieArrayQuery(() => db.nostrrelays
+    .filter(relay => relay.checked === true)
+    .toArray()
+    );
+  const putNostrRelay = async (newNostrRelay: NostrRelay) => {
+    await db.nostrrelays.put(newNostrRelay)
+  };
+  const removeNostrRelay = async (nostrRelayToRemove: NostrRelay) => {
+    await db.nostrrelays.where('id').equals(nostrRelayToRemove?.id).delete()
+  };
+  const nostrKeys = createDexieArrayQuery(() => db.nostrkeys.toArray());
+  const putNostrKey = async (newKey: NostrKey) => {
+    await db.nostrkeys.put(newKey)
+  }
+  const removeNostrKey = async (nostrKeyRemove: NostrKey) => {
+    await db.nostrkeys.where('publicKey').equals(nostrKeyRemove.publicKey).delete()
+  }
 
   return (
     <div>
       <div class={navIsOpen() ? 'm-1 hidden' : 'm-1 animate-fade-in animate-duration-1s'}>
         <Button.Root
-          class={`ml-1 text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
+          class={`ml-1 text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full animate-fade-in animate-duration-1s`}
           onClick={event => {
             event.preventDefault()
             setNavIsOpen(true)
@@ -82,9 +102,9 @@ const App: Component = () => {
         <div class='m-1 flex flex-column'>
           <div class={navIsOpen() ? `animate-fade-in-left animate-duration-.3s` : 'w-0'}>
             <div class={`bg-red-900 w-full h-9/10 rounded-2 mr-3`}>
-              <div class={navIsOpen() ? '' : 'animate-fade-out-left animate-duration-.3s'}>
+              <div>
                 <Button.Root
-                  class={`text-4xl text-white bg-transparent border-none hover-text-white hover:bg-slate-900 rounded-full`}
+                  class={`text-4xl text-white bg-transparent border-none hover-text-white hover:bg-slate-900 rounded-full animate-fade-in animate-duration-5s`}
                   onClick={event => {
                     event.preventDefault()
                     setNavIsOpen(false)
@@ -97,6 +117,8 @@ const App: Component = () => {
                 <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} value="profile">Profile</Tabs.Trigger><div /></div>
                 <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} value="cors">Cors&nbsp;Proxies</Tabs.Trigger></div>
                 <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} value="contact">Contact</Tabs.Trigger></div>
+                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} value="nostrrelays">Nostr&nbsp;Relays</Tabs.Trigger></div>
+                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} value="nostrkeys">Nostr&nbsp;Keys</Tabs.Trigger></div>
               </Tabs.List>
             </div>
           </div>
@@ -120,6 +142,20 @@ const App: Component = () => {
                 />
               </Tabs.Content>
               <Tabs.Content class='animate-fade-in animate-duration-.3s' value="contact"><Contact/></Tabs.Content>
+              <Tabs.Content class='animate-fade-in animate-duration-.3s' value="nostrrelays">
+                <NostrRelays
+                  nostrRelays={nostrRelays}
+                  putNostrRelay={putNostrRelay}
+                  removeNostrRelay={removeNostrRelay}
+                />
+              </Tabs.Content>
+              <Tabs.Content class='animate-fade-in animate-duration-.3s' value="nostrkeys">
+                <NostrKeys
+                  nostrKeys={nostrKeys}
+                  putNostrKey={putNostrKey}
+                  removeNostrKey={removeNostrKey}
+                />
+              </Tabs.Content>
             </div>
           </div>
         </div>
