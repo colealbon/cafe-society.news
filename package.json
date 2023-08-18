@@ -20,6 +20,7 @@
     "@solidjs/router": "^0.8.3",
     "@unocss/preset-uno": "^0.55.1",
     "dexie": "^3.2.4",
+    "nostr-tools": "^1.14.0",
     "solid-dexie": "^0.0.5",
     "solid-forms": "^0.4.8",
     "solid-icons": "^1.0.11",

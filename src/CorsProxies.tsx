@@ -1,5 +1,7 @@
-import type { Component } from 'solid-js';
-import { Separator, Link, Switch } from "@kobalte/core";
+import {
+  Separator,
+  Button
+} from "@kobalte/core";
 import { CorsProxy } from './db-fixture'
 import { For } from 'solid-js'
 import {
@@ -18,70 +20,54 @@ const CorsProxies = (props: {
     // eslint-disable-next-line no-unused-vars
     removeCorsProxy: (corsProxy: CorsProxy) => void
   }) => {
-    const group = createFormGroup({
-      id: createFormControl(""),
-      checked: createFormControl(true)
-    });
-  
-    const onSubmit = async (event: any) => {
-      event.preventDefault()
-      if (group.isSubmitted) {
-        // console.log('already submitted')
-        return;
-      }
-      [Object.fromEntries(
-        Object.entries(Object.assign({
-          id:'',
-          checked:true
-        }, group.value))
-        .filter(([, value]) => `${value}` !== '')
-      )]
-      .forEach(newCorsProxy => {
-        const newCorsProxyObj: CorsProxy = {
-          ...{
-            id: '',
-            checked: true
-          },
-          ...newCorsProxy
-        }
-        props.putCorsProxy(newCorsProxyObj)
-      })
-  
-      group.setValue({
+  const group = createFormGroup({
+    id: createFormControl(""),
+    checked: createFormControl(true)
+  });
+
+  const onSubmit = async (event: any) => {
+    event.preventDefault()
+    if (group.isSubmitted) {
+      // console.log('already submitted')
+      return;
+    }
+    [Object.fromEntries(
+      Object.entries(Object.assign({
         id:'',
         checked:true
-      })
-    };
-  
-    const handleKeyClick = (id: string) => {
-      const valuesForSelectedFeed = props.corsProxies
-        .find(corsProxyEdit => corsProxyEdit['id'] === id)
-      group.setValue(Object.assign({
-          id:'',
-          checked:true
-        }, valuesForSelectedFeed))
-    }
-  
-    const handleToggleChecked = (id: string) => {
-      const valuesForSelectedFeed = props.corsProxies
-      .find(corsProxyEdit => corsProxyEdit['id'] === id)
-      const newValueObj = (Object.assign(
-        {
-          ...valuesForSelectedFeed
+      }, group.value))
+      .filter(([, value]) => `${value}` !== '')
+    )]
+    .forEach(newCorsProxy => {
+      const newCorsProxyObj: CorsProxy = {
+        ...{
+          id: '',
+          checked: true
         },
-        {checked: !group.value.checked}
-      ))
-      group.setValue (newValueObj)
-      props.putCorsProxy(newValueObj)
-      return
-    }
-  
-    // const handleEraseClick = () => {
-    //   group.setValue({
-    //       id:'',
-    //       checked:true
-    //     })
-    // }
+        ...newCorsProxy
+      }
+      props.putCorsProxy(newCorsProxyObj)
+    })
+
+    group.setValue({
+      id:'',
+      checked:true
+    })
+  };
+
+  // const handleToggleChecked = (id: string) => {
+  //   const valuesForSelectedFeed = props.corsProxies
+  //   .find(corsProxyEdit => corsProxyEdit['id'] === id)
+  //   const newValueObj = (Object.assign(
+  //     {
+  //       ...valuesForSelectedFeed
+  //     },
+  //     {checked: !group.value.checked}
+  //   ))
+  //   group.setValue (newValueObj)
+  //   props.putCorsProxy(newValueObj)
+  //   return
+  // }
 
   return (
     <div>
@@ -92,57 +78,20 @@ const CorsProxies = (props: {
           <form onSubmit={onSubmit}>
             <label for="id">URL</label>
             <TextInput name="id" control={group.controls.id} />
-            <div />
-            <Switch.Root
-              checked={group.value.checked}
-              name="checked"
-              onChange={handleToggleChecked(group.value.id)}
-            />
           </form>
         </div>
         <div>
           <h4 class="text-muted">Cors Proxies:</h4>
           <For each={props.corsProxies}>
             {(corsProxy) => (
-              <div style={{
-                'width': '100%',
-                'display': 'flex',
-                'flex-direction': 'row',
-                'justify-content': 'flex-start',
-                'font-size': '25px',
-              }}>
-                <div style={{
-                  'padding': '8px 8px 8px 32px',
-                  'text-decoration': 'none',
-                  'color': '#818181',
-                  'display': 'block',
-                  'transition':'0.3s'
-                }}>
-                  <Link.Root onClick={(event) => {
-                    event.preventDefault()
-                    props.removeCorsProxy(corsProxy)
-                  }}>
-                    <VsTrash />
-                  </Link.Root>
-                </div>
-                <div style={{
-                  'padding': '8px 8px 8px 32px',
-                  'text-decoration': 'none',
-                  'font-size': '25px',
-                  'color': '#818181',
-                  'display': 'block',
-                  'transition':'0.3s'
-                }}>
-                  <Link.Root
-                    // eslint-disable-next-line solid/reactivity
-                    onClick={(event) => {
-                      event.preventDefault()
-                      handleKeyClick(corsProxy.id)
-                    }}
-                  >
-                    {corsProxy.id}
-                  </Link.Root>
-                </div>
+              <div class='w-full flex flex-row justify-start m-1'>
+                <Button.Root
+                  onClick={() => props.removeCorsProxy(corsProxy)}
+                  class='bg-transparent hover-bg-red-900 hover-text-white border-none rounded-full'
+                >
+                  <VsTrash class='hover-text-white' />
+                </Button.Root>
+                <section class='m-1'>{corsProxy.id}</section>
               </div>
             )}
           </For>

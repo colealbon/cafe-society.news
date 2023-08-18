@@ -18,28 +18,27 @@ const TextInput: Component<{
   return (
     <div
       classList={{
-        "is-invalid": !!props.control.errors,
-        "is-touched": props.control.isTouched,
-        "is-required": props.control.isRequired,
-        "is-disabled": props.control.isDisabled,
+        "is-invalid": !!props.control?.errors,
+        "is-touched": props.control?.isTouched,
+        "is-required": props.control?.isRequired,
+        "is-disabled": props.control?.isDisabled,
       }}
     >
       <input
-        class="p-5"
-        style={{"width":"600px", "font-size": "inherit"}}
+        class="p-5 w-9/10"
         name={props.name}
         type={props.type}
-        value={props.control.value}
+        value={props.control?.value}
         onInput={(e) => {
-          props.control.setValue(e.currentTarget.value);
+          props.control?.setValue(e.currentTarget.value);
         }}
-        onBlur={() => props.control.markTouched(true)}
-        required={props.control.isRequired}
-        disabled={props.control.isDisabled}
+        onBlur={() => props.control?.markTouched(true)}
+        required={props.control?.isRequired}
+        disabled={props.control?.isDisabled}
       />
 
-      <Show when={props.control.isTouched && !props.control.isValid}>
-        <For each={Object.values(props.control.errors)}>
+      <Show when={props.control?.isTouched && !props.control.isValid}>
+        <For each={Object.values({...props.control?.errors})}>
           {(errorMsg: string) => <small>{errorMsg}</small>}
         </For>
       </Show>

@@ -1,5 +1,4 @@
 import type { Component } from 'solid-js';
-import Heading from './Heading'
 import { Separator } from "@kobalte/core";
 
 const Contact: Component = () => {
@@ -13,6 +12,9 @@ const Contact: Component = () => {
         </div>
         <div>
           lightning: <a href="https://getalby.com/p/cafe">cafe@getalby.com</a>
+        </div>
+        <div>
+          bitcoin: bc1quyhpxj6hfm6wywulusdg9vgzpxutnuz6f54crm
         </div>
         <div>
           github: <a href="https://github.com/colealbon/cafe-society.news">https://github.com/colealbon/cafe-society.news</a>
