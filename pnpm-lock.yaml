@@ -38,6 +38,12 @@ dependencies:
   unocss-preset-primitives:
     specifier: 0.0.1-beta.10
     version: 0.0.1-beta.10
+  wink-eng-lite-web-model:
+    specifier: ^1.5.2
+    version: 1.5.2(wink-nlp@1.14.3)
+  wink-nlp:
+    specifier: ^1.14.3
+    version: 1.14.3
 
 devDependencies:
   solid-devtools:
@@ -2129,6 +2135,19 @@ packages:
     hasBin: true
     dependencies:
       isexe: 2.0.0
+    dev: false
+
+  /wink-eng-lite-web-model@1.5.2(wink-nlp@1.14.3):
+    resolution: {integrity: sha512-qYxAtJi0DuF0mVNr3wwdNj5u+jG9xH8BH45MbNLGzwQrUUpgKs87GfBLup0+ZfuXcpunw6AsgL7xtdl5vtUd2w==}
+    engines: {node: '>=16.0.0'}
+    peerDependencies:
+      wink-nlp: '>1.8.1'
+    dependencies:
+      wink-nlp: 1.14.3
+    dev: false
+
+  /wink-nlp@1.14.3:
+    resolution: {integrity: sha512-lvY5iCs3T8I34F8WKS70+2P0U9dWLn3vdPf/Z+m2VK14N7OmqnPzmHfh3moHdusajoQ37Em39z0IZB9K4x/96A==}
     dev: false
 
   /yallist@3.1.1:
