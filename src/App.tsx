@@ -2,15 +2,21 @@ import type { Component, Signal} from 'solid-js';
 import { createSignal } from 'solid-js';
 import { Button, Tabs } from "@kobalte/core";
 import { createDexieArrayQuery } from "solid-dexie";
+import winkNLP from 'wink-nlp'
+import model from 'wink-eng-lite-web-model'
 
 import Contact from './Contact';
 import CorsProxies from './CorsProxies';
 import NostrRelays from './NostrRelays';
 import NostrKeys from './NostrKeys';
+import Classifiers from './Classifiers';
+import Profile from './Profile';
+
 import defaultCorsProxies from './defaultCorsProxies';
 import defaultNostrRelays from './defaultNostrRelays';
 import defaultNostrKeys from './defaultNostrKeys';
-import Profile from './Profile';
+import defaultClassifiers from './defaultClassifiers';
+
 import {
   DbFixture,
   NostrRelay,
@@ -23,9 +29,9 @@ import {
 } from "./db-fixture";
 
 const db = new DbFixture();
+const nlp = winkNLP( model );
+const its = nlp.its;
 // const parser = new XMLParser();
-// const nlp = winkNLP( model );
-// const its = nlp.its;
 
 db.on("populate", () => {
   db.nostrkeys.bulkAdd(defaultNostrKeys as NostrKey[]);
@@ -33,7 +39,7 @@ db.on("populate", () => {
   // db.feeds.bulkAdd(defaultFeeds as Feed[]);
   db.corsproxies.bulkAdd(defaultCorsProxies as CorsProxy[]);
   // db.trainlabels.bulkAdd(defaultTrainLabels as TrainLabel[]);
-  // db.classifiers.bulkAdd(defaultClassifiers as Classifier[]);
+  db.classifiers.bulkAdd(defaultClassifiers as Classifier[]);
   // db.processedposts.bulkAdd(defaultProcessed as ProcessedPost[]);
 });
 
@@ -53,6 +59,17 @@ function createStoredSignal<T>(
   }) as typeof setValue;
   return [value, setValueAndStore];
 }
+
+const prepTask = function ( text: string ) {
+  const tokens: string[] = [];
+  nlp.readDoc(text)
+      .tokens()
+      // Use only words ignoring punctuations etc and from them remove stop words
+      .filter( (t: any) => ( t.out(its.type) === 'word' && !t.out(its.stopWordFlag) ) )
+      // Handle negation and extract stem of the word
+      .each( (t: any) => tokens.push( (t.out(its.negationFlag)) ? '!' + t.out(its.stem) : t.out(its.stem) ) );
+  return tokens;
+};
 
 const App: Component = () => {
   const navButtonStyle=`text-xl text-white border-none transition-all bg-transparent`
@@ -85,26 +102,36 @@ const App: Component = () => {
   const removeNostrKey = async (nostrKeyRemove: NostrKey) => {
     await db.nostrkeys.where('publicKey').equals(nostrKeyRemove.publicKey).delete()
   }
+  const classifiers = createDexieArrayQuery(() => db.classifiers.toArray());
+  const putClassifier = async (newClassifierEntry: Classifier) => {
+    const winkClassifier = WinkClassifier()
+    winkClassifier.definePrepTasks( [ prepTask ] );
+    winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
+    if (newClassifierEntry.model != '') {
+      winkClassifier.importJSON(newClassifierEntry.model)
+    }
+    if (newClassifierEntry.model === '') {
+      return
+    }
+    if (newClassifierEntry?.id === undefined) {
+      return
+    }
+    await db.classifiers.put(newClassifierEntry)
+  }
+
+  const removeClassifier = async (classifierToRemove: Classifier) => {
+    await db.classifiers.where('id').equals(classifierToRemove?.id).delete()
+  }
 
   return (
     <div>
-      <div class={navIsOpen() ? 'm-1 hidden' : 'm-1 animate-fade-in animate-duration-1s'}>
-        <Button.Root
-          class={`ml-1 text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full animate-fade-in animate-duration-1s`}
-          onClick={event => {
-            event.preventDefault()
-            setNavIsOpen(true)
-          }}
-        >⭢
-        </Button.Root>
-      </div>
       <Tabs.Root>
         <div class='m-1 flex flex-column'>
-          <div class={navIsOpen() ? `animate-fade-in-left animate-duration-.3s` : 'w-0'}>
-            <div class={`bg-red-900 w-full h-9/10 rounded-2 mr-3`}>
+          <div class={navIsOpen() ? `w-1/5 transition-width` : 'w-0 transition-width'}>
+            <div class={`bg-red-900 w-full h-full`}>
               <div>
                 <Button.Root
-                  class={`text-4xl text-white bg-transparent border-none hover-text-white hover:bg-slate-900 rounded-full animate-fade-in animate-duration-5s`}
+                  class={`text-4xl text-white bg-transparent border-none hover-text-white hover:bg-slate-900 rounded-full`}
                   onClick={event => {
                     event.preventDefault()
                     setNavIsOpen(false)
@@ -119,43 +146,138 @@ const App: Component = () => {
                 <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} value="contact">Contact</Tabs.Trigger></div>
                 <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} value="nostrrelays">Nostr&nbsp;Relays</Tabs.Trigger></div>
                 <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} value="nostrkeys">Nostr&nbsp;Keys</Tabs.Trigger></div>
+                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} value="classifiers">Classifiers</Tabs.Trigger></div>
               </Tabs.List>
             </div>
           </div>
-          <div class='w-full h-screen font-sans fade-in'>
-            <div class='flex flex-col m-5 h-9/10'>
-              <Tabs.Content class='animate-fade-in animate-duration-.3s' value="profile">
-                <Profile
-                  albyCodeVerifier={albyCodeVerifier}
-                  setAlbyCodeVerifier={setAlbyCodeVerifier}
-                  albyCode={albyCode}
-                  setAlbyCode={setAlbyCode}
-                  albyTokenReadInvoice={albyTokenReadInvoice}
-                  setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
-                />
+          <div class={`${navIsOpen() ? 'w-full' : 'w-4/5'} transition-width font-sans fade-in`}>
+            <div>
+              <Tabs.Content value="profile">
+                <div class='flex flex-row'>
+                  <div class={navIsOpen() ? 'hidden' : ''}>
+                    <Button.Root
+                      class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
+                      onClick={event => {
+                        event.preventDefault()
+                        setNavIsOpen(true)
+                      }}
+                    >⭢
+                    </Button.Root>
+                  </div>
+                  <div class='ml-2'>
+                    <Profile
+                      albyCodeVerifier={albyCodeVerifier}
+                      setAlbyCodeVerifier={setAlbyCodeVerifier}
+                      albyCode={albyCode}
+                      setAlbyCode={setAlbyCode}
+                      albyTokenReadInvoice={albyTokenReadInvoice}
+                      setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
+                    />
+                  </div>
+                </div>
               </Tabs.Content>
-              <Tabs.Content class='animate-fade-in animate-duration-.3s' value="cors">
-                <CorsProxies
-                  corsProxies={corsProxies}
-                  putCorsProxy={putCorsProxy}
-                  removeCorsProxy={removeCorsProxy}
-                />
+              <Tabs.Content value="cors">
+                <div class='flex flex-row'>
+                  <div class={navIsOpen() ? 'hidden' : ''}>
+                    <Button.Root
+                      class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
+                      onClick={event => {
+                        event.preventDefault()
+                        setNavIsOpen(true)
+                      }}
+                    >⭢
+                    </Button.Root>
+                  </div>
+                  <div class='ml-2'>
+                  <CorsProxies
+                    corsProxies={corsProxies}
+                    putCorsProxy={putCorsProxy}
+                    removeCorsProxy={removeCorsProxy}
+                  />
+                  </div>
+                </div>
               </Tabs.Content>
-              <Tabs.Content class='animate-fade-in animate-duration-.3s' value="contact"><Contact/></Tabs.Content>
-              <Tabs.Content class='animate-fade-in animate-duration-.3s' value="nostrrelays">
-                <NostrRelays
-                  nostrRelays={nostrRelays}
-                  putNostrRelay={putNostrRelay}
-                  removeNostrRelay={removeNostrRelay}
-                />
+              <Tabs.Content value="contact">
+                <div class='flex flex-row'>
+                  <div class={navIsOpen() ? 'hidden' : ''}>
+                    <Button.Root
+                      class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
+                      onClick={event => {
+                        event.preventDefault()
+                        setNavIsOpen(true)
+                      }}
+                    >⭢
+                    </Button.Root>
+                  </div>
+                  <div class='ml-2'>
+                    <Contact/>
+                  </div>
+                </div>
               </Tabs.Content>
-              <Tabs.Content class='animate-fade-in animate-duration-.3s' value="nostrkeys">
-                <NostrKeys
-                  nostrKeys={nostrKeys}
-                  putNostrKey={putNostrKey}
-                  removeNostrKey={removeNostrKey}
-                />
+              <Tabs.Content value="nostrrelays">
+                <div class='flex flex-row'>
+                  <div class={navIsOpen() ? 'hidden' : ''}>
+                    <Button.Root
+                      class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
+                      onClick={event => {
+                        event.preventDefault()
+                        setNavIsOpen(true)
+                      }}
+                    >⭢
+                    </Button.Root>
+                  </div>
+                  <div class='ml-2'>
+                    <NostrRelays
+                      nostrRelays={nostrRelays}
+                      putNostrRelay={putNostrRelay}
+                      removeNostrRelay={removeNostrRelay}
+                    />
+                  </div>
+                </div>
               </Tabs.Content>
+              <Tabs.Content value="nostrkeys">
+                <div class='flex flex-row'>
+                  <div class={navIsOpen() ? 'hidden' : ''}>
+                    <Button.Root
+                      class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
+                      onClick={event => {
+                        event.preventDefault()
+                        setNavIsOpen(true)
+                      }}
+                    >⭢
+                    </Button.Root>
+                  </div>
+                  <div class='ml-2'>
+                    <NostrKeys
+                      nostrKeys={nostrKeys}
+                      putNostrKey={putNostrKey}
+                      removeNostrKey={removeNostrKey}
+                    />
+                  </div>
+                </div>
+              </Tabs.Content>
+              <Tabs.Content value="classifiers">
+                <div class='flex flex-row'>
+                  <div class={navIsOpen() ? 'hidden' : ''}>
+                    <Button.Root
+                      class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
+                      onClick={event => {
+                        event.preventDefault()
+                        setNavIsOpen(true)
+                      }}
+                    >⭢
+                    </Button.Root>
+                  </div>
+                  <div class='ml-2'>
+                    <Classifiers
+                      classifiers={classifiers}
+                      putClassifier={putClassifier}
+                      removeClassifier={removeClassifier}
+                    />
+                  </div>
+                </div>
+              </Tabs.Content>
+              
             </div>
           </div>
         </div>
