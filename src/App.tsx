@@ -126,12 +126,12 @@ const App: Component = () => {
   return (
     <div>
       <Tabs.Root>
-        <div class='m-1 flex flex-column'>
-          <div class={navIsOpen() ? `w-1/5 transition-width` : 'w-0 transition-width'}>
-            <div class={`bg-red-900 w-full h-full`}>
+        <div class='flex flex-column'>
+          <div class={`${navIsOpen() ? `w-3/6` : 'w-0'}  transition-width`}>
+            <div class={`bg-red-900`}>
               <div>
                 <Button.Root
-                  class={`text-4xl text-white bg-transparent border-none hover-text-white hover:bg-slate-900 rounded-full`}
+                  class={`${navIsOpen() ? '' : 'hidden'} text-4xl text-white bg-transparent border-none hover-text-white hover:bg-slate-900 rounded-full`}
                   onClick={event => {
                     event.preventDefault()
                     setNavIsOpen(false)
@@ -150,10 +150,10 @@ const App: Component = () => {
               </Tabs.List>
             </div>
           </div>
-          <div class={`${navIsOpen() ? 'w-full' : 'w-4/5'} transition-width font-sans fade-in`}>
+          <div class={`font-sans fade-in`}>
             <div>
               <Tabs.Content value="profile">
-                <div class='flex flex-row'>
+                <div class='flex sm:flex-row flex-col'>
                   <div class={navIsOpen() ? 'hidden' : ''}>
                     <Button.Root
                       class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
@@ -177,7 +177,7 @@ const App: Component = () => {
                 </div>
               </Tabs.Content>
               <Tabs.Content value="cors">
-                <div class='flex flex-row'>
+                <div class='flex sm:flex-row flex-col'>
                   <div class={navIsOpen() ? 'hidden' : ''}>
                     <Button.Root
                       class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
@@ -198,7 +198,7 @@ const App: Component = () => {
                 </div>
               </Tabs.Content>
               <Tabs.Content value="contact">
-                <div class='flex flex-row'>
+                <div class='flex sm:flex-row flex-col'>
                   <div class={navIsOpen() ? 'hidden' : ''}>
                     <Button.Root
                       class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
@@ -215,7 +215,7 @@ const App: Component = () => {
                 </div>
               </Tabs.Content>
               <Tabs.Content value="nostrrelays">
-                <div class='flex flex-row'>
+                <div class='flex sm:flex-row flex-col'>
                   <div class={navIsOpen() ? 'hidden' : ''}>
                     <Button.Root
                       class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
@@ -236,7 +236,7 @@ const App: Component = () => {
                 </div>
               </Tabs.Content>
               <Tabs.Content value="nostrkeys">
-                <div class='flex flex-row'>
+                <div class='flex sm:flex-row flex-col'>
                   <div class={navIsOpen() ? 'hidden' : ''}>
                     <Button.Root
                       class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
@@ -257,7 +257,7 @@ const App: Component = () => {
                 </div>
               </Tabs.Content>
               <Tabs.Content value="classifiers">
-                <div class='flex flex-row'>
+                <div class='flex sm:flex-row flex-col'>
                   <div class={navIsOpen() ? 'hidden' : ''}>
                     <Button.Root
                       class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
