@@ -20,6 +20,8 @@
     "@solidjs/router": "^0.8.3",
     "@unocss/preset-uno": "^0.55.1",
     "dexie": "^3.2.4",
+    "html-to-text": "^9.0.5",
+    "nostr-fetch": "^0.12.2",
     "nostr-tools": "^1.14.0",
     "solid-dexie": "^0.0.5",
     "solid-forms": "^0.4.8",
@@ -28,6 +30,7 @@
     "unocss": "^0.55.1",
     "unocss-preset-primitives": "0.0.1-beta.10",
     "wink-eng-lite-web-model": "^1.5.2",
+    "wink-naive-bayes-text-classifier": "^2.2.1",
     "wink-nlp": "^1.14.3"
   }
 }

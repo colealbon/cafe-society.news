@@ -1,9 +1,22 @@
-import type { Component, Signal} from 'solid-js';
-import { createSignal } from 'solid-js';
+import { convert } from 'html-to-text'
+import type {
+  Component,
+  Signal
+} from 'solid-js';
+import {
+  createEffect,
+  createSignal,
+  createResource
+} from 'solid-js';
 import { Button, Tabs } from "@kobalte/core";
 import { createDexieArrayQuery } from "solid-dexie";
-import winkNLP from 'wink-nlp'
-import model from 'wink-eng-lite-web-model'
+import WinkClassifier from 'wink-naive-bayes-text-classifier';
+import winkNLP from 'wink-nlp';
+import model from 'wink-eng-lite-web-model';
+import {
+  NostrFetcher
+  , eventKind
+} from "nostr-fetch";
 
 import Contact from './Contact';
 import CorsProxies from './CorsProxies';
@@ -12,13 +25,14 @@ import NostrKeys from './NostrKeys';
 import Classifiers from './Classifiers';
 import Profile from './Profile';
 import TrainLabels from './TrainLabels';
+import NostrPosts from './NostrPosts';
 
 import defaultCorsProxies from './defaultCorsProxies';
 import defaultNostrRelays from './defaultNostrRelays';
 import defaultNostrKeys from './defaultNostrKeys';
 import defaultClassifiers from './defaultClassifiers';
 import defaultTrainLabels from './defaultTrainLabels';
-
+import defaultProcessed from './defaultProcessed';
 import {
   DbFixture,
   NostrRelay,
@@ -30,10 +44,14 @@ import {
   ProcessedPost
 } from "./db-fixture";
 
+
+const fetcher = NostrFetcher.init();
+
 const db = new DbFixture();
 const nlp = winkNLP( model );
 const its = nlp.its;
 // const parser = new XMLParser();
+
 
 db.on("populate", () => {
   db.nostrkeys.bulkAdd(defaultNostrKeys as NostrKey[]);
@@ -42,7 +60,7 @@ db.on("populate", () => {
   db.corsproxies.bulkAdd(defaultCorsProxies as CorsProxy[]);
   db.trainlabels.bulkAdd(defaultTrainLabels as TrainLabel[]);
   db.classifiers.bulkAdd(defaultClassifiers as Classifier[]);
-  // db.processedposts.bulkAdd(defaultProcessed as ProcessedPost[]);
+  db.processedposts.bulkAdd(defaultProcessed as ProcessedPost[]);
 });
 
 function createStoredSignal<T>(
@@ -73,12 +91,65 @@ const prepTask = function ( text: string ) {
   return tokens;
 };
 
+const prepNostrPost = (post: any) => {
+  return {
+    mlText: prepTask(convert(
+      `${post.content}`
+      .replace(/\d+/g, '')
+      .replace(/#/g, ''),
+      {
+        ignoreLinks: true,
+        ignoreHref: true,
+        ignoreImage: true,
+        linkBrackets: false
+      }
+    )
+    )
+    .filter((word: string) => word.length < 30)
+    .filter((word: string) => word!='nostr')
+    .filter((word: string) => word!='vmess')
+    .join(' ')
+    .toLowerCase() || '',
+    ...post
+  }
+}
+
+const applyPrediction = (params: {
+  post: any,
+  classifier: any
+}) => {
+  try {
+    const docCount: number = params.classifier.stats().labelWiseSamples ? Object.values(params.classifier.stats().labelWiseSamples).reduce((val, runningTotal: any) => val as number + runningTotal, 0) as number : 0
+    if (docCount > 2) {
+      params.classifier.consolidate()
+    }
+    const prediction = Object.fromEntries(params.classifier.computeOdds(params.post?.mlText))
+    const postWithPrediction = {
+      ...params.post,
+      ...{
+        'prediction': prediction,
+        'docCount': docCount
+      }
+    }
+    return postWithPrediction
+  } catch (error) {
+    if (error != null) {
+      const newPost = params.post
+      newPost.prediction = params.classifier.stats()
+      return newPost
+    }
+  }
+}
+
 const App: Component = () => {
   const navButtonStyle=`text-xl text-white border-none transition-all bg-transparent`
   const [navIsOpen, setNavIsOpen] = createStoredSignal('isNavOpen', false);
   const [albyCodeVerifier, setAlbyCodeVerifier] = createStoredSignal('albyCodeVerifier', '')
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
   const [albyTokenReadInvoice, setAlbyTokenReadInvoice] = createStoredSignal('albyTokenReadInvoice', '')
+  const [selectedTrainLabel, setSelectedTrainLabel] = createStoredSignal('selectedTrainLabel', '')
+    const [selectedNostrAuthor, setSelectedNostrAuthor] = createStoredSignal('selectedNostrAuthor', '')
+  
   const corsProxies = createDexieArrayQuery(() => db.corsproxies.toArray());
   const putCorsProxy = async (newCorsProxy: CorsProxy) => {
     await db.corsproxies.put(newCorsProxy)
@@ -131,6 +202,123 @@ const App: Component = () => {
   const removeTrainLabel = async (trainLabelToRemove: TrainLabel) => {
     await db.trainlabels.where('id').equals(trainLabelToRemove?.id).delete()
   }
+
+  const train = (params: {
+    mlText: string,
+    mlClass: string,
+    trainLabel: string
+  }) => {
+    const oldModel: string = classifiers.find((classifierEntry) => classifierEntry?.id == params.trainLabel)?.model || ''
+    const winkClassifier = WinkClassifier()
+    winkClassifier.definePrepTasks( [ prepTask ] );
+    winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
+    if (oldModel != '') {
+      winkClassifier.importJSON(oldModel)
+    }
+    winkClassifier.learn(params.mlText, params.mlClass)
+    const newModel: string = winkClassifier.exportJSON()
+    const newClassifierEntry = {
+      id: params.trainLabel,
+      model: newModel,
+      thresholdSuppressDocCount: '10',
+      thresholdPromoteDocCount: '10'
+    }
+    putClassifier(newClassifierEntry)
+  }
+
+  const [nostrQuery, setNostrQuery] = createSignal('')
+
+  const processedPosts = createDexieArrayQuery(() => db.processedposts.toArray());
+
+  const putProcessedPost = async (newProcessedPost: ProcessedPost) => {
+    await db.processedposts.put(newProcessedPost)
+  }
+
+  const markComplete = (postId: string, feedId: string) => {
+    const newProcessedPostsForFeed = processedPosts.find((processedPostForFeed) => processedPostForFeed.id == feedId)?.processedPosts?.slice()
+    putProcessedPost({
+      id: feedId,
+      processedPosts: Array.from(new Set([newProcessedPostsForFeed, postId].flat())) as string[]
+    })
+  }
+
+  const ignoreNostrKeys = createDexieArrayQuery(() => db.nostrkeys
+  .filter(nostrKey => nostrKey.ignore === true)
+  .toArray()
+  );
+
+  createEffect(() => {
+    const nostrRelayList = checkedNostrRelays
+      .map((relay: NostrRelay) => relay.id)
+    const nostrAuthor = selectedNostrAuthor()
+    const newQuery = JSON.stringify({
+      'nostrRelayList': nostrRelayList,
+      'nostrAuthor': nostrAuthor,
+      'ignore': ignoreNostrKeys,
+    })
+    setNostrQuery(newQuery)
+  })
+
+  function fetchNostrPosts(params: string) {
+    return new Promise((resolve) => {
+      console.log(params)
+      const paramsObj = JSON.parse(params)
+      if (paramsObj.nostrRelayList?.length == 0) {
+        return
+      }
+      const filterOptions = `${paramsObj.nostrAuthor}` != '' ?
+      {
+        kinds: [ eventKind.text, 30023 ],
+        authors: [`${paramsObj.nostrAuthor}`],
+      } :
+      {
+        kinds: [ 1, 30023 ]
+      }
+      const maxPosts = `${paramsObj.nostrAuthor}` == '' ? 1000 : 1000
+      const winkClassifier = WinkClassifier()
+      winkClassifier.definePrepTasks( [ prepTask ] );
+      winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
+      const classifierModel: string = classifiers.find((classifierEntry: any) => classifierEntry?.id == 'nostr')?.model || ''
+      if (classifierModel != '') {
+        winkClassifier.importJSON(classifierModel)
+      }
+
+      fetcher.fetchLatestEvents(
+        [...paramsObj.nostrRelayList],
+        filterOptions,
+        maxPosts
+      )
+      .then((allThePosts: any) => {
+        const processedNostrPosts = processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == 'nostr')?.processedPosts
+        const suppressOdds = classifiers.find((classifierEntry) => classifierEntry?.id == 'nostr')?.thresholdSuppressOdds
+        const filteredPosts = allThePosts
+          .filter((nostrPost: any) => `${nostrPost.mlText}`.replace(' ','') != '')
+          .filter((nostrPost: any) => {
+            return Object.fromEntries(nostrPost.tags)['e'] == null
+          })
+          .filter((nostrPost: any) => {
+            return nostrPost.content.replace('vmess:','').length == nostrPost.content.length
+          })
+          .filter((nostrPost: any) => !ignoreNostrKeys.find((ignoreKey: {publicKey: string}) => ignoreKey.publicKey == nostrPost.pubkey))
+          .map((nostrPost: any) => prepNostrPost(nostrPost))
+          .filter((nostrPost: any) => {
+            return [processedNostrPosts].flat()?.indexOf(nostrPost.mlText) == -1
+          })
+          .map((post: any) => applyPrediction({
+            post: post,
+            classifier: winkClassifier
+          }))
+          .filter((post: any) => {
+            return (post.mlText != '')
+          })
+          .filter((post: any) => {
+            return (post.prediction?.suppress || 0) <= (suppressOdds || 0)
+          })
+        resolve(filteredPosts)
+      })
+    })
+  }
+  const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts);
   
   return (
     <div>
@@ -140,7 +328,7 @@ const App: Component = () => {
             <div class={`bg-red-900 rounded-2`}>
               <div>
                 <Button.Root
-                  class={`${navIsOpen() ? '' : 'hidden'} text-4xl text-white bg-transparent border-none hover-text-white hover:bg-slate-900 rounded-full`}
+                  class={`${navIsOpen() ? '' : 'w-0 bg-transparent hover:bg-transparent'} text-4xl text-white bg-transparent border-none hover-text-white hover:bg-slate-900 rounded-full`}
                   onClick={event => {
                     event.preventDefault()
                     setNavIsOpen(false)
@@ -150,18 +338,56 @@ const App: Component = () => {
                 </Button.Root>
               </div>
               <Tabs.List>
+                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrposts">nostr&nbsp;global</Tabs.Trigger></div>
                 <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="profile">Profile</Tabs.Trigger><div /></div>
                 <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="cors">Cors&nbsp;Proxies</Tabs.Trigger></div>
                 <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="contact">Contact</Tabs.Trigger></div>
                 <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrrelays">Nostr&nbsp;Relays</Tabs.Trigger></div>
                 <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrkeys">Nostr&nbsp;Keys</Tabs.Trigger></div>
                 <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="classifiers">Classifiers</Tabs.Trigger></div>
-                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="trainlabels">Train Labels</Tabs.Trigger></div>
+                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="trainlabels">Train&nbspLabels</Tabs.Trigger></div>
               </Tabs.List>
             </div>
           </div>
           <div class={`font-sans`}>
             <div>
+              <Tabs.Content value="nostrposts">
+                <div class='flex sm:flex-row flex-col'>
+                  <div class={navIsOpen() ? 'hidden' : ''}>
+                    <Button.Root
+                      class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
+                      onClick={event => {
+                        event.preventDefault()
+                        setNavIsOpen(true)
+                      }}
+                    >⭢
+                    </Button.Root>
+                  </div>
+                  <div class='ml-2'>
+                  <NostrPosts
+                    selectedTrainLabel='nostr'
+                    train={(params: {
+                      mlText: string,
+                      mlClass: string,
+                      trainLabel: string
+                    }) => {
+                      train({
+                        mlText: params.mlText,
+                        mlClass: params.mlClass,
+                        trainLabel: 'nostr',
+                      })
+                    }}
+                    nostrPosts={nostrPosts}
+                    selectedNostrAuthor={selectedNostrAuthor}
+                    setSelectedNostrAuthor={setSelectedNostrAuthor}
+                    putNostrKey={putNostrKey}
+                    putProcessedPost={putProcessedPost}
+                    putClassifier={putClassifier}
+                    markComplete={(postId: string) => markComplete(postId, 'nostr')}
+                  />
+                  </div>
+                </div>
+              </Tabs.Content>
               <Tabs.Content value="profile">
                 <div class='flex sm:flex-row flex-col'>
                   <div class={navIsOpen() ? 'hidden' : ''}>
