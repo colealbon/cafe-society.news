@@ -1,7 +1,7 @@
 import {
   Show
 } from 'solid-js'
-import { Link } from "@kobalte/core";
+import { Button } from "@kobalte/core";
 import { Tooltip } from "@kobalte/core";
 import {
   AiOutlineArrowUp,
@@ -27,14 +27,21 @@ const PostTrain = (props: {
       <Show when={(0.0 + props.prediction['suppress'] || 0.0) > 0}>
         {(0.0 + props.prediction['suppress'] || 0.0).toFixed(2)}
       </Show>
-    <AiOutlineArrowDown class="collapsible__trigger-icon button" onclick={() => setTimeout(() => {
-        props.markComplete()
-        handleTrain('suppress')
+      <AiOutlineArrowDown
+        class={`collapsible__trigger-icon text-xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full`}
+        onclick={() => setTimeout(() => {
+          props.markComplete()
+          handleTrain('suppress')
         }, 300)
       }/>
     <Tooltip.Root>
-      <Tooltip.Trigger  style={{'padding': 'unset'}}>
-        <Link.Root onClick={() => setTimeout(() => props.markComplete() , 300)}>{props.trainLabel}</Link.Root>
+      <Tooltip.Trigger class='p-0 bg-transparent border-none'>
+        <Button.Root
+          onClick={() => setTimeout(() => props.markComplete() , 300)}
+          class={`text-xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full`}
+        >
+          {props.trainLabel}
+        </Button.Root>
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Content class="tooltip__content">
@@ -57,13 +64,15 @@ const PostTrain = (props: {
         </Tooltip.Content>
       </Tooltip.Portal>
     </Tooltip.Root>
+    <div class='rounded-full hover-text-white mt-1'>
       <AiOutlineArrowUp
-        class="collapsible__trigger-icon rounded-full"
+        class="text-xl transition-all text-transparent bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full"
         onclick={() => setTimeout(() => {
             props.markComplete()
             handleTrain('promote')
           }, 300)
       }/>
+    </div>
       <div/>
       <div/>
     </div>

@@ -59,7 +59,7 @@ const NostrPosts = (props: {
         <Separator.Root />
       </div>
       <Show when={props.selectedNostrAuthor() !== ''}>
-        <div style={{'margin': '30px', 'display': 'flex', 'flex-direction': 'row', 'justify-content': 'space-around'}}>
+        <div class='flex flex-row'>
           <Button.Root
             class='bg-transparent border-none rounded'
             onClick={(event) => {
@@ -119,21 +119,29 @@ const NostrPosts = (props: {
                       <>
                         <Show when={(props.selectedNostrAuthor() == '')}>
                           <Button.Root
-                            class='bg-transparent text-orange border-none rounded'
-                            onClick={(event) => {
-                            event.preventDefault()
-                            handleClickDrillPubkey(post.pubkey)
-                          }}>
-                            {`${post.pubkey.substring(0,5)}...${post.pubkey.substring(post.pubkey.length - 5)}`}
-                          </Button.Root>
-                          <Button.Root
-                            class='bg-transparent border-none'
+                            class='bg-transparent border-none rounded'
                             onClick={(event) => {
                               event.preventDefault()
-                              handleIgnore(post.pubkey)
+                              handleClickDrillPubkey(post.pubkey)
+                            }}
+                            title='view user posts'
+                          >
+                            <div class='text-xl text-orange hover-bg-orange hover-text-white text-xl rounded-2 ml-1 mr-1'>
+                            {`${post.pubkey.substring(0,5)}...${post.pubkey.substring(post.pubkey.length - 5)}`}
+                            </div>
+                          </Button.Root>
+                          <Button.Root
+                            title='ignore'
+                            class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red rounded-full`}
+                            onClick={event => {
+                              event.preventDefault()
+                              handleIgnore(props.selectedNostrAuthor())
+                              props.setSelectedNostrAuthor('')
                             }}
                           >
-                            <IoRemoveCircleOutline />
+                            <div class='text-red hover-text-white mt-2'>
+                              <IoRemoveCircleOutline />
+                            </div>
                           </Button.Root>
                         </Show>
                         <div style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</div>
