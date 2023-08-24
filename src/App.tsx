@@ -261,7 +261,6 @@ const App: Component = () => {
 
   function fetchNostrPosts(params: string) {
     return new Promise((resolve) => {
-      console.log(params)
       const paramsObj = JSON.parse(params)
       if (paramsObj.nostrRelayList?.length == 0) {
         return

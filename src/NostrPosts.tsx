@@ -5,7 +5,9 @@ import {
 import {
   Separator,
   Link,
-  Collapsible
+  Collapsible,
+  Button,
+  Tooltip
 } from "@kobalte/core";
 
 import PostTrain from './PostTrain'
@@ -58,32 +60,45 @@ const NostrPosts = (props: {
       </div>
       <Show when={props.selectedNostrAuthor() !== ''}>
         <div style={{'margin': '30px', 'display': 'flex', 'flex-direction': 'row', 'justify-content': 'space-around'}}>
-          <Link.Root onClick={(event) => {
-            event.preventDefault()
-            handleClickDrillPubkey('')
-          }}>
-            <div color='orange'>
-             {`${props.selectedNostrAuthor()}`}
+          <Button.Root
+            class='bg-transparent border-none rounded'
+            onClick={(event) => {
+              event.preventDefault()
+              handleClickDrillPubkey('')
+            }}
+            title='nostr global feed'
+          >
+            <div class='text-xl text-orange hover-bg-orange hover-text-white text-xl rounded-2 ml-1 mr-1'>
+             {` ${props.selectedNostrAuthor().substring(0,5)}...${props.selectedNostrAuthor().substring(props.selectedNostrAuthor().length - 5)} `}
             </div>
-          </Link.Root>
-          <Link.Root onClick={(event) => {
-            event.preventDefault()
-            handleFollow(props.selectedNostrAuthor())
-            props.setSelectedNostrAuthor('')
-          }}>
-            <div color='green'>
-            <CgUserAdd/>
+          </Button.Root>
+          <Button.Root
+            title='follow'
+            class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-green-900 rounded-full`}
+            onClick={event => {
+              event.preventDefault()
+              handleFollow(props.selectedNostrAuthor())
+              props.setSelectedNostrAuthor('')
+            }}
+          >
+            <div class='text-green-900 hover-text-white mt-1'>
+              <CgUserAdd />
             </div>
-          </Link.Root>
-          <Link.Root onClick={(event) => {
-            event.preventDefault()
-            handleIgnore(props.selectedNostrAuthor())
-            props.setSelectedNostrAuthor('')
-          }}>
-            <div color='red'>
-            <IoRemoveCircleOutline />
+           </Button.Root>
+
+           <Button.Root
+            title='ignore'
+            class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red rounded-full`}
+            onClick={event => {
+              event.preventDefault()
+              handleIgnore(props.selectedNostrAuthor())
+              props.setSelectedNostrAuthor('')
+            }}
+          >
+            <div class='text-red hover-text-white mt-2'>
+              <IoRemoveCircleOutline />
             </div>
-          </Link.Root>
+           </Button.Root>
           <div />
           <div />
           <div />
@@ -93,47 +108,52 @@ const NostrPosts = (props: {
       </Show>
       <For each={props.nostrPosts()} fallback={<>Loading</>}>
           {(post) => {
+            console.log(post.prediction.promote == 0)
             return (
               <Show when={post.mlText != ''}>
               {
-                <Collapsible.Root class="collapsible" defaultOpen={true}>
-                  <Collapsible.Content class="collapsible__content">
+                <Collapsible.Root class="collapsible border-none" defaultOpen={true}>
+                  <Collapsible.Content class="collapsible__content flex text-wrap">
                     <p class="collapsible__content-text">
                     {
                       <>
-                        <Link.Root
-                          style={{'color': 'orange'}}
-                          onClick={(event) => {
-                          event.preventDefault()
-                          handleClickDrillPubkey(post.pubkey)
-                        }}>
-                          {`${post.pubkey.substring(0,5)}...${post.pubkey.substring(post.pubkey.length - 5)}`}
-                        </Link.Root>
-                        <Link.Root onClick={(event) => {
-                          event.preventDefault()
-                          handleIgnore(post.pubkey)
-                        }}>
-                          <IoRemoveCircleOutline />
-                        </Link.Root>
-
+                        <Show when={(props.selectedNostrAuthor() == '')}>
+                          <Button.Root
+                            class='bg-transparent text-orange border-none rounded'
+                            onClick={(event) => {
+                            event.preventDefault()
+                            handleClickDrillPubkey(post.pubkey)
+                          }}>
+                            {`${post.pubkey.substring(0,5)}...${post.pubkey.substring(post.pubkey.length - 5)}`}
+                          </Button.Root>
+                          <Button.Root
+                            class='bg-transparent border-none'
+                            onClick={(event) => {
+                              event.preventDefault()
+                              handleIgnore(post.pubkey)
+                            }}
+                          >
+                            <IoRemoveCircleOutline />
+                          </Button.Root>
+                        </Show>
                         <div style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</div>
-                        <div>
+                        <div class='flex text-wrap'>
                           {post.content}
                         </div>
-                        <Collapsible.Trigger class="collapsible__trigger">
-                        <PostTrain
-                          trainLabel={'nostr'}
-                          train={(mlClass: string) => {
-                            props.train({
-                              mlClass: mlClass,
-                              mlText: post.mlText
-                            })
-                          }}
-                          mlText={post.mlText}
-                          prediction={post.prediction}
-                          docCount={post.docCount}
-                          markComplete={() => props.markComplete(post.mlText)}
-                        />
+                        <Collapsible.Trigger class='bg-transparent border-none'>
+                          <PostTrain
+                            trainLabel={'nostr'}
+                            train={(mlClass: string) => {
+                              props.train({
+                                mlClass: mlClass,
+                                mlText: post.mlText
+                              })
+                            }}
+                            mlText={post.mlText}
+                            prediction={post.prediction}
+                            docCount={post.docCount}
+                            markComplete={() => props.markComplete(post.mlText)}
+                          />
                       </Collapsible.Trigger>
                     </>}
                 </p>
