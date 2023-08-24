@@ -23,12 +23,10 @@ const PostTrain = (props: {
   }
 
   return(
-    <div style={{"display": "flex", "flex-direction": 'row', 'justify-content':'space-around', 'width': '300px'}}>
-    <div>
+    <div class='flex flex-row flex-around flex-items-center'>
       <Show when={(0.0 + props.prediction['suppress'] || 0.0) > 0}>
         {(0.0 + props.prediction['suppress'] || 0.0).toFixed(2)}
       </Show>
-    </div>
     <AiOutlineArrowDown class="collapsible__trigger-icon button" onclick={() => setTimeout(() => {
         props.markComplete()
         handleTrain('suppress')
@@ -41,23 +39,26 @@ const PostTrain = (props: {
       <Tooltip.Portal>
         <Tooltip.Content class="tooltip__content">
           <div>
-          <div>
-          {props.docCount ? `ML document count: ${props.docCount}` : `more training required for predictions ${JSON.stringify(props.prediction, null, 2)}`}
-          </div>
-          <div>
-          {`prediction: ${(0.0 + props.prediction['promote'] || 0.0) > 0 ? 'promote' : 'suppress'}`}
-          </div>
-          <div>
-          {`odds: ${(0.0 + props.prediction['promote'] || 0.0)
-          .toFixed(2)
-          .replace('NaN', '-')}`}
-          </div>
+            <div>
+              {props.docCount ? `ML document count: ${props.docCount}` : `more training required for predictions ${JSON.stringify(props.prediction, null, 2)}`}
+            </div>
+            <div>
+              {`prediction: ${(0.0 + props.prediction['promote'] || 0.0) > 0 ? 'promote' : 'suppress'}`}
+            </div>
+            <div>
+              {`odds: ${(0.0 + props.prediction['promote'] || 0.0)
+              .toFixed(2)
+              .replace('NaN', '-')}`}
+            </div>
+            <div>
+              {`mltext: ${props.mlText}`}
+            </div>
           </div>
         </Tooltip.Content>
       </Tooltip.Portal>
     </Tooltip.Root>
       <AiOutlineArrowUp
-        class="collapsible__trigger-icon"
+        class="collapsible__trigger-icon rounded-full"
         onclick={() => setTimeout(() => {
             props.markComplete()
             handleTrain('promote')
