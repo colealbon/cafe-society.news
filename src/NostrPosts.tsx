@@ -59,7 +59,7 @@ const NostrPosts = (props: {
         <Separator.Root />
       </div>
       <Show when={props.selectedNostrAuthor() !== ''}>
-        <div class='flex flex-row'>
+        <div class='flex flex-row m-0 p-0'>
           <Button.Root
             class='bg-transparent border-none rounded'
             onClick={(event) => {
@@ -111,11 +111,11 @@ const NostrPosts = (props: {
             return (
               <Show when={post.mlText != ''}>
               {
-                <Collapsible.Root class="collapsible border-none w-full" defaultOpen={true}>
-                  <Collapsible.Content class="collapsible__content flex text-wrap w-full">
-                    <p class="collapsible__content-text w-full">
+                <Collapsible.Root class="collapsible border-none w-full m-0 p-0" defaultOpen={true}>
+                  <Collapsible.Content class="flex text-wrap w-full mt-4 ml-0 p-0">
+                    <p class="w-full m-0 p-0">
                     {
-                      <div class='w-full'>
+                      <div class='w-full m-0 p-0'>
                         <Show when={(props.selectedNostrAuthor() == '')}>
                           <Button.Root
                             class='bg-transparent border-none rounded'
@@ -156,7 +156,7 @@ const NostrPosts = (props: {
                           {(link) => {
                             return (
                               <div>
-                                <Link.Root href={link} target='cafe-society'>{link.length >= 50 ? `${link.substring(0,50)}...` : link }</Link.Root>
+                                <Link.Root href={link} target='cafe-society'>{link.length >= 35 ? `${link.substring(0,35)}...` : link }</Link.Root>
                               </div>
                             )
                           }}
