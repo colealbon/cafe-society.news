@@ -108,15 +108,14 @@ const NostrPosts = (props: {
       </Show>
       <For each={props.nostrPosts()} fallback={<>Loading</>}>
           {(post) => {
-            console.log(post.prediction.promote == 0)
             return (
               <Show when={post.mlText != ''}>
               {
-                <Collapsible.Root class="collapsible border-none" defaultOpen={true}>
-                  <Collapsible.Content class="collapsible__content flex text-wrap">
-                    <p class="collapsible__content-text">
+                <Collapsible.Root class="collapsible border-none w-full" defaultOpen={true}>
+                  <Collapsible.Content class="collapsible__content flex text-wrap w-full">
+                    <p class="collapsible__content-text w-full">
                     {
-                      <>
+                      <div class='w-full'>
                         <Show when={(props.selectedNostrAuthor() == '')}>
                           <Button.Root
                             class='bg-transparent border-none rounded'
@@ -145,9 +144,23 @@ const NostrPosts = (props: {
                           </Button.Root>
                         </Show>
                         <div style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</div>
-                        <div class='flex text-wrap'>
-                          {post.content}
+                        <div class='flex text-wrap w-full'>
+                          {
+                            post.content
+                            .replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g, '')
+                            .replace(/nostr:.*/g, '')
+                            .replace('undefined', '')
+                          }
                         </div>
+                        <For each={post.links} fallback={<></>}>
+                          {(link) => {
+                            return (
+                              <div>
+                                <Link.Root href={link} target='cafe-society'>{link.length >= 50 ? `${link.substring(0,50)}...` : link }</Link.Root>
+                              </div>
+                            )
+                          }}
+                        </For>
                         <Collapsible.Trigger class='bg-transparent border-none'>
                           <PostTrain
                             trainLabel={'nostr'}
@@ -163,7 +176,7 @@ const NostrPosts = (props: {
                             markComplete={() => props.markComplete(post.mlText)}
                           />
                       </Collapsible.Trigger>
-                    </>}
+                    </div>}
                 </p>
               </Collapsible.Content>
             </Collapsible.Root>
