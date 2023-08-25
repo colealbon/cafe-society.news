@@ -28,7 +28,7 @@ const PostTrain = (props: {
         {(0.0 + props.prediction['suppress'] || 0.0).toFixed(2)}
       </Show>
       <AiOutlineArrowDown
-        class={`collapsible__trigger-icon text-xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full`}
+        class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full`}
         onclick={() => setTimeout(() => {
           props.markComplete()
           handleTrain('suppress')
@@ -66,7 +66,7 @@ const PostTrain = (props: {
     </Tooltip.Root>
     <div class='rounded-full hover-text-white mt-1'>
       <AiOutlineArrowUp
-        class="text-xl transition-all text-transparent bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full"
+        class="text-4xl transition-all text-transparent bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full"
         onclick={() => setTimeout(() => {
             props.markComplete()
             handleTrain('promote')
