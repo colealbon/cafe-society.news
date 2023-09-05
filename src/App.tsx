@@ -4,6 +4,7 @@ import type {
   Signal
 } from 'solid-js';
 import {
+  Show,
   createEffect,
   createSignal,
   createResource
@@ -26,6 +27,7 @@ import Classifiers from './Classifiers';
 import Profile from './Profile';
 import TrainLabels from './TrainLabels';
 import NostrPosts from './NostrPosts';
+import RSSFeeds from './RSSFeeds';
 
 import defaultCorsProxies from './defaultCorsProxies';
 import defaultNostrRelays from './defaultNostrRelays';
@@ -38,7 +40,7 @@ import {
   NostrRelay,
   NostrKey,
   TrainLabel,
-  Feed,
+  RSSFeed,
   CorsProxy,
   Classifier,
   ProcessedPost
@@ -214,6 +216,19 @@ const App: Component = () => {
     await db.trainlabels.where('id').equals(trainLabelToRemove?.id).delete()
   }
 
+  const rssFeeds = createDexieArrayQuery(() => db.rssfeeds.toArray());
+
+  const checkedRSSFeeds = createDexieArrayQuery(() => db.rssfeeds
+    .filter(feed => feed.checked === true)
+    .toArray());
+    
+  const putRSSFeed = async (newRSSFeed: RSSFeed) => {
+    await db.rssfeeds.put(newRSSFeed)
+  }
+  const removeRSSFeed = async (rssFeedToRemove: RSSFeed) => {
+    await db.rssfeeds.where('id').equals(rssFeedToRemove?.id).delete()
+  }
+
   const train = (params: {
     mlText: string,
     mlClass: string,
@@ -353,19 +368,22 @@ const App: Component = () => {
               </Button.Root>
             </div>
             <div class={`${navIsOpen() ? '' : 'h-0'} transition-all`}>
-              <Tabs.List>
-                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrposts">nostr&nbsp;global</Tabs.Trigger></div>
-                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="profile">Profile</Tabs.Trigger><div /></div>
-                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="cors">Cors&nbsp;Proxies</Tabs.Trigger></div>
-                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="contact">Contact</Tabs.Trigger></div>
-                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrrelays">Nostr&nbsp;Relays</Tabs.Trigger></div>
-                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrkeys">Nostr&nbsp;Keys</Tabs.Trigger></div>
-                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="classifiers">Classifiers</Tabs.Trigger></div>
-                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="trainlabels">Train&nbspLabels</Tabs.Trigger></div>
-              </Tabs.List>
+              <Show when={navIsOpen()}>
+                <Tabs.List>
+                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrposts">Nostr&nbsp;Global</Tabs.Trigger></div>
+                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="profile">Profile</Tabs.Trigger><div /></div>
+                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="cors">Cors&nbsp;Proxies</Tabs.Trigger></div>
+                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="contact">Contact</Tabs.Trigger></div>
+                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrrelays">Nostr&nbsp;Relays</Tabs.Trigger></div>
+                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrkeys">Nostr&nbsp;Keys</Tabs.Trigger></div>
+                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="classifiers">Classifiers</Tabs.Trigger></div>
+                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="trainlabels">Train&nbspLabels</Tabs.Trigger></div>
+                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="rssfeeds">RSS&nbspFeeds</Tabs.Trigger></div>
+                </Tabs.List>
+              </Show>
             </div>
           </div>
-          <div class='ml-2'>
+          <div class='ml-2 mr-2'>
             <Tabs.Content value="nostrposts">
               <NostrPosts
                 selectedTrainLabel='nostr'
@@ -435,6 +453,17 @@ const App: Component = () => {
                 trainLabels={trainLabels}
                 putTrainLabel={putTrainLabel}
                 removeTrainLabel={removeTrainLabel}
+              />
+            </Tabs.Content>
+
+
+            <Tabs.Content value="rssfeeds">
+              <RSSFeeds
+                rssFeeds={rssFeeds}
+                putFeed={putRSSFeed}
+                removeFeed={removeRSSFeed}
+                trainLabels={trainLabels}
+                handleFeedToggleChecked={(id: string) => handleFeedToggleChecked(id)}
               />
             </Tabs.Content>
           </div>

@@ -36,7 +36,6 @@ const TextInput: Component<{
         required={props.control?.isRequired}
         disabled={props.control?.isDisabled}
       />
-
       <Show when={props.control?.isTouched && !props.control.isValid}>
         <For each={Object.values({...props.control?.errors})}>
           {(errorMsg: string) => <small>{errorMsg}</small>}

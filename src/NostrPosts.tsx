@@ -6,8 +6,7 @@ import {
   Separator,
   Link,
   Collapsible,
-  Button,
-  Tooltip
+  Button
 } from "@kobalte/core";
 
 import PostTrain from './PostTrain'
@@ -132,19 +131,24 @@ const NostrPosts = (props: {
                             {`${post.pubkey.substring(0,5)}...${post.pubkey.substring(post.pubkey.length - 5)}`}
                             </div>
                           </Button.Root>
-                          <Button.Root
-                            title='ignore'
-                            class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red rounded-full`}
-                            onClick={event => {
-                              event.preventDefault()
-                              handleIgnore(props.selectedNostrAuthor())
-                              props.setSelectedNostrAuthor('')
-                            }}
-                          >
-                            <div class='text-red hover-text-white mt-2'>
-                              <IoRemoveCircleOutline />
-                            </div>
-                          </Button.Root>
+                          <Collapsible.Trigger class='bg-transparent border-none'>
+                            <Button.Root
+                              title='ignore'
+                              class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red rounded-full`}
+                              onClick={event => {
+                                event.preventDefault()
+                                handleIgnore(props.selectedNostrAuthor())
+                                setTimeout(() => {
+                                  props.markComplete(post.mlText)
+                                  props.setSelectedNostrAuthor('')
+                                }, 300)
+                              }}
+                            >
+                              <div class='text-red hover-text-white mt-2'>
+                                <IoRemoveCircleOutline />
+                              </div>
+                            </Button.Root>
+                          </Collapsible.Trigger>
                         </Show>
                         <div style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</div>
                         <div class='flex text-wrap w-full'>
@@ -160,7 +164,11 @@ const NostrPosts = (props: {
                           {(link) => {
                             return (
                               <div>
-                                <Link.Root href={link} target='cafe-society'>{link.length >= 35 ? `${link.substring(0,35)}...` : link }</Link.Root>
+                                <Link.Root href={link} target='cafe-society'>
+                                  {
+                                    link.length >= 35 ? `${link.substring(0,35)}...` : link
+                                  }
+                                </Link.Root>
                               </div>
                             )
                           }}
@@ -177,14 +185,18 @@ const NostrPosts = (props: {
                             mlText={post.mlText}
                             prediction={post.prediction}
                             docCount={post.docCount}
-                            markComplete={() => props.markComplete(post.mlText)}
+                            markComplete={() => {
+                              setTimeout(() => {
+                                props.markComplete(post.mlText)
+                              }, 300)
+                            }}
                           />
                       </Collapsible.Trigger>
-                    </div>}
-                </p>
-              </Collapsible.Content>
-            </Collapsible.Root>
-          }</Show>
+                    </div>
+                  }</p>
+                </Collapsible.Content>
+              </Collapsible.Root>
+            }</Show>
             )
           }}
         </For>
