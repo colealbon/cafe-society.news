@@ -15,7 +15,7 @@ export interface Classifier {
   "model": string
 }
 
-export interface Feed {
+export interface RSSFeed {
     "id": string,
     "checked": boolean,
     "trainLabels": string[]
@@ -41,7 +41,7 @@ export interface ProcessedPost {
 
 export class DbFixture extends Dexie {
   nostrkeys!: Table<NostrKey>;
-  feeds!: Table<Feed>;
+  rssfeeds!: Table<RSSFeed>;
   corsproxies!: Table<CorsProxy>;
   trainlabels!: Table<TrainLabel>;
   classifiers!: Table<Classifier>;
@@ -51,7 +51,7 @@ export class DbFixture extends Dexie {
     super("db-fixture");
     this.version(1).stores({
       nostrkeys: "&publicKey",
-      feeds: "&id, checked, *trainLabels",
+      rssfeeds: "&id, checked, *trainLabels",
       corsproxies: "&id",
       trainlabels: "&id",
       classifiers: "&id",
