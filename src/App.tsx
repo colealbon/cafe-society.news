@@ -120,7 +120,7 @@ const prepNostrPost = (post: any) => {
         linkBrackets: false,
         wordwrap: false
       }
-      ).toLowerCase().match(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g),
+      ).toLowerCase().match(/((file|http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g),
     ...post
   }
 }
@@ -336,215 +336,106 @@ const App: Component = () => {
   return (
     <div class={`font-sans`}>
       <Tabs.Root>
-        <div class='flex flex-column'>
-          <div class={`${navIsOpen() ? `w-3/6` : 'w-0'} transition-width ease-in-out transition-duration-.5s`}>
-            <div class={`bg-red-900 rounded-2`}>
-              <div>
-                <Button.Root
-                  class={`${navIsOpen() ? '' : 'w-0 bg-transparent hover:bg-transparent'} text-4xl text-white bg-transparent border-none hover-text-white hover:bg-slate-900 rounded-full`}
-                  onClick={event => {
-                    event.preventDefault()
-                    setNavIsOpen(false)
-                  }}
-                >
-                  ⭠
-                </Button.Root>
-              </div>
+        <div>
+          <div class={`${navIsOpen() ? 'bg-red-900' : ''} transition-all duration-500 rounded-2`}>
+            <div class='text-2xl transition-all'>
+              <Button.Root
+                class={`${navIsOpen() ? 
+                  'hover-bg-slate-900 bg-red-900 text-white' : 
+                  'hover-bg-red-900 hover-text-white'} 
+                  border-none rounded-2 transition-all duration-500 text-3xl`}
+                onClick={event => {
+                  event.preventDefault()
+                  setNavIsOpen(!navIsOpen())
+                }}
+              >
+                {navIsOpen() ? <> ↑ </> : <> ↓ </>}
+              </Button.Root>
+            </div>
+            <div class={`${navIsOpen() ? '' : 'h-0'} transition-all`}>
               <Tabs.List>
-                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrposts">nostr&nbsp;global</Tabs.Trigger></div>
-                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="profile">Profile</Tabs.Trigger><div /></div>
-                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="cors">Cors&nbsp;Proxies</Tabs.Trigger></div>
-                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="contact">Contact</Tabs.Trigger></div>
-                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrrelays">Nostr&nbsp;Relays</Tabs.Trigger></div>
-                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrkeys">Nostr&nbsp;Keys</Tabs.Trigger></div>
-                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="classifiers">Classifiers</Tabs.Trigger></div>
-                <div class='w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="trainlabels">Train&nbspLabels</Tabs.Trigger></div>
+                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrposts">nostr&nbsp;global</Tabs.Trigger></div>
+                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="profile">Profile</Tabs.Trigger><div /></div>
+                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="cors">Cors&nbsp;Proxies</Tabs.Trigger></div>
+                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="contact">Contact</Tabs.Trigger></div>
+                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrrelays">Nostr&nbsp;Relays</Tabs.Trigger></div>
+                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrkeys">Nostr&nbsp;Keys</Tabs.Trigger></div>
+                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="classifiers">Classifiers</Tabs.Trigger></div>
+                <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="trainlabels">Train&nbspLabels</Tabs.Trigger></div>
               </Tabs.List>
             </div>
           </div>
-          <div>
+          <div class='ml-2'>
             <Tabs.Content value="nostrposts">
-              <div class='flex sm:flex-row flex-col'>
-                <div class={navIsOpen() ? 'hidden' : ''}>
-                  <Button.Root
-                    class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
-                    onClick={event => {
-                      event.preventDefault()
-                      setNavIsOpen(true)
-                    }}
-                  >⭢
-                  </Button.Root>
-                </div>
-                <div class='ml-2'>
-                <NostrPosts
-                  selectedTrainLabel='nostr'
-                  train={(params: {
-                    mlText: string,
-                    mlClass: string,
-                    trainLabel: string
-                  }) => {
-                    train({
-                      mlText: params.mlText,
-                      mlClass: params.mlClass,
-                      trainLabel: 'nostr',
-                    })
-                  }}
-                  nostrPosts={nostrPosts}
-                  selectedNostrAuthor={selectedNostrAuthor}
-                  setSelectedNostrAuthor={setSelectedNostrAuthor}
-                  putNostrKey={putNostrKey}
-                  putProcessedPost={putProcessedPost}
-                  putClassifier={putClassifier}
-                  markComplete={(postId: string) => markComplete(postId, 'nostr')}
-                />
-                </div>
-              </div>
+              <NostrPosts
+                selectedTrainLabel='nostr'
+                train={(params: {
+                  mlText: string,
+                  mlClass: string,
+                  trainLabel: string
+                }) => {
+                  train({
+                    mlText: params.mlText,
+                    mlClass: params.mlClass,
+                    trainLabel: 'nostr',
+                  })
+                }}
+                nostrPosts={nostrPosts}
+                selectedNostrAuthor={selectedNostrAuthor}
+                setSelectedNostrAuthor={setSelectedNostrAuthor}
+                putNostrKey={putNostrKey}
+                putProcessedPost={putProcessedPost}
+                putClassifier={putClassifier}
+                markComplete={(postId: string) => markComplete(postId, 'nostr')}
+              />
             </Tabs.Content>
             <Tabs.Content value="profile">
-              <div class='flex sm:flex-row flex-col'>
-                <div class={navIsOpen() ? 'hidden' : ''}>
-                  <Button.Root
-                    class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
-                    onClick={event => {
-                      event.preventDefault()
-                      setNavIsOpen(true)
-                    }}
-                  >⭢
-                  </Button.Root>
-                </div>
-                <div class='ml-2'>
-                  <Profile
-                    albyCodeVerifier={albyCodeVerifier}
-                    setAlbyCodeVerifier={setAlbyCodeVerifier}
-                    albyCode={albyCode}
-                    setAlbyCode={setAlbyCode}
-                    albyTokenReadInvoice={albyTokenReadInvoice}
-                    setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
-                  />
-                </div>
-              </div>
+              <Profile
+                albyCodeVerifier={albyCodeVerifier}
+                setAlbyCodeVerifier={setAlbyCodeVerifier}
+                albyCode={albyCode}
+                setAlbyCode={setAlbyCode}
+                albyTokenReadInvoice={albyTokenReadInvoice}
+                setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
+              />
             </Tabs.Content>
             <Tabs.Content value="cors">
-              <div class='flex sm:flex-row flex-col'>
-                <div class={navIsOpen() ? 'hidden' : ''}>
-                  <Button.Root
-                    class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
-                    onClick={event => {
-                      event.preventDefault()
-                      setNavIsOpen(true)
-                    }}
-                  >⭢
-                  </Button.Root>
-                </div>
-                <div class='ml-2'>
-                <CorsProxies
-                  corsProxies={corsProxies}
-                  putCorsProxy={putCorsProxy}
-                  removeCorsProxy={removeCorsProxy}
-                />
-                </div>
-              </div>
+              <CorsProxies
+                corsProxies={corsProxies}
+                putCorsProxy={putCorsProxy}
+                removeCorsProxy={removeCorsProxy}
+              />
             </Tabs.Content>
             <Tabs.Content value="contact">
-              <div class='flex sm:flex-row flex-col'>
-                <div class={navIsOpen() ? 'hidden' : ''}>
-                  <Button.Root
-                    class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
-                    onClick={event => {
-                      event.preventDefault()
-                      setNavIsOpen(true)
-                    }}
-                  >⭢
-                  </Button.Root>
-                </div>
-                <div class='ml-2'>
-                  <Contact/>
-                </div>
-              </div>
+              <Contact/>
             </Tabs.Content>
             <Tabs.Content value="nostrrelays">
-              <div class='flex sm:flex-row flex-col'>
-                <div class={navIsOpen() ? 'hidden' : ''}>
-                  <Button.Root
-                    class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
-                    onClick={event => {
-                      event.preventDefault()
-                      setNavIsOpen(true)
-                    }}
-                  >⭢
-                  </Button.Root>
-                </div>
-                <div class='ml-2'>
-                  <NostrRelays
-                    nostrRelays={nostrRelays}
-                    putNostrRelay={putNostrRelay}
-                    removeNostrRelay={removeNostrRelay}
-                  />
-                </div>
-              </div>
+              <NostrRelays
+                nostrRelays={nostrRelays}
+                putNostrRelay={putNostrRelay}
+                removeNostrRelay={removeNostrRelay}
+              />
             </Tabs.Content>
             <Tabs.Content value="nostrkeys">
-              <div class='flex sm:flex-row flex-col'>
-                <div class={navIsOpen() ? 'hidden' : ''}>
-                  <Button.Root
-                    class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
-                    onClick={event => {
-                      event.preventDefault()
-                      setNavIsOpen(true)
-                    }}
-                  >⭢
-                  </Button.Root>
-                </div>
-                <div class='ml-2'>
-                  <NostrKeys
-                    nostrKeys={nostrKeys}
-                    putNostrKey={putNostrKey}
-                    removeNostrKey={removeNostrKey}
-                  />
-                </div>
-              </div>
+              <NostrKeys
+                nostrKeys={nostrKeys}
+                putNostrKey={putNostrKey}
+                removeNostrKey={removeNostrKey}
+              />
             </Tabs.Content>
             <Tabs.Content value="classifiers">
-              <div class='flex sm:flex-row flex-col'>
-                <div class={navIsOpen() ? 'hidden' : ''}>
-                  <Button.Root
-                    class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
-                    onClick={event => {
-                      event.preventDefault()
-                      setNavIsOpen(true)
-                    }}
-                  >⭢
-                  </Button.Root>
-                </div>
-                <div class='ml-2'>
-                  <Classifiers
-                    classifiers={classifiers}
-                    putClassifier={putClassifier}
-                    removeClassifier={removeClassifier}
-                  />
-                </div>
-              </div>
+              <Classifiers
+                classifiers={classifiers}
+                putClassifier={putClassifier}
+                removeClassifier={removeClassifier}
+              />
             </Tabs.Content>
             <Tabs.Content value="trainlabels">
-              <div class='flex sm:flex-row flex-col'>
-                <div class={navIsOpen() ? 'hidden' : ''}>
-                  <Button.Root
-                    class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red-900 rounded-full`}
-                    onClick={event => {
-                      event.preventDefault()
-                      setNavIsOpen(true)
-                    }}
-                  >⭢
-                  </Button.Root>
-                </div>
-                <div class='ml-2'>
-                  <TrainLabels
-                    trainLabels={trainLabels}
-                    putTrainLabel={putTrainLabel}
-                    removeTrainLabel={removeTrainLabel}
-                  />
-                </div>
-              </div>
+              <TrainLabels
+                trainLabels={trainLabels}
+                putTrainLabel={putTrainLabel}
+                removeTrainLabel={removeTrainLabel}
+              />
             </Tabs.Content>
           </div>
         </div>

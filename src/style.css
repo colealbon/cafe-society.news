@@ -39,8 +39,6 @@
   transform: rotateZ(180deg);
 }
 .collapsible__content {
-  width: 100%;
-  overflow: hidden;
   animation: slideUp 300ms ease-out;
 }
 .collapsible__content[data-expanded] {
