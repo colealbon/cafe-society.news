@@ -49,7 +49,10 @@ const NostrPosts = (props: {
       follow: false,
       ignore: true
     }
-    props.putNostrKey(newNostrKey)
+    setTimeout(() => {
+      props.putNostrKey(newNostrKey)
+    },300)
+    
   }
 
   return (
@@ -111,11 +114,11 @@ const NostrPosts = (props: {
             return (
               <Show when={post.mlText != ''}>
               {
-                <Collapsible.Root class="collapsible border-none w-full m-0 p-0" defaultOpen={true}>
-                  <Collapsible.Content class="flex text-wrap w-full mt-4 ml-0 p-0">
-                    <p class="w-full m-0 p-0">
+                <Collapsible.Root defaultOpen={true}>
+                  <Collapsible.Content>
+                    <p>
                     {
-                      <div class='w-full m-0 p-0'>
+                      <div>
                         <Show when={(props.selectedNostrAuthor() == '')}>
                           <Button.Root
                             class='bg-transparent border-none rounded'
@@ -149,6 +152,7 @@ const NostrPosts = (props: {
                             post.content
                             .replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g, '')
                             .replace(/nostr:.*/g, '')
+                            .replace(/note1.*/g, '')
                             .replace('undefined', '')
                           }
                         </div>
