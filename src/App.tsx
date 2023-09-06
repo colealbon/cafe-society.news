@@ -4,12 +4,13 @@ import type {
   Signal
 } from 'solid-js';
 import {
+  For,
   Show,
   createEffect,
   createSignal,
   createResource
 } from 'solid-js';
-import { Button, Tabs } from "@kobalte/core";
+import { XMLParser } from 'fast-xml-parser'
 import { createDexieArrayQuery } from "solid-dexie";
 import WinkClassifier from 'wink-naive-bayes-text-classifier';
 import winkNLP from 'wink-nlp';
@@ -18,7 +19,7 @@ import {
   NostrFetcher
   , eventKind
 } from "nostr-fetch";
-
+import axios from 'axios';
 import Contact from './Contact';
 import CorsProxies from './CorsProxies';
 import NostrRelays from './NostrRelays';
@@ -28,13 +29,14 @@ import Profile from './Profile';
 import TrainLabels from './TrainLabels';
 import NostrPosts from './NostrPosts';
 import RSSFeeds from './RSSFeeds';
-
+import RSSPosts, {shortUrl} from './RSSPosts'
 import defaultCorsProxies from './defaultCorsProxies';
 import defaultNostrRelays from './defaultNostrRelays';
 import defaultNostrKeys from './defaultNostrKeys';
 import defaultClassifiers from './defaultClassifiers';
 import defaultTrainLabels from './defaultTrainLabels';
 import defaultProcessed from './defaultProcessed';
+import defaultRSSFeeds from './defaultRSSFeeds';
 import {
   DbFixture,
   NostrRelay,
@@ -52,12 +54,12 @@ const fetcher = NostrFetcher.init();
 const db = new DbFixture();
 const nlp = winkNLP( model );
 const its = nlp.its;
-// const parser = new XMLParser();
+const parser = new XMLParser();
 
 db.on("populate", () => {
   db.nostrkeys.bulkAdd(defaultNostrKeys as NostrKey[]);
   db.nostrrelays.bulkAdd(defaultNostrRelays as NostrRelay[]);
-  // db.feeds.bulkAdd(defaultFeeds as Feed[]);
+  db.rssfeeds.bulkAdd(defaultRSSFeeds as RSSFeed[]);
   db.corsproxies.bulkAdd(defaultCorsProxies as CorsProxy[]);
   db.trainlabels.bulkAdd(defaultTrainLabels as TrainLabel[]);
   db.classifiers.bulkAdd(defaultClassifiers as Classifier[]);
@@ -73,7 +75,7 @@ function createStoredSignal<T>(
     ? JSON.parse(`${storage.getItem(key)}`) as T
     : defaultValue;
   const [value, setValue] = createSignal<T>(initialValue);
-  const setValueAndStore = ((arg) => {
+  const setValueAndStore = ((arg: any) => {
     const v = setValue(arg);
     storage.setItem(key, JSON.stringify(v));
     return v;
@@ -154,14 +156,101 @@ const applyPrediction = (params: {
   }
 }
 
+const parseRSS = (content:any) => {
+  const feedTitle = content.rss.channel.title
+  const feedLink = content.rss.channel.link
+  const feedDescription = content.rss.channel.description
+  const feedPosts = content.rss.channel.item.length == null ?
+    [content.rss.channel.item] :
+    content.rss.channel.item
+
+  return [...feedPosts]
+    .map((itemEntry) => ({
+      feedTitle: feedTitle,
+      feedLink: feedLink,
+      feedDescription: feedDescription,
+      ...itemEntry
+    }))
+    .map(itemEntry => ({
+      postSummary: convert(
+        itemEntry.description,
+        {
+          ignoreLinks: true,
+          ignoreHref: true,
+          ignoreImage: true,
+          linkBrackets: false
+        })
+      .replace(/\[.*?\]/g, '')
+      .replace(/\n/g,' ')?.toString()
+      .trim(),
+      ...itemEntry
+    }))
+    .map(itemEntry => ({
+      ...itemEntry,
+      postId: itemEntry.link || itemEntry.guid,
+      postTitle: itemEntry.title,
+      mlText: prepTask(convert(`${itemEntry.title} ${itemEntry.postSummary}`))
+        .filter((word) => word.length < 30)
+        .join(' ')
+        .toLowerCase()
+    })
+  )
+}
+const parseAtom = (content: any) => {
+  const feedTitle = content.feed?.feedTitle
+  const feedLink = content.feed?.id
+  const feedDescription = content.feed?.subtitle
+  const feedPosts = content.feed?.entry
+  return feedPosts?.map((itemEntry: any) => ({
+      feedTitle: feedTitle,
+      feedLink: feedLink,
+      feedDescription: feedDescription,
+      ...itemEntry[0]
+    }))
+    .map((itemEntry: any) => ({
+      postSummary: convert(itemEntry.content, { ignoreLinks: true, ignoreHref: true, ignoreImage: true, linkBrackets: false  })
+      .replace(/\[.*?\]/g, '')
+      .replace(/\n/g,' ')?.toString()
+      .trim(),
+      ...itemEntry
+    }))
+    .map((itemEntry: any) => ({
+      ...itemEntry,
+      postId: itemEntry?.id,
+      postTitle: `${itemEntry.title}`,
+      mlText: prepTask(convert(`${itemEntry.title} ${itemEntry.postSummary}`))
+        .filter((word) => word.length < 30)
+        .join(' ')
+        .toLowerCase()
+    })
+  )
+}
+const parsePosts = (postsXML: any[]) => {
+  const parseQueue: any[] = []
+  postsXML.forEach(xmlEntry => {
+    parseQueue.push(new Promise(resolve => {
+      try {
+        const content = parser.parse(xmlEntry.data)
+        const parsed = content.rss ? parseRSS(content) : parseAtom(content)
+        resolve(parsed)
+      } catch (error) {
+        console.log(error)
+        resolve([])
+      }
+    }))
+  })
+  return Promise.all(parseQueue)
+}
+
 const App: Component = () => {
-  const navButtonStyle=`text-xl text-white border-none transition-all bg-transparent`
+  const navButtonStyle = () => `text-left text-xl text-white border-none transition-all bg-transparent hover-text-slate-500 hover-text-4v xl`
   const [navIsOpen, setNavIsOpen] = createStoredSignal('isNavOpen', false);
   const [albyCodeVerifier, setAlbyCodeVerifier] = createStoredSignal('albyCodeVerifier', '')
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
   const [albyTokenReadInvoice, setAlbyTokenReadInvoice] = createStoredSignal('albyTokenReadInvoice', '')
   const [selectedTrainLabel, setSelectedTrainLabel] = createStoredSignal('selectedTrainLabel', '')
-    const [selectedNostrAuthor, setSelectedNostrAuthor] = createStoredSignal('selectedNostrAuthor', '')
+  const [selectedPage, setSelectedPage] = createStoredSignal('selectedPage', '')
+  const [selectedNostrAuthor, setSelectedNostrAuthor] = createStoredSignal('selectedNostrAuthor', '')
   
   const corsProxies = createDexieArrayQuery(() => db.corsproxies.toArray());
   const putCorsProxy = async (newCorsProxy: CorsProxy) => {
@@ -209,6 +298,20 @@ const App: Component = () => {
   const removeClassifier = async (classifierToRemove: Classifier) => {
     await db.classifiers.where('id').equals(classifierToRemove?.id).delete()
   }
+  createEffect(() => {
+    const feedsForTrainLabel = checkedFeeds
+      .filter((feed) => {
+        return selectedTrainLabel() === '' || feed.trainLabels.indexOf(selectedTrainLabel()) !== -1
+      })
+      .map((feed: RSSFeed) => feed.id)
+    const corsProxyList = checkedCorsProxies
+      .map((corsProxy) => corsProxy.id)
+    setFetchRssParams(JSON.stringify({
+      feedsForTrainLabel: feedsForTrainLabel,
+      corsProxies: corsProxyList
+    }))
+  })
+
   const putTrainLabel = async (newTrainLabel: TrainLabel) => {
     await db.trainlabels.put(newTrainLabel)
   }
@@ -221,13 +324,110 @@ const App: Component = () => {
   const checkedRSSFeeds = createDexieArrayQuery(() => db.rssfeeds
     .filter(feed => feed.checked === true)
     .toArray());
-    
+
   const putRSSFeed = async (newRSSFeed: RSSFeed) => {
     await db.rssfeeds.put(newRSSFeed)
   }
   const removeRSSFeed = async (rssFeedToRemove: RSSFeed) => {
     await db.rssfeeds.where('id').equals(rssFeedToRemove?.id).delete()
   }
+
+  const checkedFeeds = createDexieArrayQuery(() => db.rssfeeds
+    .filter(rssfeed => rssfeed.checked === true)
+    .toArray());
+
+  const checkedCorsProxies = createDexieArrayQuery(() => db.corsproxies
+    .filter(corsProxy => corsProxy.checked === true)
+    .toArray());
+
+  function fetchRssPosts(params: string) {
+    if (params == '') {
+      return
+    }
+    const paramsObj = JSON.parse(params)
+    if (paramsObj.feedsForTrainLabel.length < 1) {
+      return
+    }
+    return new Promise((resolve) => {
+      const fetchQueue: any[] = []
+      paramsObj.feedsForTrainLabel.forEach((feed: RSSFeed) => {
+        fetchQueue.push(new Promise((resolve) => {
+          try {
+            paramsObj.corsProxies?.slice().forEach((corsProxy: any) => {
+              try {
+                axios.get(`${corsProxy}${feed}`)
+                .then(response => {
+                  resolve(response)
+                })
+              } catch(error) {
+                console.log(`${corsProxy}${feed} failed`)
+                console.log(error)
+              }
+            })
+          } catch (error) {
+            resolve('')
+          }
+        }))
+      })
+      const winkClassifier = WinkClassifier()
+      winkClassifier.definePrepTasks( [ prepTask ] );
+      winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
+      const classifierModel: string = classifiers.find((classifierEntry: any) => classifierEntry?.id == selectedTrainLabel())?.model || ''
+      if (classifierModel != '') {
+        winkClassifier.importJSON(classifierModel)
+      }
+      Promise.all(fetchQueue)
+      .then(fetchedPosts => parsePosts(fetchedPosts))
+      .then((parsed: any[]) => {
+        const suppressOdds = classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds
+        resolve(parsed?.flat()
+        .filter(post => `${post?.mlText}`.trim() != '')
+        .map(post => {
+          return {
+            ...post,
+            postTitle: post?.postTitle
+            .replace(/&#039;/g, "'")
+            .replace(/&#8217;/g, "'")
+            .replace(/&#8211;/g, "-")
+            .replace(/&#8216;/g, "'")
+            .replace(/&#8230;/g, "…")
+            .replace(/&#038;/g, "&")
+            .replace(/&#x2019;/g,"'")
+            .replace(/&#x2018;/g,"'")
+
+          }
+        })
+        .filter((postItem: any) => {
+          const processedPostsID = postItem.feedLink === "" ? postItem.guid : shortUrl(postItem.feedLink)
+          const processedPostsForFeedLink = processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == processedPostsID)?.processedPosts
+          if (processedPostsForFeedLink == undefined) {
+            return true
+          }
+          return processedPostsForFeedLink.indexOf(postItem?.mlText) == -1
+        })
+        .map((post: any) => applyPrediction({
+          post: post,
+          classifier: winkClassifier
+        }))
+        .filter((post: any) => {
+          return (post.prediction?.suppress || 0)  <= (suppressOdds || 0)
+        })
+        )
+      })
+    })
+  }
+
+  const handleFeedToggleChecked = (id: string) => {
+    const valuesForSelectedFeed = rssFeeds
+    .find(feed => feed['id'] === id)
+
+    const newValueObj = {
+        ...valuesForSelectedFeed
+      , checked: !valuesForSelectedFeed?.checked
+    }
+    putRSSFeed({...newValueObj} as RSSFeed)
+  }
+
 
   const train = (params: {
     mlText: string,
@@ -253,6 +453,7 @@ const App: Component = () => {
   }
 
   const [nostrQuery, setNostrQuery] = createSignal('')
+  const [fetchRssParams, setFetchRssParams] = createSignal('')
 
   const processedPosts = createDexieArrayQuery(() => db.processedposts.toArray());
 
@@ -342,133 +543,256 @@ const App: Component = () => {
           .filter((post: any) => {
             return ( 0.0 + post.prediction?.suppress || 0.0) != 0.0
           })
+          .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
+
         resolve(filteredPosts)
       })
     })
   }
   const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts);
+  const [rssPosts] = createResource(fetchRssParams, fetchRssPosts);
   
   return (
     <div class={`font-sans`}>
-      <Tabs.Root>
-        <div>
-          <div class={`${navIsOpen() ? 'bg-red-900' : ''} transition-all duration-500 rounded-2`}>
-            <div class='text-2xl transition-all'>
-              <Button.Root
-                class={`${navIsOpen() ? 
-                  'hover-bg-slate-900 bg-red-900 text-white' : 
-                  'hover-bg-red-900 hover-text-white'} 
-                  border-none rounded-2 transition-all duration-500 text-3xl`}
-                onClick={event => {
-                  event.preventDefault()
-                  setNavIsOpen(!navIsOpen())
-                }}
-              >
-                {navIsOpen() ? <> ↑ </> : <> ↓ </>}
-              </Button.Root>
-            </div>
-            <div class={`${navIsOpen() ? '' : 'h-0'} transition-all`}>
-              <Show when={navIsOpen()}>
-                <Tabs.List>
-                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrposts">Nostr&nbsp;Global</Tabs.Trigger></div>
-                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="profile">Profile</Tabs.Trigger><div /></div>
-                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="cors">Cors&nbsp;Proxies</Tabs.Trigger></div>
-                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="contact">Contact</Tabs.Trigger></div>
-                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrrelays">Nostr&nbsp;Relays</Tabs.Trigger></div>
-                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="nostrkeys">Nostr&nbsp;Keys</Tabs.Trigger></div>
-                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="classifiers">Classifiers</Tabs.Trigger></div>
-                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="trainlabels">Train&nbspLabels</Tabs.Trigger></div>
-                  <div class='mr-2 w-full hover:bg-slate-900'><Tabs.Trigger class={navButtonStyle} onClick={() => setNavIsOpen(false)} value="rssfeeds">RSS&nbspFeeds</Tabs.Trigger></div>
-                </Tabs.List>
-              </Show>
-            </div>
-          </div>
-          <div class='ml-2 mr-2'>
-            <Tabs.Content value="nostrposts">
-              <NostrPosts
-                selectedTrainLabel='nostr'
-                train={(params: {
-                  mlText: string,
-                  mlClass: string,
-                  trainLabel: string
-                }) => {
-                  train({
-                    mlText: params.mlText,
-                    mlClass: params.mlClass,
-                    trainLabel: 'nostr',
-                  })
-                }}
-                nostrPosts={nostrPosts}
-                selectedNostrAuthor={selectedNostrAuthor}
-                setSelectedNostrAuthor={setSelectedNostrAuthor}
-                putNostrKey={putNostrKey}
-                putProcessedPost={putProcessedPost}
-                putClassifier={putClassifier}
-                markComplete={(postId: string) => markComplete(postId, 'nostr')}
-              />
-            </Tabs.Content>
-            <Tabs.Content value="profile">
-              <Profile
-                albyCodeVerifier={albyCodeVerifier}
-                setAlbyCodeVerifier={setAlbyCodeVerifier}
-                albyCode={albyCode}
-                setAlbyCode={setAlbyCode}
-                albyTokenReadInvoice={albyTokenReadInvoice}
-                setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
-              />
-            </Tabs.Content>
-            <Tabs.Content value="cors">
-              <CorsProxies
-                corsProxies={corsProxies}
-                putCorsProxy={putCorsProxy}
-                removeCorsProxy={removeCorsProxy}
-              />
-            </Tabs.Content>
-            <Tabs.Content value="contact">
-              <Contact/>
-            </Tabs.Content>
-            <Tabs.Content value="nostrrelays">
-              <NostrRelays
-                nostrRelays={nostrRelays}
-                putNostrRelay={putNostrRelay}
-                removeNostrRelay={removeNostrRelay}
-              />
-            </Tabs.Content>
-            <Tabs.Content value="nostrkeys">
-              <NostrKeys
-                nostrKeys={nostrKeys}
-                putNostrKey={putNostrKey}
-                removeNostrKey={removeNostrKey}
-              />
-            </Tabs.Content>
-            <Tabs.Content value="classifiers">
-              <Classifiers
-                classifiers={classifiers}
-                putClassifier={putClassifier}
-                removeClassifier={removeClassifier}
-              />
-            </Tabs.Content>
-            <Tabs.Content value="trainlabels">
-              <TrainLabels
-                trainLabels={trainLabels}
-                putTrainLabel={putTrainLabel}
-                removeTrainLabel={removeTrainLabel}
-              />
-            </Tabs.Content>
-
-
-            <Tabs.Content value="rssfeeds">
-              <RSSFeeds
-                rssFeeds={rssFeeds}
-                putFeed={putRSSFeed}
-                removeFeed={removeRSSFeed}
-                trainLabels={trainLabels}
-                handleFeedToggleChecked={(id: string) => handleFeedToggleChecked(id)}
-              />
-            </Tabs.Content>
-          </div>
+      <div class={`${navIsOpen() ? 'bg-red-900' : ''} rounded-2`}>
+        <div class='text-2xl transition-all'>
+          <button
+            class={`${navIsOpen() ? 
+              'hover-text-slate-900 bg-red-900 text-white' : 
+              'hover-bg-red-900 hover-text-white bg-transparent'} 
+                border-none rounded-full transition-all duration-500 text-4xl mt-1`}
+            onClick={event => {
+              event.preventDefault()
+              setNavIsOpen(!navIsOpen())
+            }}
+          >
+            {`${navIsOpen() ? '≡' : '≡'}`}
+          </button>
         </div>
-      </Tabs.Root>
+        <div class={`${navIsOpen() ? 'flex flex-col text-left' : 'h-0 '} transition-all`}>
+          <Show when={navIsOpen()}>
+            <button
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedPage('rssposts')
+              }}
+            >
+              RSS&nbsp;Posts
+            </button>
+            <For each={trainLabels}>
+              {
+                (trainLabel) => (
+                  <div class='ml-4 hover:text-slate-900'>
+                    <button
+                      class={navButtonStyle()}
+                      onClick={() => {
+                        setNavIsOpen(false)
+                        setSelectedTrainLabel(trainLabel.id)
+                        setSelectedPage('rssposts')
+                      }} 
+                      value={'rssposts'}
+                    >
+                      {`${trainLabel.id}`}
+                    </button>
+                  </div>
+                )
+              }
+            </For>
+            <button
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('nostr')
+                setSelectedPage('nostrposts')
+              }}
+            >
+              Nostr&nbsp;Global
+            </button>
+            <button
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('profile')
+              }}
+            >
+              Profile
+            </button>
+            <button
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('cors')
+              }}
+            >
+              Cors&nbsp;Proxies
+            </button>
+            <button
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('contact')
+              }}
+            >
+              Contact
+            </button>
+            <button
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('nostrrelays')
+              }}
+            >
+              Nostr&nbsp;Relays
+            </button>
+            <button
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('nostrkeys')
+              }}
+            >
+              Nostr&nbsp;Keys
+            </button>
+            <button
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('classifiers')
+              }}
+            >
+              Classifiers
+            </button>
+            <button
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('trainlabels')
+              }}
+            >
+              Train&nbsp;Labels
+            </button>
+            <button
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('rssfeeds')
+              }}
+            >
+              RSS&nbsp;Feeds
+            </button>
+          </Show>
+        </div>
+      </div>
+      <Show when={navIsOpen() == false}>
+        <Show when={selectedPage() == 'nostrposts'}>
+          <NostrPosts
+            selectedTrainLabel='nostr'
+            train={(params: {
+              mlText: string,
+              mlClass: string,
+              trainLabel: string
+            }) => {
+              train({
+                mlText: params.mlText,
+                mlClass: params.mlClass,
+                trainLabel: 'nostr',
+              })
+            }}
+            nostrPosts={nostrPosts}
+            selectedNostrAuthor={selectedNostrAuthor}
+            setSelectedNostrAuthor={setSelectedNostrAuthor}
+            putNostrKey={putNostrKey}
+            putProcessedPost={putProcessedPost}
+            putClassifier={putClassifier}
+            markComplete={(postId: string) => markComplete(postId, 'nostr')}
+          />
+        </Show>
+        <Show when={selectedPage() == 'profile'}>
+          <Profile
+            albyCodeVerifier={albyCodeVerifier}
+            setAlbyCodeVerifier={setAlbyCodeVerifier}
+            albyCode={albyCode}
+            setAlbyCode={setAlbyCode}
+            albyTokenReadInvoice={albyTokenReadInvoice}
+            setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
+          />
+        </Show>
+        <Show when={selectedPage() == 'cors'}>
+          <CorsProxies
+            corsProxies={corsProxies}
+            putCorsProxy={putCorsProxy}
+            removeCorsProxy={removeCorsProxy}
+          />
+        </Show>
+        <Show when={selectedPage() == 'contact'}>
+          <Contact/>
+        </Show>
+        <Show when={selectedPage() == 'nostrrelays'}>
+          <NostrRelays
+            nostrRelays={nostrRelays}
+            putNostrRelay={putNostrRelay}
+            removeNostrRelay={removeNostrRelay}
+          />
+        </Show>
+        <Show when={selectedPage() == 'nostrKeys'}>
+          <NostrKeys
+            nostrKeys={nostrKeys}
+            putNostrKey={putNostrKey}
+            removeNostrKey={removeNostrKey}
+          />
+        </Show>
+        <Show when={selectedPage() == 'classifiers'}>
+          <Classifiers
+            classifiers={classifiers}
+            putClassifier={putClassifier}
+            removeClassifier={removeClassifier}
+          />
+        </Show>
+        <Show when={selectedPage() == 'trainlabels'}>
+          <TrainLabels
+            trainLabels={trainLabels}
+            putTrainLabel={putTrainLabel}
+            removeTrainLabel={removeTrainLabel}
+          />
+        </Show>
+        <Show when={selectedPage() == 'rssfeeds'}>
+          <RSSFeeds
+            rssFeeds={rssFeeds}
+            putFeed={putRSSFeed}
+            removeFeed={removeRSSFeed}
+            trainLabels={trainLabels}
+            handleFeedToggleChecked={(id: string) => handleFeedToggleChecked(id)}
+          />
+        </Show>
+        <Show when={selectedPage() == 'rssposts'}>
+          <RSSPosts
+            trainLabel={selectedTrainLabel() || ''}
+            setSelectedTrainLabel={setSelectedTrainLabel}
+            train={(params: {
+              mlText: string,
+              mlClass: string,
+              trainLabel: string
+            }) => {
+              train({
+                mlText: params.mlText,
+                mlClass: params.mlClass,
+                trainLabel: selectedTrainLabel() || '',
+              })
+            }}
+            markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
+            rssPosts={rssPosts()}
+          />
+        </Show>
+      </Show>
     </div>
   )
 };
