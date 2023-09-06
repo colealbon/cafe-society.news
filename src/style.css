@@ -1,51 +1,8 @@
-
-.button {
-  appearance: none;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  height: 40px;
-  width: auto;
-  outline: none;
-  border-radius: 6px;
-  padding: 0 16px;
-  background-color: hsl(200 98% 39%);
-  color: white;
-  font-size: 16px;
-  line-height: 0;
-  transition: 250ms background-color;
-}
-.button:hover {
-  background-color: hsl(201 96% 32%);
-}
-.button:focus-visible {
-  outline: 2px solid hsl(200 98% 39%);
-  outline-offset: 2px;
-}
-.button:active {
-  background-color: hsl(201 90% 27%);
-}
-
-.collapsible__trigger:focus-visible {
-  outline: 2px solid hsl(200 98% 39%);
-  outline-offset: 2px;
-}
-.collapsible__trigger-icon {
-  width: 20px;
-  height: 20px;
-  transition: transform 250ms;
-}
-.collapsible__trigger[data-expanded] .collapsible__trigger-icon {
-  transform: rotateZ(180deg);
-}
 .collapsible__content {
-  animation: slideUp 300ms ease-out;
+  animation: slideUp 100ms ease-out;
 }
 .collapsible__content[data-expanded] {
-  animation: slideDown 300ms ease-out;
-}
-.collapsible__content-text {
-  padding: 16px;
+  animation: slideDown 100ms ease-out;
 }
 
 .switch {

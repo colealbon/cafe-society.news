@@ -5,8 +5,8 @@ import {
 import {
   Separator,
   Link,
-  Collapsible,
-  Button
+  Button,
+  Collapsible
 } from "@kobalte/core";
 
 import PostTrain from './PostTrain'
@@ -48,12 +48,15 @@ const NostrPosts = (props: {
       follow: false,
       ignore: true
     }
-    setTimeout(() => {
-      props.putNostrKey(newNostrKey)
-    },300)
-    
+    props.putNostrKey(newNostrKey)
   }
 
+  const removeLinks = (text: string) => {
+    return text.replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g, '')
+    .replace(/nostr:.*/g, '')
+    .replace(/note1.*/g, '')
+    .replace('undefined', '')
+  }
   return (
     <main>
       <div class="fade-in">
@@ -108,98 +111,94 @@ const NostrPosts = (props: {
         </div>
         <Separator.Root class="separator" />
       </Show>
-      <For each={props.nostrPosts()} fallback={<>Loading</>}>
-          {(post) => {
-            return (
-              <Show when={post.mlText != ''}>
-              {
-                <Collapsible.Root defaultOpen={true}>
-                  <Collapsible.Content>
-                    <p>
-                    {
-                      <div>
-                        <Show when={(props.selectedNostrAuthor() == '')}>
-                          <Button.Root
-                            class='bg-transparent border-none rounded'
-                            onClick={(event) => {
-                              event.preventDefault()
-                              handleClickDrillPubkey(post.pubkey)
-                            }}
-                            title='view user posts'
-                          >
-                            <div class='text-xl text-orange hover-bg-orange hover-text-white text-xl rounded-2 ml-1 mr-1'>
-                            {`${post.pubkey.substring(0,5)}...${post.pubkey.substring(post.pubkey.length - 5)}`}
-                            </div>
-                          </Button.Root>
-                          <Collapsible.Trigger class='bg-transparent border-none'>
-                            <Button.Root
-                              title='ignore'
-                              class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red rounded-full`}
-                              onClick={event => {
-                                event.preventDefault()
-                                handleIgnore(props.selectedNostrAuthor())
-                                setTimeout(() => {
-                                  props.markComplete(post.mlText)
-                                  props.setSelectedNostrAuthor('')
-                                }, 300)
-                              }}
-                            >
-                              <div class='text-red hover-text-white mt-2'>
-                                <IoRemoveCircleOutline />
-                              </div>
-                            </Button.Root>
-                          </Collapsible.Trigger>
-                        </Show>
-                        <div style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</div>
-                        <div class='flex text-wrap w-full'>
-                          {
-                            post.content
-                            .replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g, '')
-                            .replace(/nostr:.*/g, '')
-                            .replace(/note1.*/g, '')
-                            .replace('undefined', '')
-                          }
-                        </div>
-                        <For each={post.links} fallback={<></>}>
-                          {(link) => {
-                            return (
-                              <div>
-                                <Link.Root href={link} target='cafe-society'>
-                                  {
-                                    link.length >= 35 ? `${link.substring(0,35)}...` : link
-                                  }
-                                </Link.Root>
-                              </div>
-                            )
+      <For
+        each={props.nostrPosts()}
+        fallback={<>Loading</>}
+      >
+        {(post) => {
+          return (
+            <Show when={post.mlText != ''}>
+              <Show when={() => props.nostrPosts().map((post: any) => post.mlText).indexOf(post.mlText) != -1}>
+                {
+                  <Collapsible.Root defaultOpen={true}>
+                    <Collapsible.Content class="collapsible__content">
+                      <Show when={(props.selectedNostrAuthor() == '')}>
+                        <Button.Root
+                          class='bg-transparent border-none rounded'
+                          onClick={(event) => {
+                            event.preventDefault()
+                            handleClickDrillPubkey(post.pubkey)
                           }}
-                        </For>
-                        <Collapsible.Trigger class='bg-transparent border-none'>
-                          <PostTrain
-                            trainLabel={'nostr'}
-                            train={(mlClass: string) => {
-                              props.train({
-                                mlClass: mlClass,
-                                mlText: post.mlText
-                              })
-                            }}
-                            mlText={post.mlText}
-                            prediction={post.prediction}
-                            docCount={post.docCount}
-                            markComplete={() => {
+                          title='view user posts'
+                        >
+                          <div class='text-xl text-orange hover-bg-orange hover-text-white text-xl rounded-2 ml-1 mr-1'>
+                          {`${post.pubkey.substring(0,5)}...${post.pubkey.substring(post.pubkey.length - 5)}`}
+                          </div>
+                        </Button.Root>
+                        <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
+                          <Button.Root
+                            title='ignore'
+                            class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red rounded-full`}
+                            onClick={event => {
+                              event.preventDefault()
+                              handleIgnore(props.selectedNostrAuthor())
                               setTimeout(() => {
                                 props.markComplete(post.mlText)
+                                props.setSelectedNostrAuthor('')
                               }, 300)
                             }}
-                          />
+                          >
+                            <div class='text-red hover-text-white mt-2'>
+                              <IoRemoveCircleOutline />
+                            </div>
+                          </Button.Root>
+                        </Collapsible.Trigger>
+                      </Show>
+                      <div style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</div>
+                      <div class='flex text-wrap w-full'>
+                        {
+                          removeLinks(post.content)
+                        }
+                      </div>
+                      <For each={post.links} fallback={<></>}>
+                        {(link) => {
+                          return (
+                            <div>
+                              <Link.Root href={link} target='cafe-society'>
+                                {
+                                  link.length >= 35 ? `${link.substring(0,35)}...` : link
+                                }
+                              </Link.Root>
+                            </div>
+                          )
+                        }}
+                      </For>
+                      <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
+                        <PostTrain
+                          trainLabel={'nostr'}
+                          train={(mlClass: string) => {
+                            props.train({
+                              mlClass: mlClass,
+                              mlText: post.mlText
+                            })
+                          }}
+                          mlText={post.mlText}
+                          prediction={post.prediction}
+                          docCount={post.docCount}
+                          markComplete={() => {
+                            props.markComplete(post.mlText)
+                          }}
+                        />
                       </Collapsible.Trigger>
-                    </div>
-                  }</p>
-                </Collapsible.Content>
-              </Collapsible.Root>
-            }</Show>
-            )
-          }}
-        </For>
+                      <Separator.Root />
+                    </Collapsible.Content>
+                  </Collapsible.Root>  
+                }
+              </Show>
+            </Show>
+          )
+        }}
+      </For>
     </main>
   )
 }

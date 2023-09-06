@@ -196,9 +196,6 @@ const RSSFeeds = (props: {
                     <Switch.Root
                       class="switch"
                       defaultChecked={feed.checked}
-                      // onClick={() => {
-                      //   props.handleFeedToggleChecked(feed.id)
-                      // }}
                       onChange={(newVal) => {
                         handleToggleChecked(`${feed.id}`, newVal)
                       }}

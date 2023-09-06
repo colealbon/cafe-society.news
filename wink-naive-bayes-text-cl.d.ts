@@ -1,0 +1,1 @@
+declare module 'wink-naive-bayes-text-classifier';
