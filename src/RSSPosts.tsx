@@ -37,7 +37,7 @@ const Posts = (props: {
             <Collapsible.Root defaultOpen={true}>
               <Collapsible.Content class="collapsible__content">
                 <PostDisplay {...post}/>
-                <Collapsible.Trigger class="collapsible__trigger bg-tranparent border-none">
+                <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
                   <Show when={props.trainLabel != ''}>
                     <PostTrain
                       trainLabel={props.trainLabel}
