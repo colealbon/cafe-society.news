@@ -15,8 +15,7 @@ import {
 import TextInput from './TextInput'
 
 import {
-  VsAdd,
-  VsTrash
+  VsAdd
 } from 'solid-icons/vs'
 import { TrainLabel } from './db-fixture'
 const TrainLabels = (props: {
@@ -96,55 +95,46 @@ const TrainLabels = (props: {
     <Separator.Root />
     <form onSubmit={onSubmit}>
       <label for="id">train label</label>
-      <TextInput name="id" control={group.controls.id} />
-      <div />
-      <Switch.Root
-        checked={group.value.checked}
-        name="checked"
-        onChange={handleToggleChecked(`${group.value.id}`)}
+      <TextInput
+        name='id'
+        control={group.controls.id}
       />
-      <div>
-        <Link.Root onClick={(event) => {
-          event.preventDefault()
-          onSubmit(event)
-        }}>
-          <VsAdd />
-        </Link.Root>
-      </div>
+      <button
+        class={`mt-2 transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full`}
+        onClick={(event) => {
+        event.preventDefault()
+        onSubmit(event)
+      }}>
+        <VsAdd class='align-middle text-xl mt-1 mb-1'/>
+      </button>
     </form>
-  <h4 class="text-muted">TrainLabels</h4>
   <For each={props.trainLabels}>
     {(trainLabel) => (
-      <div>
-        <div>
-          <Link.Root onClick={(event) => {
-              event.preventDefault()
-              props.removeTrainLabel(trainLabel)
-            }}>
-              <VsTrash />
-          </Link.Root>
-        </div>
+      <div class='flex flex-row'>
+        <button
+          class={`mr-1 transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full`}
+          onClick={() => props.removeTrainLabel(trainLabel)}
+        >
+          <div class='m-1 mt-1 align-middle text-xl'>✕</div>
+        </button>
         <Switch.Root
           class="switch"
           defaultChecked={trainLabel.checked}
-          onClick={() => handleToggleChecked(trainLabel.id)}
-        />
-        <div style={
-        {
-          'padding': '8px 8px 8px 32px',
-          'text-decoration': 'none',
-          'font-size': '25px',
-          'color': '#818181',
-          'display': 'block',
-          'transition':'0.3s'
-        }}>
-        <Link.Root onClick={(event) => {
-          event.preventDefault()
-          handleKeyClick(trainLabel.id)
-        }}>
+          onChange={(newVal) => {
+            handleToggleChecked(`${trainLabel.id}`)
+          }}
+        >
+          <Switch.Input class="switch__input" />
+          <Switch.Control class="switch__control">
+            <Switch.Thumb class="switch__thumb" />
+          </Switch.Control>
+        </Switch.Root>
+        <button
+          class={`text-xl ml-1 mt-2 mb-2 transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full`}
+          onClick={() => handleKeyClick(trainLabel.id)}
+        >
           {trainLabel.id || ''}
-        </Link.Root>
-      </div>
+        </button>
       </div>
     )}
   </For>
