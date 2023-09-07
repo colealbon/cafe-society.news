@@ -295,6 +295,11 @@ const App: Component = () => {
   }
 
   const trainLabels = createDexieArrayQuery(() => db.trainlabels.toArray());
+  const checkedTrainLabels = createDexieArrayQuery(() => db.trainlabels
+  .filter(label => label.checked === true)
+  .toArray()
+  );
+
   const removeClassifier = async (classifierToRemove: Classifier) => {
     await db.classifiers.where('id').equals(classifierToRemove?.id).delete()
   }
@@ -580,7 +585,7 @@ const App: Component = () => {
             >
               RSS&nbsp;Posts
             </button>
-            <For each={trainLabels}>
+            <For each={checkedTrainLabels}>
               {
                 (trainLabel) => (
                   <div class='ml-4 hover:text-slate-900'>
