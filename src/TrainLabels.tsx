@@ -71,7 +71,6 @@ const TrainLabels = (props: {
   }
 
   const handleToggleChecked = (id: string) => {
-
     const valuesForSelectedTrainLabel = props.trainLabels
     .find(labelEdit => labelEdit['id'] === id)
 
@@ -82,10 +81,9 @@ const TrainLabels = (props: {
     const newValueObj = {
         ...valuesForSelectedTrainLabel
       ,
-      checked: !group.value.checked
+      checked: !valuesForSelectedTrainLabel.checked
     }
 
-    group.setValue(newValueObj)
     props.putTrainLabel(newValueObj)
   }
 
