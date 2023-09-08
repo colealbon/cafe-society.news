@@ -119,67 +119,73 @@ const RSSFeeds = (props: {
         onChange={setTrainLabelValues}
         onInputChange={onInputChange}
         onOpenChange={onOpenChange}
-        placeholder="Search some feeds…"
+        placeholder="click label to remove..."
         itemComponent={props => (
-          <Combobox.Item item={props.item}>
+          <Combobox.Item item={props.item} class='combobox__item'>
             <Combobox.ItemLabel>{props.item.rawValue}</Combobox.ItemLabel>
-            <Combobox.ItemIndicator>
+            <Combobox.ItemIndicator class="combobox__item-indicator">
               <CheckIcon />
             </Combobox.ItemIndicator>
           </Combobox.Item>
         )}
       >
-
-  <form onSubmit={onSubmit}>
-    <label for="id">Feed URL</label>
-    <TextInput name="id" control={group.controls.id} />
-    <div>
-      <Button.Root onClick={(event) => {
-        event.preventDefault()
-        onSubmit(event)
-      }}>
-     <VsAdd />
-    </Button.Root>
-    <Button.Root onClick={(event) => {
-        event.preventDefault()
-        onSubmit(event)
-      }}>Submit</Button.Root>
-    </div>
-    </form>
-        <Combobox.Control<string> aria-label="Feeds">
-          {state => (
-            <>
-              <div>
-                <For each={state.selectedOptions()}>
-                  {option => (
-                    <span onPointerDown={e => e.stopPropagation()}>
+      <form onSubmit={onSubmit}>
+        <label for="id">Feed URL</label>
+        <TextInput name="id" control={group.controls.id} />
+      <Combobox.Control<string> 
+        aria-label="Feeds"
+        class="bg-white combobox__control border-none shadow-none bg-white" 
+      >
+        {state => (
+          <>
+            <Combobox.Trigger class='bg-transparent border-none align-middle text-2xl transition-all bg-transparent hover-text-white hover:bg-slate-400 rounded-full'>
+              +
+            </Combobox.Trigger>
+            <div class='flex flex-row bg-white'>
+              <Combobox.Input class="combobox__input border-none shadow-none bg-white"/>
+              <For each={state.selectedOptions()}>
+                {option => (
+                  <div class='align-bottom flex flex-row' onPointerDown={e => e.stopPropagation()}>
+                    <button
+                      class='bg-transparent border-none m-0 align-top text-2xl text-gray'
+                      onClick={(event) => {
+                        state.remove(option)
+                        onSubmit(event)
+                      }}
+                    >
                       {option}
-                      <button onClick={() => state.remove(option)}>
-                        <div style={{'color': 'red'}}><CrossIcon /></div>
-                      </button>
-                    </span>
-                  )}
-                </For>
-                <Combobox.Input />
-              </div>
-              <button onPointerDown={e => e.stopPropagation()} onClick={state.clear}>
-              <div style={{'color': 'red'}}><CrossIcon /></div>
-              </button>
-              <Combobox.Trigger>
-                <Combobox.Icon>
-                  <CaretSortIcon />
-                </Combobox.Icon>
-              </Combobox.Trigger>
-            </>
-          )}
-        </Combobox.Control>
-        <Combobox.Portal>
-          <Combobox.Content>
-            <Combobox.Listbox style={{'background-color': 'white'}}/>
-          </Combobox.Content>
-        </Combobox.Portal>
+                    </button>
+                  </div>
+                )}
+              </For>
+            </div>
+            <button
+              onPointerDown={e => e.stopPropagation()} 
+              onClick={state.clear}
+              class='bg-transparent border-none align-middle text-3xl transition-all bg-transparent hover-text-white hover:bg-slate-400 rounded-full'
+            >
+            ✖
+            </button>
+          </>
+        )}
+      </Combobox.Control>
+      <Combobox.Portal>
+        <Combobox.Content class="combobox__content">
+          <Combobox.Listbox class="combobox__listbox font-sans"/>
+        </Combobox.Content>
+      </Combobox.Portal>
+      <div />
+      <button
+        onClick={(event) => {
+          event.preventDefault()
+          onSubmit(event)
+        }}
+        class='m-1 bg-transparent border-none align-middle text-4xl transition-all bg-transparent hover-text-white hover:bg-slate-400 rounded-full'
+        >
+        submit
+      </button>
+      </form>
       </Combobox.Root>
-      <p>feed trainLabels: {trainLabelValues().join(", ")}</p>
       <Separator.Root />
       <strong style={{'font-size': 'large'}}>feeds:</strong>
       <For each={props.rssFeeds}>
@@ -205,16 +211,19 @@ const RSSFeeds = (props: {
                         <Switch.Thumb class="switch__thumb" />
                       </Switch.Control>
                     </Switch.Root>
-                    &nbsp;
-                    <Button.Root class={'text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full'} onClick={() => handleKeyClick(feed.id)}>
-                      {feed.id || ''}
+                    
+                    <Button.Root class={'text-2xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full'} onClick={() => handleKeyClick(feed.id)}>
+                      {feed.id.replace('http[s?]://', '').slice(0, 25) || ''}
                     </Button.Root>
+                    <span>{feed.trainLabels.join(', ')}</span>
                 </Collapsible.Content>
               </Collapsible.Root>
             </Show>
           )}
-        </For>
+      </For>
+      
     </>
+    
   );
 }
 
