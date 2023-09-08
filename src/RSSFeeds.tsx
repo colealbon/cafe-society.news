@@ -150,7 +150,6 @@ const RSSFeeds = (props: {
                       class='bg-transparent border-none m-0 align-top text-2xl text-gray'
                       onClick={(event) => {
                         state.remove(option)
-                        onSubmit(event)
                       }}
                     >
                       {option}
@@ -193,11 +192,11 @@ const RSSFeeds = (props: {
             <Show when={feed.id != ''}>
               <Collapsible.Root class="collapsible" defaultOpen={true}>
                 <Collapsible.Content class="collapsible__content">
-                    <Collapsible.Trigger class="collapsible__trigger border-none bg-transparent">
-                      <Button.Root class={'align-middle text-3xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full'} onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}>
-                        <VsTrash/>
-                      </Button.Root>
-                     </Collapsible.Trigger>
+                  <Collapsible.Trigger class="collapsible__trigger border-none bg-transparent">
+                    <Button.Root class={'align-middle text-3xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full'} onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}>
+                      <VsTrash/>
+                    </Button.Root>
+                    </Collapsible.Trigger>
                     &nbsp;
                     <Switch.Root
                       class="switch"

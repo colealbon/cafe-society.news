@@ -23,7 +23,8 @@ const NostrPosts = (props: {
   putNostrKey: any,
   putClassifier: any,
   putProcessedPost: any,
-  markComplete: any
+  markComplete: any,
+  prediction: any
 }) => {
   const handleClickDrillPubkey = (publicKey: string) => {
     props.setSelectedNostrAuthor(publicKey)
@@ -154,7 +155,14 @@ const NostrPosts = (props: {
                           </Button.Root>
                         </Collapsible.Trigger>
                       </Show>
-                      <div style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</div>
+                      <div flex flex-row>
+                        <div style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</div>
+                        <div class='ml-4'>
+                          {`promote odds: ${(0.0 + post.prediction['promote'] || 0.0)
+                          .toFixed(2)
+                          .replace('NaN', '-')}`}
+                        </div>
+                      </div>
                       <div class='flex text-wrap w-full'>
                         {
                           removeLinks(post.content)
