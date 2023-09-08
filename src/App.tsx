@@ -56,6 +56,8 @@ const nlp = winkNLP( model );
 const its = nlp.its;
 const parser = new XMLParser();
 
+const nHoursAgo = (hrs: number): number => Math.floor((Date.now() - hrs * 60 * 60 * 1000) / 1000);
+
 db.on("populate", () => {
   db.nostrkeys.bulkAdd(defaultNostrKeys as NostrKey[]);
   db.nostrrelays.bulkAdd(defaultNostrRelays as NostrRelay[]);
@@ -505,7 +507,7 @@ const App: Component = () => {
       {
         kinds: [ 1, 30023 ]
       }
-      const maxPosts = `${paramsObj.nostrAuthor}` == '' ? 1000 : 1000
+      // const maxPosts = `${paramsObj.nostrAuthor}` == '' ? 10000 : 10000
       const winkClassifier = WinkClassifier()
       winkClassifier.definePrepTasks( [ prepTask ] );
       winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
@@ -514,10 +516,11 @@ const App: Component = () => {
         winkClassifier.importJSON(classifierModel)
       }
 
-      fetcher.fetchLatestEvents(
+      fetcher.fetchAllEvents(
         [...paramsObj.nostrRelayList],
         filterOptions,
-        maxPosts
+        { since: nHoursAgo(24) }
+        // maxPosts
       )
       .then((allThePosts: any) => {
         const processedNostrPosts = processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == 'nostr')?.processedPosts
@@ -612,7 +615,7 @@ const App: Component = () => {
                 setSelectedPage('nostrposts')
               }}
             >
-              Nostr&nbsp;Global
+              Nostr&nbsp;Global&nbsp;(24hours)
             </button>
             <button
               class={navButtonStyle()}
