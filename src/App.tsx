@@ -50,7 +50,7 @@ import {
 
 
 const fetcher = NostrFetcher.init();
-
+const navBarWidth = 250
 const db = new DbFixture();
 const nlp = winkNLP( model );
 const its = nlp.its;
@@ -162,6 +162,7 @@ const parseRSS = (content:any) => {
   const feedTitle = content.rss.channel.title
   const feedLink = content.rss.channel.link
   const feedDescription = content.rss.channel.description
+  console.log(content)
   const feedPosts = content.rss.channel.item.length == null ?
     [content.rss.channel.item] :
     content.rss.channel.item
@@ -519,7 +520,7 @@ const App: Component = () => {
       fetcher.fetchAllEvents(
         [...paramsObj.nostrRelayList],
         filterOptions,
-        { since: nHoursAgo(24) }
+        { since: nHoursAgo(6) }
         // maxPosts
       )
       .then((allThePosts: any) => {
@@ -615,7 +616,7 @@ const App: Component = () => {
                 setSelectedPage('nostrposts')
               }}
             >
-              Nostr&nbsp;Global&nbsp;(24hours)
+              Nostr&nbsp;Global&nbsp;(6&nbsp;hours)
             </button>
             <button
               class={navButtonStyle()}

@@ -23,8 +23,7 @@ const NostrPosts = (props: {
   putNostrKey: any,
   putClassifier: any,
   putProcessedPost: any,
-  markComplete: any,
-  prediction: any
+  markComplete: any
 }) => {
   const handleClickDrillPubkey = (publicKey: string) => {
     props.setSelectedNostrAuthor(publicKey)
