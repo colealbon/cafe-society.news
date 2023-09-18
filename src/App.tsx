@@ -162,7 +162,6 @@ const parseRSS = (content:any) => {
   const feedTitle = content.rss.channel.title
   const feedLink = content.rss.channel.link
   const feedDescription = content.rss.channel.description
-  console.log(content)
   const feedPosts = content.rss.channel.item.length == null ?
     [content.rss.channel.item] :
     content.rss.channel.item
@@ -418,7 +417,7 @@ const App: Component = () => {
           classifier: winkClassifier
         }))
         .filter((post: any) => {
-          return (post.prediction?.suppress || 0)  <= (suppressOdds || 0)
+          return (post.prediction?.suppress || 0) <= (suppressOdds || 0)
         })
         )
       })
