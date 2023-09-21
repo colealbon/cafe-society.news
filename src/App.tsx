@@ -419,6 +419,7 @@ const App: Component = () => {
         .filter((post: any) => {
           return (post.prediction?.suppress || 0) <= (suppressOdds || 0)
         })
+        .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
         )
       })
     })
