@@ -8,10 +8,17 @@
 .combobox__control {
   display: inline-flex;
   justify-content: space-between;
+  width: 200px;
   border-radius: 6px;
-  outline: none;40 4% 16%);
+  font-size: 16px;
+  line-height: 1;
+  outline: none;
+  background-color: white;
+  border: 1px solid hsl(240 6% 90%);
+  color: hsl(240 4% 16%);
   transition: border-color 250ms, color 250ms;
 }
+
 .combobox__control[data-invalid] {
   border-color: hsl(0 72% 51%);
   color: hsl(0 72% 51%);
