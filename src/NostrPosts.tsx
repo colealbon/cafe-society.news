@@ -129,7 +129,8 @@ const NostrPosts = (props: {
                   <Collapsible.Root defaultOpen={true}>
                     <Collapsible.Content class="collapsible__content">
                       <Show when={(props.selectedNostrAuthor() == '')}>
-                        <Link.Root target='_blank' href={`https://iris.to/${nip19.npubEncode(post.pubkey)}`}><div class='fade-in'>{`${nip19.npubEncode(post.pubkey)}`}</div></Link.Root>
+                        <Link.Root target='_blank' href={`https://iris.to/${nip19.npubEncode(post.pubkey)}`}><div class='fade-in'>iris.to</div></Link.Root>
+                        <Link.Root target='_blank' href={`https://astral.ninja/${nip19.npubEncode(post.pubkey)}`}><div class='fade-in'>astral.ninja</div></Link.Root>
                         <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
                           <Button.Root
                             title='ignore'
@@ -192,7 +193,7 @@ const NostrPosts = (props: {
                           }}
                         />
                       </Collapsible.Trigger>
-                      <Separator.Root />
+                      <Separator.Root class='ml-2 max-w-lg'/>
                     </Collapsible.Content>
                   </Collapsible.Root>  
                 }
