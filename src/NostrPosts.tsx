@@ -13,6 +13,7 @@ import PostTrain from './PostTrain'
 import { CgUserAdd } from 'solid-icons/cg'
 import { IoRemoveCircleOutline } from 'solid-icons/io'
 import { NostrKey } from "./db-fixture";
+import { nip19 } from 'nostr-tools'
 
 const NostrPosts = (props: {
   selectedTrainLabel: any,
@@ -113,7 +114,12 @@ const NostrPosts = (props: {
       </Show>
       <For
         each={props.nostrPosts()}
-        fallback={<>Loading</>}
+        fallback={
+          <div>
+            <div class='fade-in'>LOADING</div>
+            <div class='fade-in-slow'>for speed, try running your own <a href='https://github.com/aljazceru/awesome-nostr'>nostr</a> relay</div>
+          </div>
+        }
       >
         {(post) => {
           return (
@@ -123,7 +129,7 @@ const NostrPosts = (props: {
                   <Collapsible.Root defaultOpen={true}>
                     <Collapsible.Content class="collapsible__content">
                       <Show when={(props.selectedNostrAuthor() == '')}>
-                        <Button.Root
+                        {/* <Button.Root
                           class='bg-transparent border-none rounded'
                           onClick={(event) => {
                             event.preventDefault()
@@ -134,7 +140,8 @@ const NostrPosts = (props: {
                           <div class='text-xl text-orange hover-bg-orange hover-text-white text-xl rounded-2 ml-1 mr-1'>
                           {`${post.pubkey.substring(0,5)}...${post.pubkey.substring(post.pubkey.length - 5)}`}
                           </div>
-                        </Button.Root>
+                        </Button.Root> */}
+                        <a target='_blank' href={`https://iris.to/${nip19.npubEncode(post.pubkey)}`}>{`${nip19.npubEncode(post.pubkey)}`}</a>
                         <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
                           <Button.Root
                             title='ignore'
@@ -162,7 +169,7 @@ const NostrPosts = (props: {
                           .replace('NaN', '-')}`}
                         </div>
                       </div>
-                      <div class='flex text-wrap w-full'>
+                      <div class='flex text-wrap w-full max-w-lg'>
                         {
                           removeLinks(post.content)
                         }
