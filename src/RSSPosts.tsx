@@ -30,7 +30,12 @@ const Posts = (props: {
   return (
     <div>
       <h1>{props.trainLabel || 'posts'}</h1>
-      <For each={props.rssPosts?.flat()} fallback={<div class='fade-in-slow'>LOADING</div>}>
+      <For each={props.rssPosts?.flat()} fallback={
+        <div>
+          <div class='fade-in'>LOADING</div>
+          <div class='fade-in-slow'>try setting up <a href='https://www.npmjs.com/package/cors-anywhere'>cors proxy</a> and add it to the cors proxies settings</div>
+        </div>
+      }>
         {(post) => {
           const processedPostsID = post.feedLink === "" ? post.guid : shortUrl(post.feedLink)
           return (
