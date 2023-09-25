@@ -29,6 +29,7 @@
     "solid-forms": "^0.4.8",
     "solid-icons": "^1.0.11",
     "solid-js": "^1.7.11",
+    "string-similarity": "^4.0.4",
     "unocss": "^0.55.1",
     "unocss-preset-primitives": "0.0.1-beta.10",
     "wink-eng-lite-web-model": "^1.5.2",

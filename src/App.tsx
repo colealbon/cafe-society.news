@@ -8,11 +8,15 @@ import {
   Show,
   createEffect,
   createSignal,
-  createResource
+  createResource,
+  Switch,
+  Match
 } from 'solid-js';
 import { XMLParser } from 'fast-xml-parser'
+import stringSimilarity from 'string-similarity';
 import { createDexieArrayQuery } from "solid-dexie";
 import WinkClassifier from 'wink-naive-bayes-text-classifier';
+
 import winkNLP from 'wink-nlp';
 import model from 'wink-eng-lite-web-model';
 import {
@@ -48,9 +52,7 @@ import {
   ProcessedPost
 } from "./db-fixture";
 
-
 const fetcher = NostrFetcher.init();
-const navBarWidth = 250
 const db = new DbFixture();
 const nlp = winkNLP( model );
 const its = nlp.its;
@@ -162,7 +164,7 @@ const parseRSS = (content:any) => {
   const feedTitle = content.rss.channel.title
   const feedLink = content.rss.channel.link
   const feedDescription = content.rss.channel.description
-  const feedPosts = content.rss.channel.item.length == null ?
+  const feedPosts = content.rss.channel.item?.length == null ?
     [content.rss.channel.item] :
     content.rss.channel.item
 
@@ -237,6 +239,7 @@ const parsePosts = (postsXML: any[]) => {
         resolve(parsed)
       } catch (error) {
         console.log(error)
+        console.log(xmlEntry)
         resolve([])
       }
     }))
@@ -386,6 +389,9 @@ const App: Component = () => {
       Promise.all(fetchQueue)
       .then(fetchedPosts => parsePosts(fetchedPosts))
       .then((parsed: any[]) => {
+        if ([parsed?.flat()].length === 0) {
+          resolve([])
+        }
         const suppressOdds = classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds
         resolve(parsed?.flat()
         .filter(post => `${post?.mlText}`.trim() != '')
@@ -410,7 +416,13 @@ const App: Component = () => {
           if (processedPostsForFeedLink == undefined) {
             return true
           }
-          return processedPostsForFeedLink.indexOf(postItem?.mlText) == -1
+          return !processedPosts.find((processedPost) => {
+            const similarity = stringSimilarity.compareTwoStrings(
+              `${processedPost}`,
+              `${postItem.mlText}`
+            );
+            return similarity > 0.8;
+          });
         })
         .map((post: any) => applyPrediction({
           post: post,
@@ -539,6 +551,15 @@ const App: Component = () => {
           .filter((nostrPost: any) => {
             return [processedNostrPosts].flat()?.indexOf(nostrPost.mlText) == -1
           })
+          .filter((postItem: {mlText: string}) => {
+            return !processedPosts.find((processedPost) => {
+              const similarity = stringSimilarity.compareTwoStrings(
+                `${processedPost}`,
+                `${postItem.mlText}`
+              );
+              return similarity > 0.8;
+            });
+          })
           .map((post: any) => applyPrediction({
             post: post,
             classifier: winkClassifier
@@ -559,7 +580,7 @@ const App: Component = () => {
     })
   }
   const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts);
-  const [rssPosts] = createResource(fetchRssParams, fetchRssPosts);
+  const [rssPosts, {mutate}] = createResource(fetchRssParams, fetchRssPosts);
   
   return (
     <div class={`font-sans`}>
@@ -596,6 +617,7 @@ const App: Component = () => {
                     <button
                       class={navButtonStyle()}
                       onClick={() => {
+                        mutate(() => [])
                         setNavIsOpen(false)
                         setSelectedTrainLabel(trainLabel.id)
                         setSelectedPage('rssposts')
@@ -702,105 +724,107 @@ const App: Component = () => {
         </div>
       </div>
       <Show when={navIsOpen() == false}>
-        <Show when={selectedPage() == 'nostrposts'}>
-          <NostrPosts
-            selectedTrainLabel='nostr'
-            train={(params: {
-              mlText: string,
-              mlClass: string,
-              trainLabel: string
-            }) => {
-              train({
-                mlText: params.mlText,
-                mlClass: params.mlClass,
-                trainLabel: 'nostr',
-              })
-            }}
-            nostrPosts={nostrPosts}
-            selectedNostrAuthor={selectedNostrAuthor}
-            setSelectedNostrAuthor={setSelectedNostrAuthor}
-            putNostrKey={putNostrKey}
-            putProcessedPost={putProcessedPost}
-            putClassifier={putClassifier}
-            markComplete={(postId: string) => markComplete(postId, 'nostr')}
-          />
-        </Show>
-        <Show when={selectedPage() == 'profile'}>
-          <Profile
-            albyCodeVerifier={albyCodeVerifier}
-            setAlbyCodeVerifier={setAlbyCodeVerifier}
-            albyCode={albyCode}
-            setAlbyCode={setAlbyCode}
-            albyTokenReadInvoice={albyTokenReadInvoice}
-            setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
-          />
-        </Show>
-        <Show when={selectedPage() == 'cors'}>
-          <CorsProxies
-            corsProxies={corsProxies}
-            putCorsProxy={putCorsProxy}
-            removeCorsProxy={removeCorsProxy}
-          />
-        </Show>
-        <Show when={selectedPage() == 'contact'}>
-          <Contact/>
-        </Show>
-        <Show when={selectedPage() == 'nostrrelays'}>
-          <NostrRelays
-            nostrRelays={nostrRelays}
-            putNostrRelay={putNostrRelay}
-            removeNostrRelay={removeNostrRelay}
-          />
-        </Show>
-        <Show when={selectedPage() == 'nostrKeys'}>
-          <NostrKeys
-            nostrKeys={nostrKeys}
-            putNostrKey={putNostrKey}
-            removeNostrKey={removeNostrKey}
-          />
-        </Show>
-        <Show when={selectedPage() == 'classifiers'}>
-          <Classifiers
-            classifiers={classifiers}
-            putClassifier={putClassifier}
-            removeClassifier={removeClassifier}
-          />
-        </Show>
-        <Show when={selectedPage() == 'trainlabels'}>
-          <TrainLabels
-            trainLabels={trainLabels}
-            putTrainLabel={putTrainLabel}
-            removeTrainLabel={removeTrainLabel}
-          />
-        </Show>
-        <Show when={selectedPage() == 'rssfeeds'}>
-          <RSSFeeds
-            rssFeeds={rssFeeds}
-            putFeed={putRSSFeed}
-            removeFeed={removeRSSFeed}
-            trainLabels={trainLabels}
-            handleFeedToggleChecked={(id: string) => handleFeedToggleChecked(id)}
-          />
-        </Show>
-        <Show when={selectedPage() == 'rssposts'}>
-          <RSSPosts
-            trainLabel={selectedTrainLabel() || ''}
-            setSelectedTrainLabel={setSelectedTrainLabel}
-            train={(params: {
-              mlText: string,
-              mlClass: string,
-              trainLabel: string
-            }) => {
-              train({
-                mlText: params.mlText,
-                mlClass: params.mlClass,
-                trainLabel: selectedTrainLabel() || '',
-              })
-            }}
-            markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
-            rssPosts={rssPosts()}
-          />
-        </Show>
+        <Switch fallback={<Contact/>}>
+          <Match when={selectedPage() == 'nostrposts'}>
+            <NostrPosts
+              selectedTrainLabel='nostr'
+              train={(params: {
+                mlText: string,
+                mlClass: string,
+                trainLabel: string
+              }) => {
+                train({
+                  mlText: params.mlText,
+                  mlClass: params.mlClass,
+                  trainLabel: 'nostr',
+                })
+              }}
+              nostrPosts={nostrPosts}
+              selectedNostrAuthor={selectedNostrAuthor}
+              setSelectedNostrAuthor={setSelectedNostrAuthor}
+              putNostrKey={putNostrKey}
+              putProcessedPost={putProcessedPost}
+              putClassifier={putClassifier}
+              markComplete={(postId: string) => markComplete(postId, 'nostr')}
+            />
+          </Match>
+          <Match when={selectedPage() == 'profile'}>
+            <Profile
+              albyCodeVerifier={albyCodeVerifier}
+              setAlbyCodeVerifier={setAlbyCodeVerifier}
+              albyCode={albyCode}
+              setAlbyCode={setAlbyCode}
+              albyTokenReadInvoice={albyTokenReadInvoice}
+              setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
+            />
+          </Match>
+          <Match when={selectedPage() == 'cors'}>
+            <CorsProxies
+              corsProxies={corsProxies}
+              putCorsProxy={putCorsProxy}
+              removeCorsProxy={removeCorsProxy}
+            />
+          </Match>
+          <Match when={selectedPage() == 'contact'}>
+            <Contact/>
+          </Match>
+          <Match when={selectedPage() == 'nostrrelays'}>
+            <NostrRelays
+              nostrRelays={nostrRelays}
+              putNostrRelay={putNostrRelay}
+              removeNostrRelay={removeNostrRelay}
+            />
+          </Match>
+          <Match when={selectedPage() == 'nostrKeys'}>
+            <NostrKeys
+              nostrKeys={nostrKeys}
+              putNostrKey={putNostrKey}
+              removeNostrKey={removeNostrKey}
+            />
+          </Match>
+          <Match when={selectedPage() == 'classifiers'}>
+            <Classifiers
+              classifiers={classifiers}
+              putClassifier={putClassifier}
+              removeClassifier={removeClassifier}
+            />
+          </Match>
+          <Match when={selectedPage() == 'trainlabels'}>
+            <TrainLabels
+              trainLabels={trainLabels}
+              putTrainLabel={putTrainLabel}
+              removeTrainLabel={removeTrainLabel}
+            />
+          </Match>
+          <Match when={selectedPage() == 'rssfeeds'}>
+            <RSSFeeds
+              rssFeeds={rssFeeds}
+              putFeed={putRSSFeed}
+              removeFeed={removeRSSFeed}
+              trainLabels={trainLabels}
+              handleFeedToggleChecked={(id: string) => handleFeedToggleChecked(id)}
+            />
+          </Match>
+          <Match when={selectedPage() == 'rssposts'}>
+            <RSSPosts
+              trainLabel={selectedTrainLabel() || ''}
+              setSelectedTrainLabel={setSelectedTrainLabel}
+              train={(params: {
+                mlText: string,
+                mlClass: string,
+                trainLabel: string
+              }) => {
+                train({
+                  mlText: params.mlText,
+                  mlClass: params.mlClass,
+                  trainLabel: selectedTrainLabel() || '',
+                })
+              }}
+              markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
+              rssPosts={rssPosts()}
+            />
+          </Match>
+        </Switch>
       </Show>
     </div>
   )
