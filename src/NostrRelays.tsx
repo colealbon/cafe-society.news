@@ -90,12 +90,12 @@ const NostrRelays = (props: {
         <Collapsible.Root class="collapsible" defaultOpen={true}>
           <Collapsible.Content class='collapsible-content'>
             <p class='flex justify-start'>
-              <Button.Root class='border-none text-red-900 hover-text-white bg-transparent hover-bg-red-900 rounded-full m-0' onClick={() => {
+              <Button.Root class='border-none text-slate-900 hover-text-white bg-transparent hover-bg-slate-900 rounded-full m-0' onClick={() => {
                 setTimeout(() => {
                   props.removeNostrRelay(nostrRelay)
                 }, 300)
               }}>
-                <Collapsible.Trigger class='bg-inherit ease-in-out rounded-full border-inherit hover-text-white hover-bg-red-900 m-0 animate-fade-in animate-duration-1s'>
+                <Collapsible.Trigger class='bg-inherit ease-in-out rounded-full border-inherit hover-text-white hover-bg-slate-900 m-0 animate-fade-in animate-duration-1s'>
                   ✕
                 </Collapsible.Trigger>
               </Button.Root>

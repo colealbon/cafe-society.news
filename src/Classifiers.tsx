@@ -112,8 +112,8 @@ const Classifiers = (props: {
       </div>
     </form>
     <Collapsible.Root class="collapsible border-none bg-transparent" defaultOpen={false}>
-    <Collapsible.Trigger class="collapsible__trigger hover-bg-red-900 hover-text-white bg-transparent border-none">
-      <div class='hover-bg-red-900 hover-text-white bg-transparent border-none'>JSON</div>
+    <Collapsible.Trigger class="collapsible__trigger hover-bg-slate-900 hover-text-white bg-transparent border-none">
+      <div class='hover-bg-slate-900 hover-text-white bg-transparent border-none'>JSON</div>
     </Collapsible.Trigger>
     <Collapsible.Content class="collapsible__content">
       <p class="collapsible__content-text">

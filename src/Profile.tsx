@@ -96,7 +96,7 @@ const Profile = (props: {
         fallback={
           <div>
             <div>{props.albyTokenReadInvoice()}</div>
-            <Button.Root class='animate-fade-in bg-transparent border-none hover-bg-black text-red-900 hover-text-white rounded-full' onClick={() => authenticateAlby()}>
+            <Button.Root class='animate-fade-in bg-transparent border-none hover-bg-black text-slate-900 hover-text-white rounded-full' onClick={() => authenticateAlby()}>
               login alby
             </Button.Root>
           </div>

@@ -87,7 +87,7 @@ const CorsProxies = (props: {
               <div class='w-full flex flex-row justify-start m-1'>
                 <Button.Root
                   onClick={() => props.removeCorsProxy(corsProxy)}
-                  class='bg-transparent hover-bg-red-900 hover-text-white border-none rounded-full'
+                  class='bg-transparent hover-bg-slate-900 hover-text-white border-none rounded-full'
                 >
                   <VsTrash class='hover-text-white' />
                 </Button.Root>
