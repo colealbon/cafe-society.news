@@ -532,7 +532,7 @@ const App: Component = () => {
       fetcher.fetchAllEvents(
         [...paramsObj.nostrRelayList],
         filterOptions,
-        { since: nHoursAgo(6) }
+        { since: nHoursAgo(12) }
         // maxPosts
       )
       .then((allThePosts: any) => {
@@ -584,12 +584,12 @@ const App: Component = () => {
   
   return (
     <div class={`font-sans`}>
-      <div class={`${navIsOpen() ? 'bg-red-900' : ''} rounded-2`}>
+      <div class={`${navIsOpen() ? 'bg-slate-900' : ''} rounded-2`}>
         <div class='text-2xl transition-all'>
           <button
             class={`${navIsOpen() ? 
-              'hover-text-slate-900 bg-red-900 text-white' : 
-              'hover-bg-red-900 hover-text-white bg-transparent'} 
+              'hover-text-slate-900 bg-slate-900 text-white' : 
+              'hover-bg-slate-900 hover-text-white bg-transparent'} 
                 border-none rounded-full transition-all duration-500 text-4xl mt-1`}
             onClick={event => {
               event.preventDefault()
@@ -638,7 +638,7 @@ const App: Component = () => {
                 setSelectedPage('nostrposts')
               }}
             >
-              Nostr&nbsp;Global&nbsp;(6&nbsp;hours)
+              Nostr&nbsp;Global&nbsp;(12&nbsp;hours)
             </button>
             <button
               class={navButtonStyle()}
