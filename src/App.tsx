@@ -532,7 +532,7 @@ const App: Component = () => {
       fetcher.fetchAllEvents(
         [...paramsObj.nostrRelayList],
         filterOptions,
-        { since: nHoursAgo(12) }
+        { since: nHoursAgo(6) }
         // maxPosts
       )
       .then((allThePosts: any) => {
@@ -637,7 +637,7 @@ const App: Component = () => {
                 setSelectedPage('nostrposts')
               }}
             >
-              Nostr&nbsp;Global&nbsp;(12&nbsp;hours)
+              Nostr&nbsp;Global&nbsp;(6&nbsp;hours)
             </button>
             <button
               class={navButtonStyle()}
