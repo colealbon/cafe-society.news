@@ -574,7 +574,6 @@ const App: Component = () => {
             return ( 0.0 + post.prediction?.suppress || 0.0) != 0.0
           })
           .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
-
         resolve(filteredPosts)
       })
     })
