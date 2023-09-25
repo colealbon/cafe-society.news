@@ -60,7 +60,7 @@ const NostrPosts = (props: {
   }
   return (
     <main>
-      <div class="fade-in">
+      <div>
         <h1>nostr global feed</h1>
         <Separator.Root />
       </div>
@@ -117,7 +117,7 @@ const NostrPosts = (props: {
         fallback={
           <div>
             <div class='fade-in'>LOADING</div>
-            <div class='fade-in-slow'>for speed, try running your own <a href='https://github.com/aljazceru/awesome-nostr'>nostr</a> relay</div>
+            <div class='fade-in-slow'>for speed, try running your own <Link.Root href='https://github.com/aljazceru/awesome-nostr'>nostr</Link.Root> relay</div>
           </div>
         }
       >
@@ -129,23 +129,11 @@ const NostrPosts = (props: {
                   <Collapsible.Root defaultOpen={true}>
                     <Collapsible.Content class="collapsible__content">
                       <Show when={(props.selectedNostrAuthor() == '')}>
-                        {/* <Button.Root
-                          class='bg-transparent border-none rounded'
-                          onClick={(event) => {
-                            event.preventDefault()
-                            handleClickDrillPubkey(post.pubkey)
-                          }}
-                          title='view user posts'
-                        >
-                          <div class='text-xl text-orange hover-bg-orange hover-text-white text-xl rounded-2 ml-1 mr-1'>
-                          {`${post.pubkey.substring(0,5)}...${post.pubkey.substring(post.pubkey.length - 5)}`}
-                          </div>
-                        </Button.Root> */}
-                        <a target='_blank' href={`https://iris.to/${nip19.npubEncode(post.pubkey)}`}>{`${nip19.npubEncode(post.pubkey)}`}</a>
+                        <Link.Root target='_blank' href={`https://iris.to/${nip19.npubEncode(post.pubkey)}`}><div class='fade-in'>{`${nip19.npubEncode(post.pubkey)}`}</div></Link.Root>
                         <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
                           <Button.Root
                             title='ignore'
-                            class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red rounded-full`}
+                            class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red rounded-full fade-in`}
                             onClick={event => {
                               event.preventDefault()
                               handleIgnore(props.selectedNostrAuthor())
@@ -155,13 +143,13 @@ const NostrPosts = (props: {
                               }, 300)
                             }}
                           >
-                            <div class='text-red hover-text-white mt-2'>
+                            <div class='text-red hover-text-white mt-2 fade-in'>
                               <IoRemoveCircleOutline />
                             </div>
                           </Button.Root>
                         </Collapsible.Trigger>
                       </Show>
-                      <div flex flex-row>
+                      <div flex flex-row class="fade-in">
                         <div style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</div>
                         <div class='ml-4'>
                           {`promote odds: ${(0.0 + post.prediction['promote'] || 0.0)
@@ -169,7 +157,7 @@ const NostrPosts = (props: {
                           .replace('NaN', '-')}`}
                         </div>
                       </div>
-                      <div class='flex text-wrap w-full max-w-lg'>
+                      <div class='flex text-wrap w-full max-w-lg fade-in'>
                         {
                           removeLinks(post.content)
                         }
