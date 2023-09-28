@@ -727,8 +727,19 @@ const App: Component = () => {
       </div>
       <Show when={navIsOpen() == false}>
       <Routes>
+        <Route path='/profile' component={() => (
+          <Profile
+            albyCodeVerifier={albyCodeVerifier}
+            setAlbyCodeVerifier={setAlbyCodeVerifier}
+            albyCode={albyCode}
+            setAlbyCode={setAlbyCode}
+            albyTokenReadInvoice={albyTokenReadInvoice}
+            setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
+          />)
+        }>
+        </Route>
         <Route path="/" component={() => (
-            <Switch fallback={<Contact/>}>
+          <Switch fallback={<Contact/>}>
           <Match when={`${selectedPage()}` == 'nostrposts'}>
             <NostrPosts
               selectedTrainLabel='nostr'
@@ -750,16 +761,6 @@ const App: Component = () => {
               putProcessedPost={putProcessedPost}
               putClassifier={putClassifier}
               markComplete={(postId: string) => markComplete(postId, 'nostr')}
-            />
-          </Match>
-          <Match when={selectedPage() == 'profile'}>
-            <Profile
-              albyCodeVerifier={albyCodeVerifier}
-              setAlbyCodeVerifier={setAlbyCodeVerifier}
-              albyCode={albyCode}
-              setAlbyCode={setAlbyCode}
-              albyTokenReadInvoice={albyTokenReadInvoice}
-              setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
             />
           </Match>
           <Match when={selectedPage() == 'cors'}>
