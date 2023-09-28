@@ -16,7 +16,10 @@ import { XMLParser } from 'fast-xml-parser'
 import stringSimilarity from 'string-similarity';
 import { createDexieArrayQuery } from "solid-dexie";
 import WinkClassifier from 'wink-naive-bayes-text-classifier';
-
+import {
+  Routes,
+  Route
+} from "@solidjs/router";
 import winkNLP from 'wink-nlp';
 import model from 'wink-eng-lite-web-model';
 import {
@@ -75,7 +78,7 @@ function createStoredSignal<T>(
   defaultValue: T,
   storage = localStorage
 ): Signal<T> {
-  const initialValue = storage.getItem(key) != undefined
+  const initialValue = storage.getItem(key) != undefined && storage.getItem(key) !== 'undefined'
     ? JSON.parse(`${storage.getItem(key)}`) as T
     : defaultValue;
   const [value, setValue] = createSignal<T>(initialValue);
@@ -580,7 +583,7 @@ const App: Component = () => {
   }
   const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts);
   const [rssPosts, {mutate}] = createResource(fetchRssParams, fetchRssPosts);
-  
+
   return (
     <div class={`font-sans`}>
       <div class={`${navIsOpen() ? 'bg-slate-900' : ''} rounded-2`}>
@@ -723,8 +726,10 @@ const App: Component = () => {
         </div>
       </div>
       <Show when={navIsOpen() == false}>
-        <Switch fallback={<Contact/>}>
-          <Match when={selectedPage() == 'nostrposts'}>
+      <Routes>
+        <Route path="/" component={() => (
+            <Switch fallback={<Contact/>}>
+          <Match when={`${selectedPage()}` == 'nostrposts'}>
             <NostrPosts
               selectedTrainLabel='nostr'
               train={(params: {
@@ -823,7 +828,9 @@ const App: Component = () => {
               rssPosts={rssPosts()}
             />
           </Match>
-        </Switch>
+        </Switch>)
+        }/>
+      </Routes>
       </Show>
     </div>
   )
