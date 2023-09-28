@@ -1,8 +1,4 @@
 import { convert } from 'html-to-text'
-import type {
-  Component,
-  Signal
-} from 'solid-js';
 import {
   For,
   Show,
@@ -10,7 +6,12 @@ import {
   createSignal,
   createResource,
   Switch,
-  Match
+  Match,
+  lazy
+} from 'solid-js';
+import type {
+  Component,
+  Signal
 } from 'solid-js';
 import { XMLParser } from 'fast-xml-parser'
 import stringSimilarity from 'string-similarity';
@@ -18,7 +19,9 @@ import { createDexieArrayQuery } from "solid-dexie";
 import WinkClassifier from 'wink-naive-bayes-text-classifier';
 import {
   Routes,
-  Route
+  Route,
+  A,
+  useParams
 } from "@solidjs/router";
 import winkNLP from 'wink-nlp';
 import model from 'wink-eng-lite-web-model';
@@ -28,15 +31,12 @@ import {
 } from "nostr-fetch";
 import axios from 'axios';
 import Contact from './Contact';
-import CorsProxies from './CorsProxies';
 import NostrRelays from './NostrRelays';
 import NostrKeys from './NostrKeys';
 import Classifiers from './Classifiers';
-import Profile from './Profile';
 import TrainLabels from './TrainLabels';
 import NostrPosts from './NostrPosts';
-import RSSFeeds from './RSSFeeds';
-import RSSPosts, {shortUrl} from './RSSPosts'
+import {shortUrl} from './RSSPosts'
 import defaultCorsProxies from './defaultCorsProxies';
 import defaultNostrRelays from './defaultNostrRelays';
 import defaultNostrKeys from './defaultNostrKeys';
@@ -251,8 +251,8 @@ const parsePosts = (postsXML: any[]) => {
 }
 
 const App: Component = () => {
-  const navButtonStyle = () => `text-left text-xl text-white border-none transition-all bg-transparent hover-text-slate-500 hover-text-4v xl`
-  const [navIsOpen, setNavIsOpen] = createStoredSignal('isNavOpen', false);
+  const navButtonStyle = () => `no-underline text-left text-xl text-white border-none transition-all bg-transparent hover-text-slate-500 hover-text-4v xl`
+  const [navIsOpen, setNavIsOpen] = createSignal(false);
   const [albyCodeVerifier, setAlbyCodeVerifier] = createStoredSignal('albyCodeVerifier', '')
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
   const [albyTokenReadInvoice, setAlbyTokenReadInvoice] = createStoredSignal('albyTokenReadInvoice', '')
@@ -582,7 +582,7 @@ const App: Component = () => {
     })
   }
   const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts);
-  const [rssPosts, {mutate}] = createResource(fetchRssParams, fetchRssPosts);
+  const [rssPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
 
   return (
     <div class={`font-sans`}>
@@ -601,118 +601,38 @@ const App: Component = () => {
             {`${navIsOpen() ? '≡' : '≡'}`}
           </button>
         </div>
-        <div class={`${navIsOpen() ? 'flex flex-col text-left' : 'h-0 '} transition-all`}>
+        <div class={`${navIsOpen() ? 'flex flex-col text-left pl-3' : 'h-0 '} transition-all`}>
           <Show when={navIsOpen()}>
-            <button
-              class={navButtonStyle()}
+            <A href='/rssposts'
+              class={`${navButtonStyle()}`}
               onClick={() => {
                 setNavIsOpen(false)
+                setSelectedTrainLabel('')
                 setSelectedPage('rssposts')
               }}
             >
               RSS&nbsp;Posts
-            </button>
+            </A>
             <For each={checkedTrainLabels}>
               {
                 (trainLabel) => (
                   <div class='ml-4 hover:text-slate-900'>
-                    <button
+                    <A href={`/rssposts/${trainLabel.id}`}
                       class={navButtonStyle()}
                       onClick={() => {
-                        mutate(() => [])
+                        mutateRssPosts(() => [])
                         setNavIsOpen(false)
                         setSelectedTrainLabel(trainLabel.id)
                         setSelectedPage('rssposts')
                       }} 
-                      value={'rssposts'}
                     >
                       {`${trainLabel.id}`}
-                    </button>
+                    </A>
                   </div>
                 )
               }
             </For>
-            <button
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('nostr')
-                setSelectedPage('nostrposts')
-              }}
-            >
-              Nostr&nbsp;Global&nbsp;(6&nbsp;hours)
-            </button>
-            <button
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-                setSelectedPage('profile')
-              }}
-            >
-              Profile
-            </button>
-            <button
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-                setSelectedPage('cors')
-              }}
-            >
-              Cors&nbsp;Proxies
-            </button>
-            <button
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-                setSelectedPage('contact')
-              }}
-            >
-              Contact
-            </button>
-            <button
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-                setSelectedPage('nostrrelays')
-              }}
-            >
-              Nostr&nbsp;Relays
-            </button>
-            <button
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-                setSelectedPage('nostrkeys')
-              }}
-            >
-              Nostr&nbsp;Keys
-            </button>
-            <button
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-                setSelectedPage('classifiers')
-              }}
-            >
-              Classifiers
-            </button>
-            <button
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-                setSelectedPage('trainlabels')
-              }}
-            >
-              Train&nbsp;Labels
-            </button>
-            <button
+            <A href='/rssfeeds'
               class={navButtonStyle()}
               onClick={() => {
                 setNavIsOpen(false)
@@ -721,114 +641,226 @@ const App: Component = () => {
               }}
             >
               RSS&nbsp;Feeds
-            </button>
+            </A>
+            <A href='/nostrposts'
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('nostr')
+                setSelectedPage('nostrposts')
+              }}
+            >
+              Nostr&nbsp;Global&nbsp;(6&nbsp;hours)
+            </A>
+            <A href='/profile'
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('profile')
+              }}
+            >
+              Profile
+            </A>
+            <A href='/cors'
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('cors')
+              }}
+            >
+              Cors&nbsp;Proxies
+            </A>
+            <A href='/contact'
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('contact')
+              }}
+            >
+              Contact
+            </A>
+            <A href='/nostrrelays'
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('nostrrelays')
+              }}
+            >
+              Nostr&nbsp;Relays
+            </A>
+            <A href='/nostrkeys'
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('nostrkeys')
+              }}
+            >
+              Nostr&nbsp;Keys
+            </A>
+            <A href='/classifiers'
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('classifiers')
+              }}
+            >
+              Classifiers
+            </A>
+            <A href='/trainlabels'
+              class={navButtonStyle()}
+              onClick={() => {
+                setNavIsOpen(false)
+                setSelectedTrainLabel('')
+                setSelectedPage('trainlabels')
+              }}
+            >
+              Train&nbsp;Labels
+            </A>
           </Show>
         </div>
       </div>
+
       <Show when={navIsOpen() == false}>
       <Routes>
-        <Route path='/profile' component={() => (
-          <Profile
+        <Route path='/cors' component={() => {
+          const CorsProxies = lazy(() => import("./CorsProxies"))
+          return <CorsProxies
+            corsProxies={corsProxies}
+            putCorsProxy={putCorsProxy}
+            removeCorsProxy={removeCorsProxy}
+          />
+        }} />
+        <Route path='/profile' component={() => {
+          const Profile = lazy(() => import("./Profile"))
+          return <Profile
             albyCodeVerifier={albyCodeVerifier}
             setAlbyCodeVerifier={setAlbyCodeVerifier}
             albyCode={albyCode}
             setAlbyCode={setAlbyCode}
             albyTokenReadInvoice={albyTokenReadInvoice}
             setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
-          />)
-        }>
-        </Route>
-        <Route path="/" component={() => (
-          <Switch fallback={<Contact/>}>
-          <Match when={`${selectedPage()}` == 'nostrposts'}>
-            <NostrPosts
-              selectedTrainLabel='nostr'
-              train={(params: {
-                mlText: string,
-                mlClass: string,
-                trainLabel: string
-              }) => {
+          />
+        }}/>
+        <Route path='/rssfeeds' component={() => {
+          const RSSFeeds = lazy(() => import("./RSSFeeds"))
+          return <RSSFeeds
+            rssFeeds={rssFeeds}
+            putFeed={putRSSFeed}
+            removeFeed={removeRSSFeed}
+            trainLabels={trainLabels}
+            handleFeedToggleChecked={(id: string) => handleFeedToggleChecked(id)}
+          />
+        }}/>
+
+        <Route path='/rssposts' component={() => {
+          const RSSPosts = lazy(() => import("./RSSPosts"))
+          return <RSSPosts
+            trainLabel={selectedTrainLabel() || ''}
+            setSelectedTrainLabel={setSelectedTrainLabel}
+            train={(params: {
+              mlText: string,
+              mlClass: string,
+              trainLabel: string
+            }) => {
+              train({
+                mlText: params.mlText,
+                mlClass: params.mlClass,
+                trainLabel: selectedTrainLabel() || '',
+              })
+            }}
+            markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
+            rssPosts={rssPosts()}
+          />
+        }} />
+
+        <Route path='/rssposts/:trainlabel' component={() => {
+          const RSSPosts = lazy(() => import("./RSSPosts"))
+          const {trainlabel} = useParams()
+          return <RSSPosts
+            trainLabel={selectedTrainLabel() || ''}
+            setSelectedTrainLabel={setSelectedTrainLabel}
+            train={(params: {
+              mlText: string,
+              mlClass: string,
+              trainLabel: string
+            }) => {
+              train({
+                mlText: params.mlText,
+                mlClass: params.mlClass,
+                trainLabel: selectedTrainLabel() || '',
+              })
+            }}
+            markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
+            rssPosts={rssPosts()}
+          />
+        }} />
+        <Route 
+          path='/nostrposts'
+          component={() => {
+            return (
+              <NostrPosts
+                selectedTrainLabel='nostr'
+                train={(params: 
+                  {
+                    mlText: string,
+                    mlClass: string,
+                    trainLabel: string
+                  }) => {
                 train({
                   mlText: params.mlText,
                   mlClass: params.mlClass,
                   trainLabel: 'nostr',
-                })
-              }}
-              nostrPosts={nostrPosts}
-              selectedNostrAuthor={selectedNostrAuthor}
-              setSelectedNostrAuthor={setSelectedNostrAuthor}
-              putNostrKey={putNostrKey}
-              putProcessedPost={putProcessedPost}
-              putClassifier={putClassifier}
-              markComplete={(postId: string) => markComplete(postId, 'nostr')}
+                  })
+                }}
+                nostrPosts={nostrPosts}
+                selectedNostrAuthor={selectedNostrAuthor}
+                setSelectedNostrAuthor={setSelectedNostrAuthor}
+                putNostrKey={putNostrKey}
+                putProcessedPost={putProcessedPost}
+                putClassifier={putClassifier}
+                markComplete={(postId: string) => markComplete(postId, 'nostr')}
             />
-          </Match>
-          <Match when={selectedPage() == 'cors'}>
-            <CorsProxies
-              corsProxies={corsProxies}
-              putCorsProxy={putCorsProxy}
-              removeCorsProxy={removeCorsProxy}
-            />
-          </Match>
-          <Match when={selectedPage() == 'contact'}>
-            <Contact/>
-          </Match>
-          <Match when={selectedPage() == 'nostrrelays'}>
-            <NostrRelays
+            )
+          }}
+        />
+
+          <Route path='/contact' component={() => {
+            return <Contact/>
+          }} />
+
+          <Route path='/nostrrelays' component={() => {
+            return <NostrRelays
               nostrRelays={nostrRelays}
               putNostrRelay={putNostrRelay}
               removeNostrRelay={removeNostrRelay}
-            />
-          </Match>
-          <Match when={selectedPage() == 'nostrKeys'}>
-            <NostrKeys
+              />
+          }} />
+          <Route path='/nostrKeys' component={() => {
+            return <NostrKeys
               nostrKeys={nostrKeys}
               putNostrKey={putNostrKey}
               removeNostrKey={removeNostrKey}
-            />
-          </Match>
-          <Match when={selectedPage() == 'classifiers'}>
-            <Classifiers
+/>}} />
+          <Route path='/classifiers' component={() => {
+            return <Classifiers
               classifiers={classifiers}
               putClassifier={putClassifier}
               removeClassifier={removeClassifier}
-            />
-          </Match>
-          <Match when={selectedPage() == 'trainlabels'}>
-            <TrainLabels
+/>}} />
+          <Route path='/trainlabels' component={() => {
+            return <TrainLabels
               trainLabels={trainLabels}
               putTrainLabel={putTrainLabel}
               removeTrainLabel={removeTrainLabel}
-            />
-          </Match>
-          <Match when={selectedPage() == 'rssfeeds'}>
-            <RSSFeeds
-              rssFeeds={rssFeeds}
-              putFeed={putRSSFeed}
-              removeFeed={removeRSSFeed}
-              trainLabels={trainLabels}
-              handleFeedToggleChecked={(id: string) => handleFeedToggleChecked(id)}
-            />
-          </Match>
-          <Match when={selectedPage() == 'rssposts'}>
-            <RSSPosts
-              trainLabel={selectedTrainLabel() || ''}
-              setSelectedTrainLabel={setSelectedTrainLabel}
-              train={(params: {
-                mlText: string,
-                mlClass: string,
-                trainLabel: string
-              }) => {
-                train({
-                  mlText: params.mlText,
-                  mlClass: params.mlClass,
-                  trainLabel: selectedTrainLabel() || '',
-                })
-              }}
-              markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
-              rssPosts={rssPosts()}
-            />
-          </Match>
+/>}} />
+        <Route path="/" component={() => (
+          <Switch fallback={<Contact/>}>
         </Switch>)
         }/>
       </Routes>
