@@ -762,7 +762,6 @@ const App: Component = () => {
           const RSSPosts = lazy(() => import("./RSSPosts"))
           return <RSSPosts
             trainLabel={selectedTrainLabel() || ''}
-            setSelectedTrainLabel={setSelectedTrainLabel}
             train={(params: {
               mlText: string,
               mlClass: string,
@@ -778,6 +777,25 @@ const App: Component = () => {
             rssPosts={rssPosts()}
           />
         }} />
+        <Route path='/' component={() => {
+          const RSSPosts = lazy(() => import("./RSSPosts"))
+          return <RSSPosts
+            train={(params: {
+              mlText: string,
+              mlClass: string,
+              trainLabel: string
+            }) => {
+              train({
+                mlText: params.mlText,
+                mlClass: params.mlClass,
+                trainLabel: '',
+              })
+            }}
+            markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
+            rssPosts={rssPosts()}
+          />
+        }} />
+
 
         <Route path='/rssposts/:trainlabel' component={() => {
           const RSSPosts = lazy(() => import("./RSSPosts"))
@@ -859,10 +877,6 @@ const App: Component = () => {
               putTrainLabel={putTrainLabel}
               removeTrainLabel={removeTrainLabel}
 />}} />
-        <Route path="/" component={() => (
-          <Switch fallback={<Contact/>}>
-        </Switch>)
-        }/>
       </Routes>
       </Show>
     </div>

@@ -22,14 +22,13 @@ export const shortUrl = (text: string) => {
 
 const Posts = (props: {
   trainLabel: string,
-  setSelectedTrainLabel: any,
   train: any,
   rssPosts: any,
   markComplete: any
 }) => {
   return (
     <div>
-      <h1>{props.trainLabel || 'posts'}</h1>
+      <h1>{props.trainLabel || 'all rss posts'}</h1>
       <For each={props.rssPosts?.flat()} fallback={
         <div>
           <div class='fade-in'>LOADING</div>
