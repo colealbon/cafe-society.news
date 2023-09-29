@@ -728,7 +728,7 @@ const App: Component = () => {
             removeCorsProxy={removeCorsProxy}
           />
         }} />
-        <Route path='/profile' component={() => {
+        <Route path='/alby' component={() => {
           const Profile = lazy(() => import("./Profile"))
           return <Profile
             albyCodeVerifier={albyCodeVerifier}
