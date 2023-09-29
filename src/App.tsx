@@ -257,7 +257,6 @@ const App: Component = () => {
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
   const [albyTokenReadInvoice, setAlbyTokenReadInvoice] = createStoredSignal('albyTokenReadInvoice', '')
   const [selectedTrainLabel, setSelectedTrainLabel] = createStoredSignal('selectedTrainLabel', '')
-  const [selectedPage, setSelectedPage] = createStoredSignal('selectedPage', '')
   const [selectedNostrAuthor, setSelectedNostrAuthor] = createStoredSignal('selectedNostrAuthor', '')
   
   const corsProxies = createDexieArrayQuery(() => db.corsproxies.toArray());
@@ -611,7 +610,6 @@ const App: Component = () => {
               onClick={() => {
                 setNavIsOpen(false)
                 setSelectedTrainLabel('')
-                setSelectedPage('rssposts')
               }}
             >
               RSS&nbsp;Posts
@@ -626,7 +624,6 @@ const App: Component = () => {
                         mutateRssPosts(() => [])
                         setNavIsOpen(false)
                         setSelectedTrainLabel(trainLabel.id)
-                        setSelectedPage('rssposts')
                       }} 
                     >
                       {`${trainLabel.id}`}
@@ -640,7 +637,6 @@ const App: Component = () => {
               onClick={() => {
                 setNavIsOpen(false)
                 setSelectedTrainLabel('')
-                setSelectedPage('rssfeeds')
               }}
             >
               RSS&nbsp;Feeds
@@ -650,7 +646,6 @@ const App: Component = () => {
               onClick={() => {
                 setNavIsOpen(false)
                 setSelectedTrainLabel('nostr')
-                setSelectedPage('nostrposts')
               }}
             >
               Nostr&nbsp;Global&nbsp;(6&nbsp;hours)
@@ -660,7 +655,6 @@ const App: Component = () => {
               onClick={() => {
                 setNavIsOpen(false)
                 setSelectedTrainLabel('')
-                setSelectedPage('profile')
               }}
             >
               Profile
@@ -670,7 +664,6 @@ const App: Component = () => {
               onClick={() => {
                 setNavIsOpen(false)
                 setSelectedTrainLabel('')
-                setSelectedPage('cors')
               }}
             >
               Cors&nbsp;Proxies
@@ -680,7 +673,6 @@ const App: Component = () => {
               onClick={() => {
                 setNavIsOpen(false)
                 setSelectedTrainLabel('')
-                setSelectedPage('contact')
               }}
             >
               Contact
@@ -690,7 +682,6 @@ const App: Component = () => {
               onClick={() => {
                 setNavIsOpen(false)
                 setSelectedTrainLabel('')
-                setSelectedPage('nostrrelays')
               }}
             >
               Nostr&nbsp;Relays
@@ -700,7 +691,6 @@ const App: Component = () => {
               onClick={() => {
                 setNavIsOpen(false)
                 setSelectedTrainLabel('')
-                setSelectedPage('nostrkeys')
               }}
             >
               Nostr&nbsp;Keys
@@ -710,7 +700,6 @@ const App: Component = () => {
               onClick={() => {
                 setNavIsOpen(false)
                 setSelectedTrainLabel('')
-                setSelectedPage('classifiers')
               }}
             >
               Classifiers
@@ -720,7 +709,6 @@ const App: Component = () => {
               onClick={() => {
                 setNavIsOpen(false)
                 setSelectedTrainLabel('')
-                setSelectedPage('trainlabels')
               }}
             >
               Train&nbsp;Labels
@@ -732,11 +720,6 @@ const App: Component = () => {
       <Show when={navIsOpen() == false}>
       
       <Routes>
-      {/* <Route path='/nostrkeys/raw' component={() => {
-            return <pre>{JSON.stringify(nostrKeys)}
-              </pre>
-      }}/> */}
-
         <Route path='/cors' component={() => {
           const CorsProxies = lazy(() => import("./CorsProxies"))
           return <CorsProxies
@@ -805,7 +788,6 @@ const App: Component = () => {
           />
         }} />
 
-
         <Route path='/rssposts/:trainlabel' component={() => {
           const RSSPosts = lazy(() => import("./RSSPosts"))
           const {trainlabel} = useParams()
@@ -851,7 +833,7 @@ const App: Component = () => {
                 putProcessedPost={putProcessedPost}
                 putClassifier={putClassifier}
                 markComplete={(postId: string) => markComplete(postId, 'nostr')}
-            />
+              />
             )
           }}
         />
@@ -873,12 +855,22 @@ const App: Component = () => {
               putNostrKey={putNostrKey}
               removeNostrKey={removeNostrKey}
               />}} />
+          <Route path='/nostrkeys/raw' component={() => {
+            return <pre>{JSON.stringify(nostrKeys, null, 2)}
+              </pre>
+            }}/>
           <Route path='/classifiers' component={() => {
             return <Classifiers
               classifiers={classifiers}
               putClassifier={putClassifier}
               removeClassifier={removeClassifier}
               />}} />
+
+          <Route path='/classifiers/raw' component={() => {
+            return <pre>
+              {JSON.stringify(classifiers, null, 2)}
+              </pre>
+            }}/>
           <Route path='/trainlabels' component={() => {
             return <TrainLabels
               trainLabels={trainLabels}
