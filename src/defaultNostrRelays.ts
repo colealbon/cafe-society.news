@@ -1,7 +1,7 @@
 const defaultNostrRelays = [
   {
   "id": "wss://relay.nostr.bg",
-    "checked": false
+    "checked": true
   },
   {
   "id": "wss://relay.damus.io",
@@ -13,7 +13,7 @@ const defaultNostrRelays = [
   },
   {
   "id": "wss://nos.lol",
-    "checked": true
+    "checked": false
   },
   {
   "id": "wss://nostr.mom",
@@ -33,7 +33,7 @@ const defaultNostrRelays = [
   },
   {
   "id": "wss://nostr-pub.wellorder.net",
-    "checked": true
+    "checked": false
   }
 ]
 export default defaultNostrRelays
