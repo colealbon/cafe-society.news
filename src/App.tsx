@@ -174,7 +174,7 @@ const parseRSS = (content:any) => {
   return [...feedPosts]
     .map((itemEntry) => ({
       feedTitle: feedTitle,
-      feedLink: feedLink,
+      feedLink: `${feedLink}`,
       feedDescription: feedDescription,
       ...itemEntry
     }))
@@ -413,7 +413,9 @@ const App: Component = () => {
 
           }
         })
+        .filter(post => post?.feedLink || post?.guid != null)
         .filter((postItem: any) => {
+          console.log()
           const processedPostsID = postItem.feedLink === "" ? postItem.guid : shortUrl(postItem.feedLink)
           const processedPostsForFeedLink = processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == processedPostsID)?.processedPosts
           if (processedPostsForFeedLink == undefined) {
@@ -585,6 +587,7 @@ const App: Component = () => {
   const [rssPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
 
   return (
+
     <div class={`font-sans`}>
       <div class={`${navIsOpen() ? 'bg-slate-900' : ''} rounded-2`}>
         <div class='text-2xl transition-all'>
@@ -727,7 +730,13 @@ const App: Component = () => {
       </div>
 
       <Show when={navIsOpen() == false}>
+      
       <Routes>
+      {/* <Route path='/nostrkeys/raw' component={() => {
+            return <pre>{JSON.stringify(nostrKeys)}
+              </pre>
+      }}/> */}
+
         <Route path='/cors' component={() => {
           const CorsProxies = lazy(() => import("./CorsProxies"))
           return <CorsProxies
@@ -788,7 +797,7 @@ const App: Component = () => {
               train({
                 mlText: params.mlText,
                 mlClass: params.mlClass,
-                trainLabel: '',
+                trainLabel: ''
               })
             }}
             markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
@@ -802,7 +811,6 @@ const App: Component = () => {
           const {trainlabel} = useParams()
           return <RSSPosts
             trainLabel={selectedTrainLabel() || ''}
-            setSelectedTrainLabel={setSelectedTrainLabel}
             train={(params: {
               mlText: string,
               mlClass: string,
@@ -859,27 +867,29 @@ const App: Component = () => {
               removeNostrRelay={removeNostrRelay}
               />
           }} />
-          <Route path='/nostrKeys' component={() => {
+          <Route path='/nostrkeys' component={() => {
             return <NostrKeys
               nostrKeys={nostrKeys}
               putNostrKey={putNostrKey}
               removeNostrKey={removeNostrKey}
-/>}} />
+              />}} />
           <Route path='/classifiers' component={() => {
             return <Classifiers
               classifiers={classifiers}
               putClassifier={putClassifier}
               removeClassifier={removeClassifier}
-/>}} />
+              />}} />
           <Route path='/trainlabels' component={() => {
             return <TrainLabels
               trainLabels={trainLabels}
               putTrainLabel={putTrainLabel}
               removeTrainLabel={removeTrainLabel}
-/>}} />
-      </Routes>
+              />}} />
+        </Routes>
       </Show>
+      
     </div>
+
   )
 };
 export default App;
