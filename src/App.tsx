@@ -5,8 +5,6 @@ import {
   createEffect,
   createSignal,
   createResource,
-  Switch,
-  Match,
   lazy
 } from 'solid-js';
 import type {
@@ -414,13 +412,12 @@ const App: Component = () => {
         })
         .filter(post => post?.feedLink || post?.guid != null)
         .filter((postItem: any) => {
-          console.log()
           const processedPostsID = postItem.feedLink === "" ? postItem.guid : shortUrl(postItem.feedLink)
           const processedPostsForFeedLink = processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == processedPostsID)?.processedPosts
           if (processedPostsForFeedLink == undefined) {
             return true
           }
-          return !processedPosts.find((processedPost) => {
+          return !processedPostsForFeedLink.find((processedPost) => {
             const similarity = stringSimilarity.compareTwoStrings(
               `${processedPost}`,
               `${postItem.mlText}`
@@ -556,7 +553,7 @@ const App: Component = () => {
             return [processedNostrPosts].flat()?.indexOf(nostrPost.mlText) == -1
           })
           .filter((postItem: {mlText: string}) => {
-            return !processedPosts.find((processedPost) => {
+            return ![processedNostrPosts].flat()?.find((processedPost) => {
               const similarity = stringSimilarity.compareTwoStrings(
                 `${processedPost}`,
                 `${postItem.mlText}`
@@ -650,7 +647,7 @@ const App: Component = () => {
             >
               Nostr&nbsp;Global&nbsp;(6&nbsp;hours)
             </A>
-            <A href='/profile'
+            <A href='/alby'
               class={navButtonStyle()}
               onClick={() => {
                 setNavIsOpen(false)
