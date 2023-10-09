@@ -36,7 +36,15 @@ const Posts = (props: {
         </div>
       }>
         {(post) => {
-          const processedPostsID = post.feedLink === "" ? post.guid : shortUrl(post.feedLink)
+          const shortGuid = (input: string) => {
+            try {
+              const newShortGuid = shortUrl(post.guid.replace(/\?.*$/,''))
+              return newShortGuid
+            } catch (error) {
+              return post.guid.replace(/\?.*$/,'')
+            }
+          }
+          const processedPostsID = post.feedLink === "" ? shortGuid(post.guid) : shortUrl(post.feedLink)
           return (
             <Collapsible.Root defaultOpen={true}>
               <Collapsible.Content class="collapsible__content">
