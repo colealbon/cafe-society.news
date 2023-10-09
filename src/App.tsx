@@ -568,6 +568,14 @@ const App: Component = () => {
           .filter((post: any) => {
             return (post.mlText != '')
           })
+          .map((post: any) => {
+            const shortmlText = post.mlText.split(' ').slice(0, 50).join(' ')
+            const newPost = {
+              ...post, 
+              ...{ mlText: shortmlText}
+            }
+            return newPost
+          })
           .filter((post: any) => {
             return (post.prediction?.suppress || 0) <= (suppressOdds || 0)
           })
