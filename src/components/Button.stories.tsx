@@ -6,22 +6,21 @@ import { Button } from './Button';
 // More on how to set up stories at: https://storybook.js.org/docs/7.0/solid/writing-stories/introduction
 const meta = {
   title: 'components/Button',
+  parameters: {
+    layout: 'centered'
+  },
   component: Button,
   tags: ['autodocs'],
   argTypes: {
-    'onClick': {control: ''}
+    onClick: {action: "clicked"}
   },
 } satisfies Meta<typeof Button>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
 // More on writing stories with args: https://storybook.js.org/docs/7.0/solid/writing-stories/args
-
-export const LabelContent: Story = {
+export const Basic: Story = {
   args: {
-    label: 'test - label',
-    class: 'transition-colors rounded-full bg-slate200 color-black border-transparent hover-bg-black hover-color-white',
-    onClick: () => alert('test click')
-  }
-};
+    label: 'test',
+    class: "text-xl border-transparent transition-colors rounded-full bg-slate700 color-white hover-bg-black hover-color-white"
+}};
