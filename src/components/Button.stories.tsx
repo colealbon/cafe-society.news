@@ -17,10 +17,11 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 // More on writing stories with args: https://storybook.js.org/docs/7.0/solid/writing-stories/args
-export const Default: Story = {
-  args: {
-    label: 'Button',
-    class: 'transition-colors rounded-full bg-slate200 color-black border-transparent hover-bg-black hover-color-white'
-  },
-};
 
+export const LabelContent: Story = {
+  args: {
+    label: 'test - label',
+    class: 'transition-colors rounded-full bg-slate200 color-black border-transparent hover-bg-black hover-color-white',
+    onClick: () => alert('test click')
+  }
+};

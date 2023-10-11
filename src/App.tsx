@@ -28,6 +28,7 @@ import {
   , eventKind
 } from "nostr-fetch";
 import axios from 'axios';
+import {Button} from './components/Button';
 import Contact from './Contact';
 import NostrRelays from './NostrRelays';
 import NostrKeys from './NostrKeys';
@@ -589,24 +590,17 @@ const App: Component = () => {
   }
   const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts);
   const [rssPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
+  const toggleNav = () => setNavIsOpen(!navIsOpen())
 
   return (
-
     <div class={`font-sans`}>
       <div class={`${navIsOpen() ? 'bg-slate-900' : ''} rounded-2`}>
         <div class='text-2xl transition-all'>
-          <button
-            class={`${navIsOpen() ? 
-              'hover-text-slate-900 bg-slate-900 text-white' : 
-              'hover-bg-slate-900 hover-text-white bg-transparent'} 
-                border-none rounded-full transition-all duration-500 text-4xl mt-1`}
-            onClick={event => {
-              event.preventDefault()
-              setNavIsOpen(!navIsOpen())
-            }}
-          >
-            {`${navIsOpen() ? '≡' : '≡'}`}
-          </button>
+          <Button
+            label={`${navIsOpen() ? '≡' : '≡'}`}
+            class={`${navIsOpen() ? 'bg-black color-white' : ''}`}
+            onClick={() => toggleNav()}
+          />
         </div>
         <div class={`${navIsOpen() ? 'flex flex-col text-left pl-3' : 'h-0 '} transition-all`}>
           <Show when={navIsOpen()}>
