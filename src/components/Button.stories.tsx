@@ -1,14 +1,15 @@
 import type { Meta, StoryObj } from 'storybook-solidjs';
+import "virtual:uno.css"
 
 import { Button } from './Button';
 
 // More on how to set up stories at: https://storybook.js.org/docs/7.0/solid/writing-stories/introduction
 const meta = {
-  title: 'Example/Button',
+  title: 'components/Button',
   component: Button,
   tags: ['autodocs'],
   argTypes: {
-    backgroundColor: { control: 'color' },
+    'onClick': {control: ''}
   },
 } satisfies Meta<typeof Button>;
 
@@ -16,29 +17,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 // More on writing stories with args: https://storybook.js.org/docs/7.0/solid/writing-stories/args
-export const Primary: Story = {
+export const Default: Story = {
   args: {
-    primary: true,
     label: 'Button',
+    class: 'transition-colors rounded-full bg-slate200 color-black border-transparent hover-bg-black hover-color-white'
   },
 };
 
-export const Secondary: Story = {
-  args: {
-    label: 'Button',
-  },
-};
-
-export const Large: Story = {
-  args: {
-    size: 'large',
-    label: 'Button',
-  },
-};
-
-export const Small: Story = {
-  args: {
-    size: 'small',
-    label: 'Button',
-  },
-};
