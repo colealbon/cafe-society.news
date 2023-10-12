@@ -37,11 +37,24 @@ export const Basic: Story = {
     mutateRssPosts: () => [],
     setNavIsOpen: (newState: boolean) => null,
     setSelectedTrainLabel: (label: string) => null,
-    checkedTrainLabels: () => []
+    checkedTrainLabels: () => [{id: "world"}, {id: 'maritime'},{id: 'science'}]
   },
-  play: async({ canvasElement }) => {
+  play: ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const link = await canvas.getByTestId("classifiers");
-    await userEvent.click(link);
+    [
+      `rssposts-world-link`,
+      'rssfeeds-link',
+      'nostrposts-link',
+      'alby-link',
+      'cors-link',
+      'contact-link',
+      'nostrrelays-link',
+      'nostrkeys-link',
+      'classifiers-link',
+      'trainlabels-link'
+    ].forEach((testid: string) => {
+      const link = canvas.getByTestId(testid);
+      userEvent.click(link);
+    })
   }
 };

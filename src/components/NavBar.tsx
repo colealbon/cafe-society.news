@@ -5,6 +5,9 @@ import {
 import { Component, mergeProps, splitProps } from 'solid-js';
 import {Button} from './Button';
 import {NavLink} from './NavLink';
+import {
+  TrainLabel,
+} from "../db-fixture";
 
 export interface NavBarProps {
   navIsOpen: () => boolean,
@@ -12,14 +15,15 @@ export interface NavBarProps {
   mutateRssPosts: () => void,
   setNavIsOpen: (newState: boolean) => void,
   setSelectedTrainLabel: (label: string) => void,
-  checkedTrainLabels: () => any
+  checkedTrainLabels: () => TrainLabel[]
 }
 
 export const NavBar: Component<NavBarProps> = (props) => {
-    const handleClickNavLink = () => {
-        props.setNavIsOpen(false)
-        props.setSelectedTrainLabel('')
-      }
+
+  const handleClickNavLink = () => {
+    props.setNavIsOpen(false)
+    props.setSelectedTrainLabel('')
+  }
 
   return (
       <div class={`${props.navIsOpen() ? 'bg-slate-900' : ''} rounded-2`}>
@@ -43,7 +47,9 @@ export const NavBar: Component<NavBarProps> = (props) => {
               {
                 (trainLabel) => (
                   <div class='ml-4 hover:text-slate-900'>
-                    <NavLink href={`/rssposts/${trainLabel.id}`}
+                    <NavLink 
+                      testid={`rssposts-${trainLabel.id}-link`}
+                      href={`/rssposts/${trainLabel.id}`}
                       onClick={() => {
                         props.mutateRssPosts()
                         props.setNavIsOpen(false)
@@ -57,12 +63,15 @@ export const NavBar: Component<NavBarProps> = (props) => {
               }
             </For>
             <NavLink
+              testid='rssfeeds-link'
               href='/rssfeeds'
               onClick={() => handleClickNavLink()}
             >
               RSS&nbsp;Feeds
             </NavLink>
-            <NavLink href='/nostrposts'
+            <NavLink 
+              testid='nostrposts-link'
+              href='/nostrposts'
               onClick={() => {
                 props.setNavIsOpen(false)
                 props.setSelectedTrainLabel('nostr')
@@ -70,25 +79,25 @@ export const NavBar: Component<NavBarProps> = (props) => {
             >
               Nostr&nbsp;Global&nbsp;(6&nbsp;hours)
             </NavLink>
-            <NavLink href='/alby' onClick={() => handleClickNavLink()}>
+            <NavLink testid='alby-link' href='/alby' onClick={() => handleClickNavLink()}>
               Profile
             </NavLink>
-            <NavLink href='/cors'onClick={() => handleClickNavLink()}>
+            <NavLink testid='cors-link' href='/cors'onClick={() => handleClickNavLink()}>
               Cors&nbsp;Proxies
             </NavLink>
-            <NavLink href='/contact' onClick={() => handleClickNavLink()}>
+            <NavLink testid='contact-link' href='/contact' onClick={() => handleClickNavLink()}>
               Contact
             </NavLink>
-            <NavLink href='/nostrrelays' onClick={() => handleClickNavLink()}>
+            <NavLink testid='nostrrelays-link' href='/nostrrelays' onClick={() => handleClickNavLink()}>
               Nostr&nbsp;Relays
             </NavLink>
-            <NavLink href='/nostrkeys' onClick={() => handleClickNavLink()}>
+            <NavLink testid='nostrkeys-link' href='/nostrkeys' onClick={() => handleClickNavLink()}>
               Nostr&nbsp;Keys
             </NavLink>
-            <NavLink testid='classifiers' href='/classifiers' onClick={() => handleClickNavLink()}>
+            <NavLink testid='classifiers-link' href='/classifiers' onClick={() => handleClickNavLink()}>
               Classifiers
             </NavLink>
-            <NavLink href='/trainlabels' onClick={() => handleClickNavLink()}>
+            <NavLink testid='trainlabels-link' href='/trainlabels' onClick={() => handleClickNavLink()}>
               Train&nbsp;Labels
             </NavLink>
           </Show>

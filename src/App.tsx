@@ -1,6 +1,5 @@
 import { convert } from 'html-to-text'
 import {
-  For,
   Show,
   createEffect,
   createSignal,
@@ -38,6 +37,7 @@ import Classifiers from './Classifiers';
 import TrainLabels from './TrainLabels';
 import NostrPosts from './NostrPosts';
 import {shortUrl} from './RSSPosts'
+
 import defaultCorsProxies from './defaultCorsProxies';
 import defaultNostrRelays from './defaultNostrRelays';
 import defaultNostrKeys from './defaultNostrKeys';
@@ -603,9 +603,7 @@ const App: Component = () => {
           setSelectedTrainLabel={(newLabel: string) => setSelectedTrainLabel(newLabel)}
           checkedTrainLabels={() => checkedTrainLabels}
       />
-
       <Show when={navIsOpen() == false}>
-      
       <Routes>
         <Route path='/cors' component={() => {
           const CorsProxies = lazy(() => import("./CorsProxies"))
@@ -659,6 +657,7 @@ const App: Component = () => {
         <Route path='/' component={() => {
           const RSSPosts = lazy(() => import("./RSSPosts"))
           return <RSSPosts
+            trainLabel=''
             train={(params: {
               mlText: string,
               mlClass: string,
@@ -766,9 +765,7 @@ const App: Component = () => {
               />}} />
         </Routes>
       </Show>
-      
     </div>
-
   )
 };
 export default App;
