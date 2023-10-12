@@ -539,7 +539,7 @@ const App: Component = () => {
         // maxPosts
       )
       .then((allThePosts: any) => {
-        const processedNostrPosts = processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == 'nostr')?.processedPosts
+        const processedNostrPosts = [processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == 'nostr')?.processedPosts].flat().map((post) => post?.toString().split(' ').slice(0, 50).join(' '))
         const suppressOdds = classifiers.find((classifierEntry) => classifierEntry?.id == 'nostr')?.thresholdSuppressOdds
         const filteredPosts = allThePosts
           .filter((nostrPost: any) => `${nostrPost.mlText}`.replace(' ','') != '')
@@ -551,8 +551,17 @@ const App: Component = () => {
           })
           .filter((nostrPost: any) => !ignoreNostrKeys.find((ignoreKey: {publicKey: string}) => ignoreKey.publicKey == nostrPost.pubkey))
           .map((nostrPost: any) => prepNostrPost(nostrPost))
+          .map((post: any) => {
+            const shortmlText = post.mlText.split(' ').slice(0, 50).join(' ')
+            const newPost = {
+              ...post, 
+              ...{ mlText: shortmlText}
+            }
+            return newPost
+          })
           .filter((nostrPost: any) => {
-            return [processedNostrPosts].flat()?.indexOf(nostrPost.mlText) == -1
+            return [processedNostrPosts]
+            .flat()?.indexOf(nostrPost.mlText) == -1
           })
           .filter((postItem: {mlText: string}) => {
             return ![processedNostrPosts].flat()?.find((processedPost) => {
