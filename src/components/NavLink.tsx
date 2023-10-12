@@ -6,6 +6,7 @@ export interface NavLinkProps {
   class?: string;
   children?: string | Element;
   href: string;
+  testid?: string;
 }
 const DEFAULT_CLASS="no-underline text-left text-xl text-white border-none transition-all bg-transparent hover-text-slate-500 hover-text-4v xl"
 
@@ -19,7 +20,8 @@ export const NavLink: Component<NavLinkProps> = (props) => {
     'children',
     'onClick',
     'class',
-    'href'
+    'href',
+    'testid'
   ]);
 
   return (
@@ -29,6 +31,7 @@ export const NavLink: Component<NavLinkProps> = (props) => {
       onclick={() => local.onClick()}
       class={local.class}
       href={local.href}
+      data-testid={props.testid}
     >
       {local.children}
     </A>

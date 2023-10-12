@@ -28,8 +28,8 @@ import {
 } from "nostr-fetch";
 import axios from 'axios';
 
-import {Button} from './components/Button';
-import {NavLink} from './components/NavLink';
+
+import {NavBar} from './components/NavBar';
 
 import Contact from './Contact';
 import NostrRelays from './NostrRelays';
@@ -592,102 +592,17 @@ const App: Component = () => {
   const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts);
   const [rssPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
   const toggleNav = () => setNavIsOpen(!navIsOpen())
- 
-  const handleClickNavLink = () => {
-    setNavIsOpen(false)
-    setSelectedTrainLabel('')
-  }
 
   return (
     <div class={`font-sans`}>
-      <div class={`${navIsOpen() ? 'bg-slate-900' : ''} rounded-2`}>
-        <div class='text-2xl transition-all'>
-          <Button
-            label={`${navIsOpen() ? '≡' : '≡'}`}
-            onClick={() => toggleNav()}
-          />
-        </div>
-        <div class={`${navIsOpen() ? 'flex flex-col text-left pl-3' : 'h-0 '} transition-all`}>
-          <Show when={navIsOpen()}>
-            <NavLink href='/rssposts'
-              onClick={() => {
-                mutateRssPosts(() => [])
-                handleClickNavLink()
-              }}
-            >
-              RSS&nbsp;Posts
-            </NavLink>
-            <For each={checkedTrainLabels}>
-              {
-                (trainLabel) => (
-                  <div class='ml-4 hover:text-slate-900'>
-                    <NavLink href={`/rssposts/${trainLabel.id}`}
-                      onClick={() => {
-                        mutateRssPosts(() => [])
-                        setNavIsOpen(false)
-                        setSelectedTrainLabel(trainLabel.id)
-                      }} 
-                    >
-                      {`${trainLabel.id}`}
-                    </NavLink>
-                  </div>
-                )
-              }
-            </For>
-            <NavLink
-              href='/rssfeeds'
-              onClick={() => handleClickNavLink()}
-            >
-              RSS&nbsp;Feeds
-            </NavLink>
-            <NavLink href='/nostrposts'
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('nostr')
-              }}
-            >
-              Nostr&nbsp;Global&nbsp;(6&nbsp;hours)
-            </NavLink>
-            <NavLink
-              href='/alby'
-              onClick={() => handleClickNavLink()}
-            >
-              Profile
-            </NavLink>
-            <NavLink
-              href='/cors'
-              onClick={() => handleClickNavLink()}
-            >
-              Cors&nbsp;Proxies
-            </NavLink>
-            <NavLink href='/contact'
-              onClick={() => handleClickNavLink()}
-            >
-              Contact
-            </NavLink>
-            <NavLink href='/nostrrelays'
-              onClick={() => handleClickNavLink()}
-            >
-              Nostr&nbsp;Relays
-            </NavLink>
-            <NavLink href='/nostrkeys'
-              onClick={() => handleClickNavLink()}
-            >
-              Nostr&nbsp;Keys
-            </NavLink>
-            <NavLink href='/classifiers'
-              onClick={() => handleClickNavLink()}
-            >
-              Classifiers
-            </NavLink>
-            <NavLink href='/trainlabels'
-              onClick={() => handleClickNavLink()}
-            >
-              Train&nbsp;Labels
-            </NavLink>
-          </Show>
-        </div>
-      </div>
+      <NavBar 
+          navIsOpen={() => navIsOpen()}
+          toggleNav={() => toggleNav()}
+          mutateRssPosts={() => mutateRssPosts(()=> [])}
+          setNavIsOpen={(newState: boolean) => setNavIsOpen(newState)}
+          setSelectedTrainLabel={(newLabel: string) => setSelectedTrainLabel(newLabel)}
+          checkedTrainLabels={() => checkedTrainLabels}
+      />
 
       <Show when={navIsOpen() == false}>
       

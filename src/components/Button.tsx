@@ -33,6 +33,3 @@ export const Button: Component<ButtonProps> = (props) => {
     </button>
   );
 };
-
-
-// {local.label !== '' ? local.label : DEFAULT_LABEL}
