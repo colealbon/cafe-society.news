@@ -18,7 +18,6 @@ import WinkClassifier from 'wink-naive-bayes-text-classifier';
 import {
   Routes,
   Route,
-  A,
   useParams
 } from "@solidjs/router";
 import winkNLP from 'wink-nlp';
@@ -28,7 +27,10 @@ import {
   , eventKind
 } from "nostr-fetch";
 import axios from 'axios';
+
 import {Button} from './components/Button';
+import {NavLink} from './components/NavLink';
+
 import Contact from './Contact';
 import NostrRelays from './NostrRelays';
 import NostrKeys from './NostrKeys';
@@ -250,7 +252,6 @@ const parsePosts = (postsXML: any[]) => {
 }
 
 const App: Component = () => {
-  const navButtonStyle = () => `no-underline text-left text-xl text-white border-none transition-all bg-transparent hover-text-slate-500 hover-text-4v xl`
   const [navIsOpen, setNavIsOpen] = createSignal(false);
   const [albyCodeVerifier, setAlbyCodeVerifier] = createStoredSignal('albyCodeVerifier', '')
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
@@ -591,6 +592,11 @@ const App: Component = () => {
   const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts);
   const [rssPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
   const toggleNav = () => setNavIsOpen(!navIsOpen())
+ 
+  const handleClickNavLink = () => {
+    setNavIsOpen(false)
+    setSelectedTrainLabel('')
+  }
 
   return (
     <div class={`font-sans`}>
@@ -598,27 +604,24 @@ const App: Component = () => {
         <div class='text-2xl transition-all'>
           <Button
             label={`${navIsOpen() ? '≡' : '≡'}`}
-            class={`${navIsOpen() ? 'bg-black color-white' : ''}`}
             onClick={() => toggleNav()}
           />
         </div>
         <div class={`${navIsOpen() ? 'flex flex-col text-left pl-3' : 'h-0 '} transition-all`}>
           <Show when={navIsOpen()}>
-            <A href='/rssposts'
-              class={`${navButtonStyle()}`}
+            <NavLink href='/rssposts'
               onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
+                mutateRssPosts(() => [])
+                handleClickNavLink()
               }}
             >
               RSS&nbsp;Posts
-            </A>
+            </NavLink>
             <For each={checkedTrainLabels}>
               {
                 (trainLabel) => (
                   <div class='ml-4 hover:text-slate-900'>
-                    <A href={`/rssposts/${trainLabel.id}`}
-                      class={navButtonStyle()}
+                    <NavLink href={`/rssposts/${trainLabel.id}`}
                       onClick={() => {
                         mutateRssPosts(() => [])
                         setNavIsOpen(false)
@@ -626,92 +629,62 @@ const App: Component = () => {
                       }} 
                     >
                       {`${trainLabel.id}`}
-                    </A>
+                    </NavLink>
                   </div>
                 )
               }
             </For>
-            <A href='/rssfeeds'
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-              }}
+            <NavLink
+              href='/rssfeeds'
+              onClick={() => handleClickNavLink()}
             >
               RSS&nbsp;Feeds
-            </A>
-            <A href='/nostrposts'
-              class={navButtonStyle()}
+            </NavLink>
+            <NavLink href='/nostrposts'
               onClick={() => {
                 setNavIsOpen(false)
                 setSelectedTrainLabel('nostr')
               }}
             >
               Nostr&nbsp;Global&nbsp;(6&nbsp;hours)
-            </A>
-            <A href='/alby'
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-              }}
+            </NavLink>
+            <NavLink
+              href='/alby'
+              onClick={() => handleClickNavLink()}
             >
               Profile
-            </A>
-            <A href='/cors'
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-              }}
+            </NavLink>
+            <NavLink
+              href='/cors'
+              onClick={() => handleClickNavLink()}
             >
               Cors&nbsp;Proxies
-            </A>
-            <A href='/contact'
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-              }}
+            </NavLink>
+            <NavLink href='/contact'
+              onClick={() => handleClickNavLink()}
             >
               Contact
-            </A>
-            <A href='/nostrrelays'
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-              }}
+            </NavLink>
+            <NavLink href='/nostrrelays'
+              onClick={() => handleClickNavLink()}
             >
               Nostr&nbsp;Relays
-            </A>
-            <A href='/nostrkeys'
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-              }}
+            </NavLink>
+            <NavLink href='/nostrkeys'
+              onClick={() => handleClickNavLink()}
             >
               Nostr&nbsp;Keys
-            </A>
-            <A href='/classifiers'
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-              }}
+            </NavLink>
+            <NavLink href='/classifiers'
+              onClick={() => handleClickNavLink()}
             >
               Classifiers
-            </A>
-            <A href='/trainlabels'
-              class={navButtonStyle()}
-              onClick={() => {
-                setNavIsOpen(false)
-                setSelectedTrainLabel('')
-              }}
+            </NavLink>
+            <NavLink href='/trainlabels'
+              onClick={() => handleClickNavLink()}
             >
               Train&nbsp;Labels
-            </A>
+            </NavLink>
           </Show>
         </div>
       </div>

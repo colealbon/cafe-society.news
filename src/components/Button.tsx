@@ -3,10 +3,10 @@ import { Component, mergeProps, splitProps } from 'solid-js';
 export interface ButtonProps {
   label: string;
   onClick: () => void;
-  class: string;
+  class?: string;
   children?: string | Element;
 }
-const DEFAULT_CLASS="text-xl border-transparent transition-colors rounded-full bg-slate700 color-white hover-bg-black hover-color-white"
+const DEFAULT_CLASS="ml2 pr3 pl3 text-xl border-transparent transition-colors rounded-full bg-slate700 color-white hover-bg-black hover-color-white"
 const DEFAULT_LABEL = 'default'
 
 export const Button: Component<ButtonProps> = (props) => {
