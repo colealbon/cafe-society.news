@@ -1,6 +1,5 @@
 import {
   createFilter,
-  Button,
   Switch,
   Combobox,
   Collapsible,
@@ -16,11 +15,9 @@ import {
   createFormControl,
 } from "solid-forms";
 import TextInput from './TextInput'
-import { BiSolidSortAlt as CaretSortIcon } from 'solid-icons/bi'
 import { FaSolidCheck  as CheckIcon} from 'solid-icons/fa'
-import { ImCross as CrossIcon } from 'solid-icons/im'
-import { VsAdd, VsTrash } from 'solid-icons/vs'
 import { RSSFeed , TrainLabel} from './db-fixture'
+import { Button } from './components/Button'
 const RSSFeeds = (props: {
     rssFeeds: RSSFeed[],
     trainLabels: TrainLabel[]
@@ -146,25 +143,22 @@ const RSSFeeds = (props: {
               <For each={state.selectedOptions()}>
                 {option => (
                   <div class='align-bottom flex flex-row' onPointerDown={e => e.stopPropagation()}>
-                    <button
+                    <Button
                       class='bg-transparent border-none m-0 align-top text-2xl text-gray'
-                      onClick={(event) => {
+                      onClick={() => {
                         state.remove(option)
                       }}
-                    >
-                      {option}
-                    </button>
+                      label={option}
+                    />
                   </div>
                 )}
               </For>
             </div>
-            <button
-              onPointerDown={e => e.stopPropagation()} 
+            <Button
+              label='✖'
               onClick={state.clear}
               class='bg-transparent border-none align-middle text-3xl transition-all bg-transparent hover-text-white hover:bg-slate-400 rounded-full'
-            >
-            ✖
-            </button>
+            />
           </>
         )}
       </Combobox.Control>
@@ -174,15 +168,13 @@ const RSSFeeds = (props: {
         </Combobox.Content>
       </Combobox.Portal>
       <div />
-      <button
-        onClick={(event) => {
-          event.preventDefault()
+      <Button
+        label='submit'
+        onClick={() => {
           onSubmit(event)
         }}
         class='m-1 bg-transparent border-none align-middle text-4xl transition-all bg-transparent hover-text-white hover:bg-slate-400 rounded-full'
-        >
-        submit
-      </button>
+      />
       </form>
       </Combobox.Root>
       <Separator.Root />
@@ -193,9 +185,11 @@ const RSSFeeds = (props: {
               <Collapsible.Root class="collapsible" defaultOpen={true}>
                 <Collapsible.Content class="collapsible__content">
                   <Collapsible.Trigger class="collapsible__trigger border-none bg-transparent">
-                    <Button.Root class={'align-middle text-3xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full'} onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}>
-                      <VsTrash/>
-                    </Button.Root>
+                    <Button 
+                      class={'align-middle text-3xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full'} 
+                      onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}
+                      label='✕'
+                    />
                     </Collapsible.Trigger>
                     &nbsp;
                     <Switch.Root
@@ -210,19 +204,18 @@ const RSSFeeds = (props: {
                         <Switch.Thumb class="switch__thumb" />
                       </Switch.Control>
                     </Switch.Root>
-                    
-                    <Button.Root class={'text-2xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full'} onClick={() => handleKeyClick(feed.id)}>
-                      {feed.id.replace('http[s?]://', '').slice(0, 25) || ''}
-                    </Button.Root>
+                    <Button
+                      class='text-2xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full'
+                      onClick={() => handleKeyClick(feed.id)}
+                      label={feed.id.replace('http[s?]://', '').slice(0, 25) || ''}
+                    />
                     <span>{feed.trainLabels.join(', ')}</span>
                 </Collapsible.Content>
               </Collapsible.Root>
             </Show>
           )}
       </For>
-      
     </>
-    
   );
 }
 

@@ -131,11 +131,11 @@ const NostrPosts = (props: {
                       <Show when={(props.selectedNostrAuthor() == '')}>
                         <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
                           <Button.Root
-                            title='ignore'
+                            title='ignore author'
                             class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red rounded-full fade-in`}
                             onClick={event => {
                               event.preventDefault()
-                              handleIgnore(props.selectedNostrAuthor())
+                              handleIgnore(post.pubkey)
                               setTimeout(() => {
                                 props.markComplete(post.mlText)
                                 props.setSelectedNostrAuthor('')
@@ -148,6 +148,7 @@ const NostrPosts = (props: {
                           </Button.Root>
                         </Collapsible.Trigger>
                       </Show>
+                      <div>{`${nip19.npubEncode(post.pubkey)}`}</div>
                       <div flex flex-row class="fade-in">
                         <div style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</div>
                         <div class='ml-4'>

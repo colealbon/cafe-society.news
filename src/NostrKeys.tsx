@@ -8,7 +8,7 @@ import {
 } from "solid-forms";
 import TextInput from './TextInput'
 import { Link, Separator } from "@kobalte/core";
-
+import { nip19 } from 'nostr-tools'
 import {
   VsAdd,
   VsTrash
@@ -183,7 +183,7 @@ const NostrKeys = (props: {
                   event.preventDefault()
                   handleKeyClick(nostrKey.publicKey)
                 }}>
-                  {nostrKey.label || nostrKey.publicKey && `${nostrKey.publicKey?.substring(0,5)}...${nostrKey.publicKey?.substring(nostrKey.publicKey?.length - 5, nostrKey.publicKey?.length)}` || ''}
+                  {nip19.npubEncode(nostrKey.publicKey)}
                 </Link.Root>
               </div>
             </div>
