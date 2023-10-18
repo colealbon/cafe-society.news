@@ -2,7 +2,6 @@ import {
   Show
 } from 'solid-js'
 import {
-  Button,
   Tooltip,
   Separator
 } from "@kobalte/core";
@@ -10,6 +9,7 @@ import {
   AiOutlineArrowUp,
   AiOutlineArrowDown
 } from 'solid-icons/ai'
+import {Button} from './components/Button';
 
 const PostTrain = (props: {
   mlText: string,
@@ -33,21 +33,16 @@ const PostTrain = (props: {
       <Show when={(0.0 + props.prediction['suppress'] || 0.0) > 0}>
         {(0.0 + props.prediction['suppress'] || 0.0).toFixed(2)}
       </Show>
-      <AiOutlineArrowDown
-        class={`text-4xl transition-all bg-white border-none hover-text-white hover:bg-slate-400 rounded-full`}
-        onclick={() => {
+      <Button 
+        label='↓'
+        onClick={() => {
           handleComplete()
           handleTrain('suppress')
         }}
       />
     <Tooltip.Root>
-      <Tooltip.Trigger class='p-0 bg-white border-none'>
-        <Button.Root
-          onClick={() => handleComplete()}
-          class={`text-xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full`}
-        >
-          {props.trainLabel}
-        </Button.Root>
+      <Tooltip.Trigger class=' bg-white border-none'>
+        <Button label={props.trainLabel} onClick={() => handleComplete()} />
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Content class="tooltip__content">
@@ -70,15 +65,12 @@ const PostTrain = (props: {
         </Tooltip.Content>
       </Tooltip.Portal>
     </Tooltip.Root>
-    <div class='rounded-full hover-text-white mt-1'>
-      <AiOutlineArrowUp
-        class="border-none text-4xl transition-all text-transparent bg-white border-none hover-text-white hover:bg-slate-400 rounded-full"
-        onclick={() => {
+      <Button
+        label='↑'
+        onClick={() => {
           handleComplete()
           handleTrain('promote')
-        }}
-      />
-    </div>
+        }} />
       <div/>
       <div/>
       <Separator.Root />

@@ -1,4 +1,6 @@
-.collapsible__content {
+button {
+  border: none;
+}.collapsible__content {
   animation: slideUp 100ms ease-out;
 }
 .collapsible__content[data-expanded] {
@@ -13,7 +15,7 @@
   line-height: 1;
   outline: none;
   background-color: white;
-  border: 1px solid hsl(240 6% 90%);
+  border: none;
   color: hsl(240 4% 16%);
   transition: border-color 250ms, color 250ms;
 }
@@ -34,8 +36,7 @@
   padding-left: 16px;
   font-size: 16px;
   background: transparent;
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
+  border: none;
   outline: none;
 }
 .combobox__input::placeholder {
@@ -78,8 +79,8 @@
 .combobox__content {
   background-color: white;
   border-radius: 6px;
-  border: 1px solid hsl(240 6% 90%);
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border: none;
+  box-shadow: none;
   transform-origin: var(--kb-combobox-content-transform-origin);
   animation: contentHide 250ms ease-in forwards;
 }

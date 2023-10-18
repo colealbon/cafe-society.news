@@ -129,22 +129,21 @@ const RSSFeeds = (props: {
       <form onSubmit={onSubmit}>
         <label for="id">Feed URL</label>
         <TextInput name="id" control={group.controls.id} />
-      <Combobox.Control<string> 
-        aria-label="Feeds"
-        class="bg-white combobox__control border-none shadow-none bg-white" 
-      >
+        <Combobox.Control<string> 
+          aria-label="Feeds"
+          class="bg-white combobox__control bg-white" 
+        >
         {state => (
           <>
-            <Combobox.Trigger class='bg-transparent border-none align-middle text-2xl transition-all bg-transparent hover-text-white hover:bg-slate-400 rounded-full'>
-              +
+            <Combobox.Trigger class='border-none bg-transparent align-middle text-3xl transition-all hover-text-white hover:bg-black rounded-full'>
+              &nbsp;+&nbsp;
             </Combobox.Trigger>
-            <div class='flex flex-row bg-white'>
-              <Combobox.Input class="combobox__input border-none shadow-none bg-white"/>
+            <div class='flex flex-row bg-white '>
               <For each={state.selectedOptions()}>
                 {option => (
                   <div class='align-bottom flex flex-row' onPointerDown={e => e.stopPropagation()}>
                     <Button
-                      class='bg-transparent border-none m-0 align-top text-2xl text-gray'
+                      title={`remove ${option}`}
                       onClick={() => {
                         state.remove(option)
                       }}
@@ -154,11 +153,6 @@ const RSSFeeds = (props: {
                 )}
               </For>
             </div>
-            <Button
-              label='✖'
-              onClick={state.clear}
-              class='bg-transparent border-none align-middle text-3xl transition-all bg-transparent hover-text-white hover:bg-slate-400 rounded-full'
-            />
           </>
         )}
       </Combobox.Control>
@@ -169,12 +163,11 @@ const RSSFeeds = (props: {
       </Combobox.Portal>
       <div />
       <Button
+        title='submit'
         label='submit'
         onClick={() => {
-          onSubmit(event)
-        }}
-        class='m-1 bg-transparent border-none align-middle text-4xl transition-all bg-transparent hover-text-white hover:bg-slate-400 rounded-full'
-      />
+          onSubmit(Event)
+        }}/>
       </form>
       </Combobox.Root>
       <Separator.Root />
@@ -184,9 +177,9 @@ const RSSFeeds = (props: {
             <Show when={feed.id != ''}>
               <Collapsible.Root class="collapsible" defaultOpen={true}>
                 <Collapsible.Content class="collapsible__content">
-                  <Collapsible.Trigger class="collapsible__trigger border-none bg-transparent">
+                  <Collapsible.Trigger class="collapsible__trigger  bg-transparent">
                     <Button 
-                      class={'align-middle text-3xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full'} 
+                      title={`remove ${feed}`}
                       onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}
                       label='✕'
                     />
@@ -205,7 +198,6 @@ const RSSFeeds = (props: {
                       </Switch.Control>
                     </Switch.Root>
                     <Button
-                      class='text-2xl transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full'
                       onClick={() => handleKeyClick(feed.id)}
                       label={feed.id.replace('http[s?]://', '').slice(0, 25) || ''}
                     />

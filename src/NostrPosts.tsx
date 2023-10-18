@@ -5,9 +5,9 @@ import {
 import {
   Separator,
   Link,
-  Button,
   Collapsible
 } from "@kobalte/core";
+import { Button } from './components/Button'
 
 import PostTrain from './PostTrain'
 import { CgUserAdd } from 'solid-icons/cg'
@@ -66,10 +66,9 @@ const NostrPosts = (props: {
       </div>
       <Show when={props.selectedNostrAuthor() !== ''}>
         <div class='flex flex-row m-0 p-0'>
-          <Button.Root
+          <Button
             class='bg-transparent border-none rounded'
-            onClick={(event) => {
-              event.preventDefault()
+            onClick={() => {
               handleClickDrillPubkey('')
             }}
             title='nostr global feed'
@@ -77,12 +76,11 @@ const NostrPosts = (props: {
             <div class='text-xl text-orange hover-bg-orange hover-text-white text-xl rounded-2 ml-1 mr-1'>
              {` ${props.selectedNostrAuthor().substring(0,5)}...${props.selectedNostrAuthor().substring(props.selectedNostrAuthor().length - 5)} `}
             </div>
-          </Button.Root>
-          <Button.Root
+          </Button>
+          <Button
             title='follow'
             class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-green-900 rounded-full`}
-            onClick={event => {
-              event.preventDefault()
+            onClick={() => {
               handleFollow(props.selectedNostrAuthor())
               props.setSelectedNostrAuthor('')
             }}
@@ -90,21 +88,19 @@ const NostrPosts = (props: {
             <div class='text-green-900 hover-text-white mt-1'>
               <CgUserAdd />
             </div>
-           </Button.Root>
+           </Button>
 
-           <Button.Root
-            title='ignore'
-            class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red rounded-full`}
-            onClick={event => {
-              event.preventDefault()
+           <Button
+            title='ignore author'
+            label='-'
+            // class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red rounded-full`}
+            onClick={() => {
               handleIgnore(props.selectedNostrAuthor())
               props.setSelectedNostrAuthor('')
             }}
           >
-            <div class='text-red hover-text-white mt-2'>
-              <IoRemoveCircleOutline />
-            </div>
-           </Button.Root>
+            <IoRemoveCircleOutline />
+          </Button>
           <div />
           <div />
           <div />
@@ -130,11 +126,9 @@ const NostrPosts = (props: {
                     <Collapsible.Content class="collapsible__content">
                       <Show when={(props.selectedNostrAuthor() == '')}>
                         <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
-                          <Button.Root
+                          <Button
                             title='ignore author'
-                            class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red rounded-full fade-in`}
-                            onClick={event => {
-                              event.preventDefault()
+                            onClick={() => {
                               handleIgnore(post.pubkey)
                               setTimeout(() => {
                                 props.markComplete(post.mlText)
@@ -142,22 +136,26 @@ const NostrPosts = (props: {
                               }, 300)
                             }}
                           >
-                            <div class='text-red hover-text-white mt-2 fade-in'>
+                            <div class='mt-2 fade-in'>
                               <IoRemoveCircleOutline />
                             </div>
-                          </Button.Root>
+                          </Button>
                         </Collapsible.Trigger>
                       </Show>
                       <div>{`${nip19.npubEncode(post.pubkey)}`}</div>
-                      <div flex flex-row class="fade-in">
-                        <div style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</div>
-                        <div class='ml-4'>
+                      <div class="fade-in">
+                        <span style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</span>
+                        <span class='ml-4'>
                           {`promote odds: ${(0.0 + post.prediction['promote'] || 0.0)
                           .toFixed(2)
                           .replace('NaN', '-')}`}
-                        </div>
-                        <Link.Root target='_blank' href={`https://iris.to/${nip19.npubEncode(post.pubkey)}`}><div class='fade-in ml-4'>iris.to</div></Link.Root>
-                        <Link.Root target='_blank' href={`https://astral.ninja/${nip19.npubEncode(post.pubkey)}`}><div class='fade-in ml-4'>astral.ninja</div></Link.Root>
+                        </span>
+                        <span>
+                          <Link.Root target='_blank' href={`https://iris.to/${nip19.npubEncode(post.pubkey)}`}><div class='fade-in ml-4'>iris.to</div></Link.Root>
+                        </span>
+                        <span>
+                          <Link.Root target='_blank' href={`https://astral.ninja/${nip19.npubEncode(post.pubkey)}`}><div class='fade-in ml-4'>astral.ninja</div></Link.Root>
+                        </span>
                       </div>
                       <Separator.Root class='ml-2 max-w-lg'/>
                       <div class='flex text-wrap w-full max-w-lg fade-in'>

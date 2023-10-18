@@ -5,12 +5,12 @@ import {
   createEffect
 } from 'solid-js'
 import {
-  Button,
   Separator
 } from "@kobalte/core"
 import {
   useSearchParams
 } from '@solidjs/router'
+import {Button} from './components/Button';
 
 async function generateCodeChallenge(codeVerifier: string) {
   var digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(codeVerifier));
@@ -96,20 +96,22 @@ const Profile = (props: {
         fallback={
           <div>
             <div>{props.albyTokenReadInvoice()}</div>
-            <Button.Root class='animate-fade-in bg-transparent border-none hover-bg-slate-900 text-slate-900 hover-text-white rounded-full' onClick={() => authenticateAlby()}>
-              login alby
-            </Button.Root>
+            <Button 
+              onClick={() => authenticateAlby()}
+              label='login alby'
+            />
           </div>
           }
       >
         <div class='fade-in'>
-          <Button.Root class='bg-transparent border-none hover-bg-slate-900 hover-text-white transition all rounded-full' onClick={() =>{
-            props.setAlbyTokenReadInvoice('')
-            props.setAlbyCode('')
-            props.setAlbyCodeVerifier('')
-          }}>
-            logout alby
-          </Button.Root>
+          <Button 
+            label='logout alby'
+            onClick={() =>{
+              props.setAlbyTokenReadInvoice('')
+              props.setAlbyCode('')
+              props.setAlbyCodeVerifier('')
+            }}
+          />
         </div>
       </Show>
 

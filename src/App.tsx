@@ -409,7 +409,6 @@ const App: Component = () => {
             .replace(/&#038;/g, "&")
             .replace(/&#x2019;/g,"'")
             .replace(/&#x2018;/g,"'")
-
           }
         })
         .filter(post => post?.feedLink || post?.guid != null)

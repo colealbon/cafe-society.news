@@ -26,9 +26,10 @@ export const NavBar: Component<NavBarProps> = (props) => {
   }
 
   return (
-      <div class={`${props.navIsOpen() ? 'bg-slate-900' : ''} rounded-2`}>
-        <div class='text-2xl transition-all'>
+      <div class={`${props.navIsOpen() ? 'bg-black' : ''} rounded-2`}>
+        <div class='text-2xl transition-all ml2'>
           <Button
+            class={`${props.navIsOpen() ? 'color-white hover-bg-white hover-color-black' : ' color-black hover-bg-black hover-color-white'} text-3xl bg-transparent border-none transition-all rounded-full aspect-square p2`}
             label={`${props.navIsOpen() ? '≡' : '≡'}`}
             onClick={() => props.toggleNav()}
           />
