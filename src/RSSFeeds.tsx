@@ -179,7 +179,7 @@ const RSSFeeds = (props: {
                 <Collapsible.Content class="collapsible__content">
                   <Collapsible.Trigger class="collapsible__trigger  bg-transparent">
                     <Button 
-                      title={`remove ${feed}`}
+                      title={`remove ${feed.id}`}
                       onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}
                       label='✕'
                     />

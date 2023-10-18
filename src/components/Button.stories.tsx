@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from 'storybook-solidjs';
 import { within, userEvent } from '@storybook/testing-library';
 import "virtual:uno.css"
+import {DEFAULT_CLASS} from './Button'
 
 import { Button } from './Button';
 
@@ -22,8 +23,9 @@ type Story = StoryObj<typeof meta>;
 // More on writing stories with args: https://storybook.js.org/docs/7.0/solid/writing-stories/args
 export const Basic: Story = {
   args: {
-    label: 'test',
-    class: "text-xl border-transparent transition-colors rounded-full bg-slate700 color-white hover-bg-black hover-color-white"
+    label: 'test label',
+    class: `${DEFAULT_CLASS}`,
+    title: 'test title'
   },
   play: async({ canvasElement }) => {
     const canvas = within(canvasElement);

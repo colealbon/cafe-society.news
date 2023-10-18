@@ -3,7 +3,6 @@ import {
 } from 'solid-js';
 
 import {
-  Link,
   Switch,
   Separator
 } from "@kobalte/core";
