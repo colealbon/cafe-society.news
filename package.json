@@ -36,6 +36,7 @@
     "dexie": "^3.2.4",
     "fast-xml-parser": "^4.2.7",
     "html-to-text": "^9.0.5",
+    "nostr-crdt": "^0.0.5",
     "nostr-fetch": "^0.12.2",
     "nostr-tools": "^1.14.0",
     "playwright": "^1.38.1",
@@ -48,6 +49,8 @@
     "unocss-preset-primitives": "0.0.1-beta.10",
     "wink-eng-lite-web-model": "^1.5.2",
     "wink-naive-bayes-text-classifier": "^2.2.1",
-    "wink-nlp": "^1.14.3"
+    "wink-nlp": "^1.14.3",
+    "y-webrtc": "^10.2.5",
+    "yjs": "^13.6.8"
   }
 }

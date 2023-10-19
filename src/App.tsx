@@ -27,7 +27,6 @@ import {
 } from "nostr-fetch";
 import axios from 'axios';
 
-
 import {NavBar} from './components/NavBar';
 
 import Contact from './Contact';
@@ -55,14 +54,13 @@ import {
   Classifier,
   ProcessedPost
 } from "./db-fixture";
+import { nHoursAgo } from './util';
 
 const fetcher = NostrFetcher.init();
 const db = new DbFixture();
 const nlp = winkNLP( model );
 const its = nlp.its;
 const parser = new XMLParser();
-
-const nHoursAgo = (hrs: number): number => Math.floor((Date.now() - hrs * 60 * 60 * 1000) / 1000);
 
 db.on("populate", () => {
   db.nostrkeys.bulkAdd(defaultNostrKeys as NostrKey[]);

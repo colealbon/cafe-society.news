@@ -9,6 +9,8 @@ import {
 import TextInput from './TextInput'
 import { Link, Separator } from "@kobalte/core";
 import { nip19 } from 'nostr-tools'
+import * as Y from 'yjs'
+
 import {
   VsAdd,
   VsTrash
@@ -106,6 +108,23 @@ const NostrKeys = (props: {
         ignore: false
       })
   }
+  const ydoc = new Y.Doc()
+  const ymap = ydoc.getMap()
+  ymap.set('keyA', 'valueA')
+  
+  // Create another Yjs document (simulating a remote user)
+  // and create some conflicting changes
+  const ydocRemote = new Y.Doc()
+  const ymapRemote = ydocRemote.getMap()
+  ymapRemote.set('keyB', 'valueB')
+  
+  // Merge changes from remote
+  const update = Y.encodeStateAsUpdate(ydocRemote)
+  Y.applyUpdate(ydoc, update)
+  
+  // Observe that the changes have merged
+  console.log(ymap.toJSON()) // => { keyA: 'valueA', keyB: 'valueB' }
+
 
   return (
   <div class='fade-in'>
@@ -194,3 +213,29 @@ const NostrKeys = (props: {
   )
 }
 export default NostrKeys;
+
+// const nostrClient = relayInit("ws://0.0.0.0:8080");
+// await nostrClient.connect();
+// const key = generatePrivateKey();
+
+// const roomId = await createNostrCRDTRoom(ydoc, nostrClient, key, "demo");
+
+// const yarray = ydoc.getArray("count");
+
+// observe changes of the sum
+// yarray.observe((event) => {
+//   // print updates when the data changes
+//   console.log("new sum: " + yarray.toArray().reduce((a, b) => a as number + b as number));
+// });
+
+// // add 1 to the sum
+// yarray.push([1]); // => "new sum: 1"
+
+// const nostrProvider = new NostrProvider(
+//   ydoc,
+//   nostrClient,
+//   key,
+//   roomId,
+//   "demo"
+// );
+// await nostrProvider.initialize();
