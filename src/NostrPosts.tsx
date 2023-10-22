@@ -60,7 +60,7 @@ const NostrPosts = (props: {
   }
   return (
     <main>
-      <div>
+      <div class="bg-white sticky top-0 uppercase w-auto flex flex justify-center">
         <h1>nostr global feed</h1>
         <Separator.Root />
       </div>

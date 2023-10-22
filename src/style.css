@@ -1,6 +1,7 @@
 button {
   border: none;
-}.collapsible__content {
+}
+.collapsible__content {
   animation: slideUp 100ms ease-out;
 }
 .collapsible__content[data-expanded] {

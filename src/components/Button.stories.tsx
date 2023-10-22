@@ -21,7 +21,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 // More on writing stories with args: https://storybook.js.org/docs/7.0/solid/writing-stories/args
-export const Basic: Story = {
+export const Generic: Story = {
   args: {
     label: 'test label',
     class: `${DEFAULT_CLASS}`,

@@ -1,18 +1,15 @@
 import { convert } from 'html-to-text'
 import {Button} from './components/Button';
-import {NavBar} from './components/NavBar'
 import {
   createEffect,
-  Show,
   createSignal,
   createResource,
   lazy
 } from 'solid-js';
 import type {
-  Component
-  ,Signal
+  Component,
+  Signal
 } from 'solid-js';
-
 import { XMLParser } from 'fast-xml-parser'
 import stringSimilarity from 'string-similarity';
 import { createDexieArrayQuery } from "solid-dexie";
@@ -29,6 +26,8 @@ import {
   , eventKind
 } from "nostr-fetch";
 import axios from 'axios';
+
+import {NavBar} from './components/NavBar';
 
 import Contact from './Contact';
 import NostrRelays from './NostrRelays';
@@ -56,6 +55,7 @@ import {
   ProcessedPost
 } from "./db-fixture";
 import { nHoursAgo } from './util';
+
 const fetcher = NostrFetcher.init();
 const db = new DbFixture();
 const nlp = winkNLP( model );
@@ -250,7 +250,6 @@ const parsePosts = (postsXML: any[]) => {
 }
 
 const App: Component = () => {
-
   const [navIsOpen, setNavIsOpen] = createSignal(false);
   const [albyCodeVerifier, setAlbyCodeVerifier] = createStoredSignal('albyCodeVerifier', '')
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
@@ -331,6 +330,10 @@ const App: Component = () => {
   }
 
   const rssFeeds = createDexieArrayQuery(() => db.rssfeeds.toArray());
+
+  const checkedRSSFeeds = createDexieArrayQuery(() => db.rssfeeds
+    .filter(feed => feed.checked === true)
+    .toArray());
 
   const putRSSFeed = async (newRSSFeed: RSSFeed) => {
     await db.rssfeeds.put(newRSSFeed)
@@ -591,187 +594,187 @@ const App: Component = () => {
   const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts);
   const [rssPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
   const toggleNav = () => setNavIsOpen(!navIsOpen())
+
   return (
-    <div class='flex flex-row font-sans'>
-      <div 
-        class={` bg-black overflow-visible ease-in-out duration-300 transform-translate-x  ${navIsOpen() ? 'w-200px' : 'w-0 mr-30px'}`}
-      >
-          <Button
-              class={`sticky top-25px   ${navIsOpen() ? 'text-white' : ''}`}
-              onClick={() => toggleNav()} 
-              title='menu'
-              label='☰'
-          />
-          <div class={`${navIsOpen() ? 'w-200px sticky top-20 mt-10 pb-20' : 'w-0 overflow-hidden'}`}>
-            <NavBar
-              toggleNav={() => toggleNav()}
-              mutateRssPosts={() => mutateRssPosts(()=> [])}
-              setSelectedTrainLabel={(newLabel: string) => setSelectedTrainLabel(newLabel)}
-              checkedTrainLabels={() => checkedTrainLabels}
-            />
-          </div>
+    <div class={`font-sans flex-col`}>
+      <Button
+        title={`${navIsOpen() ? 'close menu' : 'open menu'}`}
+        class={`${navIsOpen() ? 'color-white hover-bg-white hover-color-black' : ' color-black hover-bg-black hover-color-white'} text-3xl bg-transparent border-none transition-all rounded-full aspect-square p2`}
+        label='≡'
+        onClick={() => toggleNav()}
+      />
+      <div class='bg-green'>
+        <NavBar 
+            navIsOpen={() => navIsOpen()}
+            toggleNav={() => toggleNav()}
+            mutateRssPosts={() => mutateRssPosts(()=> [])}
+            setNavIsOpen={(newState: boolean) => setNavIsOpen(newState)}
+            setSelectedTrainLabel={(newLabel: string) => setSelectedTrainLabel(newLabel)}
+            checkedTrainLabels={() => checkedTrainLabels}
+        />
       </div>
-      <div class='w-auto ml-30px'>
-        <Routes>
-          <Route path='/cors' component={() => {
-            const CorsProxies = lazy(() => import("./CorsProxies"))
-            return <CorsProxies
-              corsProxies={corsProxies}
-              putCorsProxy={putCorsProxy}
-              removeCorsProxy={removeCorsProxy}
-            />
-          }} />
-          <Route path='/alby' component={() => {
-            const Profile = lazy(() => import("./Profile"))
-            return <Profile
-              albyCodeVerifier={albyCodeVerifier}
-              setAlbyCodeVerifier={setAlbyCodeVerifier}
-              albyCode={albyCode}
-              setAlbyCode={setAlbyCode}
-              albyTokenReadInvoice={albyTokenReadInvoice}
-              setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
-            />
-          }}/>
-          <Route path='/rssfeeds' component={() => {
-            const RSSFeeds = lazy(() => import("./RSSFeeds"))
-            return <RSSFeeds
-              rssFeeds={rssFeeds}
-              putFeed={putRSSFeed}
-              removeFeed={removeRSSFeed}
-              trainLabels={trainLabels}
-              handleFeedToggleChecked={(id: string) => handleFeedToggleChecked(id)}
-            />
-          }}/>
+      <div class='bg-red'>
+          <Routes>
+            <Route path='/cors' component={() => {
+              const CorsProxies = lazy(() => import("./CorsProxies"))
+              return <CorsProxies
+                corsProxies={corsProxies}
+                putCorsProxy={putCorsProxy}
+                removeCorsProxy={removeCorsProxy}
+              />
+            }} />
+            <Route path='/alby' component={() => {
+              const Profile = lazy(() => import("./Profile"))
+              return <Profile
+                albyCodeVerifier={albyCodeVerifier}
+                setAlbyCodeVerifier={setAlbyCodeVerifier}
+                albyCode={albyCode}
+                setAlbyCode={setAlbyCode}
+                albyTokenReadInvoice={albyTokenReadInvoice}
+                setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
+              />
+            }}/>
+            <Route path='/rssfeeds' component={() => {
+              const RSSFeeds = lazy(() => import("./RSSFeeds"))
+              return <RSSFeeds
+                rssFeeds={rssFeeds}
+                putFeed={putRSSFeed}
+                removeFeed={removeRSSFeed}
+                trainLabels={trainLabels}
+                handleFeedToggleChecked={(id: string) => handleFeedToggleChecked(id)}
+              />
+            }}/>
 
-          <Route path='/rssposts' component={() => {
-            const RSSPosts = lazy(() => import("./RSSPosts"))
-            return <RSSPosts
-              trainLabel={selectedTrainLabel() || ''}
-              train={(params: {
-                mlText: string,
-                mlClass: string,
-                trainLabel: string
-              }) => {
-                train({
-                  mlText: params.mlText,
-                  mlClass: params.mlClass,
-                  trainLabel: selectedTrainLabel() || '',
-                })
-              }}
-              markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
-              rssPosts={rssPosts()}
-            />
-          }} />
-          <Route path='/' component={() => {
-            const RSSPosts = lazy(() => import("./RSSPosts"))
-            return <RSSPosts
-              trainLabel=''
-              train={(params: {
-                mlText: string,
-                mlClass: string,
-                trainLabel: string
-              }) => {
-                train({
-                  mlText: params.mlText,
-                  mlClass: params.mlClass,
-                  trainLabel: ''
-                })
-              }}
-              markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
-              rssPosts={rssPosts()}
-            />
-          }} />
-
-          <Route path='/rssposts/:trainlabel' component={() => {
-            const RSSPosts = lazy(() => import("./RSSPosts"))
-            const {trainlabel} = useParams()
-            return <RSSPosts
-              trainLabel={selectedTrainLabel() || ''}
-              train={(params: {
-                mlText: string,
-                mlClass: string,
-                trainLabel: string
-              }) => {
-                train({
-                  mlText: params.mlText,
-                  mlClass: params.mlClass,
-                  trainLabel: selectedTrainLabel() || '',
-                })
-              }}
-              markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
-              rssPosts={rssPosts()}
-            />
-          }} />
-          <Route 
-            path='/nostrposts'
-            component={() => {
-              return (
-                <NostrPosts
-                  selectedTrainLabel='nostr'
-                  train={(params: 
-                    {
-                      mlText: string,
-                      mlClass: string,
-                      trainLabel: string
-                    }) => {
+            <Route path='/rssposts' component={() => {
+              const RSSPosts = lazy(() => import("./RSSPosts"))
+              return <RSSPosts
+                trainLabel={selectedTrainLabel() || ''}
+                train={(params: {
+                  mlText: string,
+                  mlClass: string,
+                  trainLabel: string
+                }) => {
                   train({
                     mlText: params.mlText,
                     mlClass: params.mlClass,
-                    trainLabel: 'nostr',
-                    })
-                  }}
-                  nostrPosts={nostrPosts}
-                  selectedNostrAuthor={selectedNostrAuthor}
-                  setSelectedNostrAuthor={setSelectedNostrAuthor}
-                  putNostrKey={putNostrKey}
-                  putProcessedPost={putProcessedPost}
-                  putClassifier={putClassifier}
-                  markComplete={(postId: string) => markComplete(postId, 'nostr')}
-                />
-              )
-            }}
-          />
-
-          <Route path='/contact' component={() => {
-            return <Contact/>
-          }} />
-
-          <Route path='/nostrrelays' component={() => {
-            return <NostrRelays
-              nostrRelays={nostrRelays}
-              putNostrRelay={putNostrRelay}
-              removeNostrRelay={removeNostrRelay}
+                    trainLabel: selectedTrainLabel() || '',
+                  })
+                }}
+                markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
+                rssPosts={rssPosts()}
               />
-          }} />
-          <Route path='/nostrkeys' component={() => {
-            return <NostrKeys
-              nostrKeys={nostrKeys}
-              putNostrKey={putNostrKey}
-              removeNostrKey={removeNostrKey}
-              />}} />
-          <Route path='/nostrkeys/raw' component={() => {
-            return <pre>{JSON.stringify(nostrKeys, null, 2)}
-              </pre>
-            }}/>
-          <Route path='/classifiers' component={() => {
-            return <Classifiers
-              classifiers={classifiers}
-              putClassifier={putClassifier}
-              removeClassifier={removeClassifier}
-              />}} />
+            }} />
+            <Route path='/' component={() => {
+              const RSSPosts = lazy(() => import("./RSSPosts"))
+              return <RSSPosts
+                trainLabel=''
+                train={(params: {
+                  mlText: string,
+                  mlClass: string,
+                  trainLabel: string
+                }) => {
+                  train({
+                    mlText: params.mlText,
+                    mlClass: params.mlClass,
+                    trainLabel: ''
+                  })
+                }}
+                markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
+                rssPosts={rssPosts()}
+              />
+            }} />
 
-          <Route path='/classifiers/raw' component={() => {
-            return <pre>
-              {JSON.stringify(classifiers, null, 2)}
-              </pre>
-            }}/>
-          <Route path='/trainlabels' component={() => {
-            return <TrainLabels
-              trainLabels={trainLabels}
-              putTrainLabel={putTrainLabel}
-              removeTrainLabel={removeTrainLabel}
-              />}} />
-        </Routes>
+            <Route path='/rssposts/:trainlabel' component={() => {
+              const RSSPosts = lazy(() => import("./RSSPosts"))
+              const {trainlabel} = useParams()
+              return <RSSPosts
+                trainLabel={selectedTrainLabel() || ''}
+                train={(params: {
+                  mlText: string,
+                  mlClass: string,
+                  trainLabel: string
+                }) => {
+                  train({
+                    mlText: params.mlText,
+                    mlClass: params.mlClass,
+                    trainLabel: selectedTrainLabel() || '',
+                  })
+                }}
+                markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
+                rssPosts={rssPosts()}
+              />
+            }} />
+            <Route 
+              path='/nostrposts'
+              component={() => {
+                return (
+                  <NostrPosts
+                    selectedTrainLabel='nostr'
+                    train={(params: 
+                      {
+                        mlText: string,
+                        mlClass: string,
+                        trainLabel: string
+                      }) => {
+                    train({
+                      mlText: params.mlText,
+                      mlClass: params.mlClass,
+                      trainLabel: 'nostr',
+                      })
+                    }}
+                    nostrPosts={nostrPosts}
+                    selectedNostrAuthor={selectedNostrAuthor}
+                    setSelectedNostrAuthor={setSelectedNostrAuthor}
+                    putNostrKey={putNostrKey}
+                    putProcessedPost={putProcessedPost}
+                    putClassifier={putClassifier}
+                    markComplete={(postId: string) => markComplete(postId, 'nostr')}
+                  />
+                )
+              }}
+            />
+
+            <Route path='/contact' component={() => {
+              return <Contact/>
+            }} />
+
+            <Route path='/nostrrelays' component={() => {
+              return <NostrRelays
+                nostrRelays={nostrRelays}
+                putNostrRelay={putNostrRelay}
+                removeNostrRelay={removeNostrRelay}
+                />
+            }} />
+            <Route path='/nostrkeys' component={() => {
+              return <NostrKeys
+                nostrKeys={nostrKeys}
+                putNostrKey={putNostrKey}
+                removeNostrKey={removeNostrKey}
+                />}} />
+            <Route path='/nostrkeys/raw' component={() => {
+              return <pre>{JSON.stringify(nostrKeys, null, 2)}
+                </pre>
+              }}/>
+            <Route path='/classifiers' component={() => {
+              return <Classifiers
+                classifiers={classifiers}
+                putClassifier={putClassifier}
+                removeClassifier={removeClassifier}
+                />}} />
+
+            <Route path='/classifiers/raw' component={() => {
+              return <pre>
+                {JSON.stringify(classifiers, null, 2)}
+                </pre>
+              }}/>
+            <Route path='/trainlabels' component={() => {
+              return <TrainLabels
+                trainLabels={trainLabels}
+                putTrainLabel={putTrainLabel}
+                removeTrainLabel={removeTrainLabel}
+                />}} />
+          </Routes>
+
       </div>
     </div>
   )

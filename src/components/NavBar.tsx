@@ -1,19 +1,15 @@
 import {
-  For,
-  Show,
+  For
 } from 'solid-js';
-import { Component, mergeProps, splitProps } from 'solid-js';
-import {Button} from './Button';
+import { Component } from 'solid-js';
 import {NavLink} from './NavLink';
 import {
   TrainLabel,
 } from "../db-fixture";
 
 export interface NavBarProps {
-  navIsOpen: () => boolean,
   toggleNav: () => void,
   mutateRssPosts: () => void,
-  setNavIsOpen: (newState: boolean) => void,
   setSelectedTrainLabel: (label: string) => void,
   checkedTrainLabels: () => TrainLabel[]
 }
@@ -21,21 +17,12 @@ export interface NavBarProps {
 export const NavBar: Component<NavBarProps> = (props) => {
 
   const handleClickNavLink = () => {
-    props.setNavIsOpen(false)
+    props.toggleNav()
     props.setSelectedTrainLabel('')
   }
 
   return (
-      <div class={`${props.navIsOpen() ? 'bg-black' : ''} rounded-2`}>
-        <div class='text-2xl transition-all ml2'>
-          <Button
-            class={`${props.navIsOpen() ? 'color-white hover-bg-white hover-color-black' : ' color-black hover-bg-black hover-color-white'} text-3xl bg-transparent border-none transition-all rounded-full aspect-square p2`}
-            label={`${props.navIsOpen() ? '≡' : '≡'}`}
-            onClick={() => props.toggleNav()}
-          />
-        </div>
-        <div class={`${props.navIsOpen() ? 'flex flex-col text-left pl-3' : 'h-0 '} transition-all`}>
-          <Show when={props.navIsOpen()}>
+    <div>
             <NavLink href='/rssposts'
               onClick={() => {
                 props.mutateRssPosts()
@@ -53,7 +40,7 @@ export const NavBar: Component<NavBarProps> = (props) => {
                       href={`/rssposts/${trainLabel.id}`}
                       onClick={() => {
                         props.mutateRssPosts()
-                        props.setNavIsOpen(false)
+                        props.toggleNav()
                         props.setSelectedTrainLabel(trainLabel.id)
                       }} 
                     >
@@ -63,6 +50,7 @@ export const NavBar: Component<NavBarProps> = (props) => {
                 )
               }
             </For>
+            <div>
             <NavLink
               testid='rssfeeds-link'
               href='/rssfeeds'
@@ -70,40 +58,55 @@ export const NavBar: Component<NavBarProps> = (props) => {
             >
               RSS&nbsp;Feeds
             </NavLink>
+            </div>
+            <div>
             <NavLink 
               testid='nostrposts-link'
               href='/nostrposts'
               onClick={() => {
-                props.setNavIsOpen(false)
+                props.toggleNav()
                 props.setSelectedTrainLabel('nostr')
               }}
             >
               Nostr&nbsp;Global&nbsp;(6&nbsp;hours)
             </NavLink>
+            </div>
+            <div>
             <NavLink testid='alby-link' href='/alby' onClick={() => handleClickNavLink()}>
               Profile
             </NavLink>
+            </div>
+            <div>
             <NavLink testid='cors-link' href='/cors'onClick={() => handleClickNavLink()}>
               Cors&nbsp;Proxies
             </NavLink>
+            </div>
+            <div>
             <NavLink testid='contact-link' href='/contact' onClick={() => handleClickNavLink()}>
               Contact
             </NavLink>
+            </div>
+            <div>
             <NavLink testid='nostrrelays-link' href='/nostrrelays' onClick={() => handleClickNavLink()}>
               Nostr&nbsp;Relays
             </NavLink>
+            </div>
+            <div>
             <NavLink testid='nostrkeys-link' href='/nostrkeys' onClick={() => handleClickNavLink()}>
               Nostr&nbsp;Keys
             </NavLink>
+            </div>
+            <div>
             <NavLink testid='classifiers-link' href='/classifiers' onClick={() => handleClickNavLink()}>
               Classifiers
             </NavLink>
+            </div>
+            <div>
             <NavLink testid='trainlabels-link' href='/trainlabels' onClick={() => handleClickNavLink()}>
               Train&nbsp;Labels
             </NavLink>
-          </Show>
-        </div>
-      </div>
+            </div>
+</div>
       )
     }
 export default NavBar;

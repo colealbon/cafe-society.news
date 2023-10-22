@@ -28,7 +28,7 @@ const Posts = (props: {
 }) => {
   return (
     <div>
-      <h1>{props.trainLabel || 'all rss posts'}</h1>
+      <h1 class="bg-white sticky top-0 uppercase w-auto flex flex justify-center">{props.trainLabel || 'all rss posts'}</h1>
       <For each={props.rssPosts?.flat()} fallback={
         <div>
           <div class='fade-in'>LOADING</div>

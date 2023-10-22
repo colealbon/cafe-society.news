@@ -1,3 +1,5 @@
+import { themes } from '@storybook/theming';
+
 const preview: Preview = {
   parameters: {
     actions: { argTypesRegex: "^on[A-Z].*" },
@@ -7,6 +9,12 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
+    darkMode: {
+      // Override the default dark theme
+      dark: { ...themes.dark },
+      // Override the default light theme
+      light: { ...themes.normal }
+    }
   },
 };
 
