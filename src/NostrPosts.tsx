@@ -60,10 +60,10 @@ const NostrPosts = (props: {
   }
   return (
     <main>
-      <div class="bg-white sticky top-0 uppercase w-auto flex flex justify-center">
+      <div class="bg-white sticky top-0 uppercase w-auto flex justify-center">
         <h1>nostr global feed</h1>
-        <Separator.Root />
       </div>
+      <Separator.Root />
       <Show when={props.selectedNostrAuthor() !== ''}>
         <div class='flex flex-row m-0 p-0'>
           <Button
@@ -146,7 +146,7 @@ const NostrPosts = (props: {
                       <div class="fade-in">
                         <span style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</span>
                         <span class='ml-4'>
-                          {`promote odds: ${(0.0 + post.prediction['promote'] || 0.0)
+                          {`${(0.0 + post.prediction['promote'] || 0.0)
                           .toFixed(2)
                           .replace('NaN', '-')}`}
                         </span>

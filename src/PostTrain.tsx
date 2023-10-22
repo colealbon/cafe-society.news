@@ -5,10 +5,6 @@ import {
   Tooltip,
   Separator
 } from "@kobalte/core";
-import {
-  AiOutlineArrowUp,
-  AiOutlineArrowDown
-} from 'solid-icons/ai'
 import {Button} from './components/Button';
 
 const PostTrain = (props: {
@@ -41,27 +37,21 @@ const PostTrain = (props: {
         }}
       />
     <Tooltip.Root>
-      <Tooltip.Trigger class=' bg-white border-none'>
-        <Button label={props.trainLabel} onClick={() => handleComplete()} />
+      <Tooltip.Trigger class=' bg-white border-none p-o'>
+        <Button label={`${(0.0 + props.prediction['promote'] || 0.0).toFixed(2).replace('NaN', '-')}`} onClick={() => handleComplete()} />
       </Tooltip.Trigger>
       <Tooltip.Portal>
-        <Tooltip.Content class="tooltip__content">
-          <div>
+        <Tooltip.Content class="tooltip__content p-0">
+          <pre>
             <div>
               {props.docCount ? `ML document count: ${props.docCount}` : `more training required for predictions ${JSON.stringify(props.prediction, null, 2)}`}
             </div>
             <div>
-              {`prediction: ${(0.0 + props.prediction['promote'] || 0.0) > 0 ? 'promote' : 'suppress'}`}
-            </div>
-            <div>
-              {`odds: ${(0.0 + props.prediction['promote'] || 0.0)
+              {`prediction: ${(0.0 + props.prediction['promote'] || 0.0) > 0 ? 'promote' : 'suppress'} ${(0.0 + props.prediction['promote'] || 0.0)
               .toFixed(2)
               .replace('NaN', '-')}`}
             </div>
-            <div>
-              {`mltext: ${props.mlText}`}
-            </div>
-          </div>
+          </pre>
         </Tooltip.Content>
       </Tooltip.Portal>
     </Tooltip.Root>
