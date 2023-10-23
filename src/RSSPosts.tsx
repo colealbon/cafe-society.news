@@ -33,7 +33,7 @@ const Posts = (props: {
   return (
     <div>
       <PageHeader>{props.trainLabel || 'all rss posts'}</PageHeader>
-      <For each={props.rssPosts?.flat()} fallback={<Skeleton.Root class="skeleton"  height={50} radius={10} /> }>
+      <For each={props.rssPosts?.flat()} fallback={<Skeleton.Root class="skeleton pl-5"  height={50} radius={10} /> }>
         {(post) => {
           const shortGuid = (input: string) => {
             try {

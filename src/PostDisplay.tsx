@@ -8,7 +8,7 @@ const PostDisplay = (props: {
   postId: string;
 }) => {
   return(
-    <div class='bg-white bg-opacity-100 max-w-lg'>
+    <div class='bg-white bg-opacity-100 max-w-lg fade-in'>
       <h2 class=' bg-white bg-opacity-100 pr-2'>
         <a target="cafe" rel="noreferrer noopener" href={props.postId}>{
           props.postTitle

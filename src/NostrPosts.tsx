@@ -5,7 +5,8 @@ import {
 import {
   Link,
   Collapsible,
-  Skeleton
+  Skeleton,
+  Separator
 } from "@kobalte/core";
 import { Button } from './components/Button'
 import { PageHeader } from './components/PageHeader'
@@ -49,7 +50,7 @@ const NostrPosts = (props: {
       <PageHeader>Nostr Global</PageHeader>
       <For
         each={props.nostrPosts()}
-        fallback={<Skeleton.Root class="skeleton w-full"  height={50} radius={10} /> }
+        fallback={<Skeleton.Root class="skeleton w-full pl-5"  height={50} radius={10} /> }
       >
         {(post) => {
           return (
@@ -57,20 +58,21 @@ const NostrPosts = (props: {
               <Show when={() => props.nostrPosts().map((post: any) => post.mlText).indexOf(post.mlText) != -1}>
                 {
                   <Collapsible.Root defaultOpen={true}>
-                    <Collapsible.Content class="collapsible__content">
-                      <Button
-                        label={<IoRemoveCircleOutline />}
-                        title='ignore author'
-                        class="text-base"
-                        onClick={() => {
-                          handleIgnore(post.pubkey)
-                          setTimeout(() => {
-                            props.markComplete(post.mlText)
-                            props.setSelectedNostrAuthor('')
-                          }, 300)
-                        }}
-                      />
-                      <div>{`${nip19.npubEncode(post.pubkey).slice(0, 20)}...`}</div>
+                    <Collapsible.Content class="collapsible__content pr-5">
+                      <div class='flex flex-row'>
+                        <Button
+                          label={<IoRemoveCircleOutline />}
+                          title='ignore author'
+                          onClick={() => {
+                            handleIgnore(post.pubkey)
+                            setTimeout(() => {
+                              props.markComplete(post.mlText)
+                              props.setSelectedNostrAuthor('')
+                            }, 300)
+                          }}
+                        />
+                        <div>{`${nip19.npubEncode(post.pubkey).slice(0, 20)}...`}</div>
+                      </div>
                       <div class="fade-in">
                         <span style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</span>
                         <span class='ml-4'>
@@ -85,6 +87,7 @@ const NostrPosts = (props: {
                           <Link.Root target='_blank' href={`https://astral.ninja/${nip19.npubEncode(post.pubkey)}`}><div class='fade-in ml-4'>astral.ninja</div></Link.Root>
                         </span>
                       </div>
+                      <Separator.Root />
                       <div class='flex text-wrap fade-in pr-3'>
                         {
                           removeLinks(post.content)
@@ -104,7 +107,6 @@ const NostrPosts = (props: {
                         }}
                       </For>
                       <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
-                        <div class='border-red flex flex-center'>
                           <PostTrain
                             trainLabel={'nostr'}
                             train={(mlClass: string) => {
@@ -120,8 +122,8 @@ const NostrPosts = (props: {
                               props.markComplete(post.mlText)
                             }}
                           />
-                        </div>
                       </Collapsible.Trigger>
+                      <Separator.Root />
                     </Collapsible.Content>
                   </Collapsible.Root>  
                 }
