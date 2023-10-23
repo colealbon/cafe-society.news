@@ -112,7 +112,7 @@ const RSSFeeds = (props: {
 
   return (
     <>
-      <PageHeader>Nostr Global</PageHeader>
+      <PageHeader>RSS Feeds</PageHeader>
       <Combobox.Root<string>
         multiple
         options={props.trainLabels.map(trainLabel => trainLabel.id)}
@@ -122,7 +122,7 @@ const RSSFeeds = (props: {
         onOpenChange={onOpenChange}
         placeholder="click label to remove..."
         itemComponent={props => (
-          <Combobox.Item item={props.item} class='combobox__item'>
+          <Combobox.Item item={props.item} class='combobox__item w-200px'>
             <Combobox.ItemLabel>{props.item.rawValue}</Combobox.ItemLabel>
             <Combobox.ItemIndicator class="combobox__item-indicator">
               <CheckIcon />
@@ -138,7 +138,7 @@ const RSSFeeds = (props: {
           class="bg-white combobox__control bg-white" 
         >
         {state => (
-          <>
+          <> 
             <Combobox.Trigger class='border-none bg-transparent align-middle text-3xl transition-all hover-text-white hover:bg-black rounded-full'>
               &nbsp;+&nbsp;
             </Combobox.Trigger>
@@ -180,22 +180,23 @@ const RSSFeeds = (props: {
           {(feed) => (
             <Show when={feed.id != ''}>
               <div class='flex justify-start'>
-                  <Button 
-                    title={`remove ${feed.id}`}
-                    onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}
-                    label='✕'
-                  />
                   <Switch 
                     label=''
                     class="flex display-inline pt-2"
                     checked={feed.checked}
                     onChange={() => handleToggleChecked(`${feed.id}`, !feed.checked)}
                   />
+                  <Button 
+                    title={`remove ${feed.id}`}
+                    onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}
+                    label='✕'
+                  />
                   <Button
                     class='text-base pt-0 mt-0'
                     onClick={() => handleKeyClick(feed.id)}
                     label={feed.id.replace('http[s?]://', '').slice(0, 25) || ''}
                   />
+
                 <div class='pt-2'>{feed.trainLabels.join(', ').slice(0, 100)}</div>
               </div>
             </Show>

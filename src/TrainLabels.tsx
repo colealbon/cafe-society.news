@@ -2,10 +2,9 @@ import {
   For
 } from 'solid-js';
 
-import {
-  Switch,
-  Separator
-} from "@kobalte/core";
+import { Switch } from './components/Switch'
+import { PageHeader } from './components/PageHeader'
+import { Button } from './components/Button'
 
 import {
   createFormGroup,
@@ -88,8 +87,8 @@ const TrainLabels = (props: {
 
   return (
   <div class='fade-in transition-duration-.3s'>
-    <h1>Edit Train Labels</h1>
-    <Separator.Root />
+    <PageHeader>Edit Train Labels</PageHeader>
+
     <form onSubmit={onSubmit}>
       <label for="id">train label</label>
       <TextInput
@@ -108,30 +107,20 @@ const TrainLabels = (props: {
   <For each={props.trainLabels}>
     {(trainLabel) => (
       <div class='flex flex-row'>
-        <button
-          class={`mr-1 transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full`}
+        <Switch 
+          class="flex display-inline pt-2 p-0"
+          label=''
+          onChange={() => handleToggleChecked(`${trainLabel.id}`)}
+          checked={trainLabel.checked}
+        />
+        <Button
           onClick={() => props.removeTrainLabel(trainLabel)}
-        >
-          <div class='m-1 mt-1 align-middle text-xl'>✕</div>
-        </button>
-        <Switch.Root
-          class="switch"
-          defaultChecked={trainLabel.checked}
-          onChange={(newVal) => {
-            handleToggleChecked(`${trainLabel.id}`)
-          }}
-        >
-          <Switch.Input class="switch__input" />
-          <Switch.Control class="switch__control">
-            <Switch.Thumb class="switch__thumb" />
-          </Switch.Control>
-        </Switch.Root>
-        <button
-          class={`text-xl ml-1 mt-2 mb-2 transition-all bg-transparent border-none hover-text-white hover:bg-slate-400 rounded-full`}
+          label='✕'
+        />
+        <Button
           onClick={() => handleKeyClick(trainLabel.id)}
-        >
-          {trainLabel.id || ''}
-        </button>
+          label={trainLabel.id || ''}
+        />
       </div>
     )}
   </For>

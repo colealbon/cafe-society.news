@@ -7,7 +7,8 @@ import {
 } from "@kobalte/core";
 
 import { Switch } from './components/Switch'
-import {Button} from './components/Button'
+import { Button } from './components/Button'
+import { PageHeader } from './components/PageHeader'
 
 import {
   createFormGroup,
@@ -75,7 +76,7 @@ const NostrRelays = (props: {
 
   return (
     <div class='fade-in'>
-      <h1>Edit Nostr Relays</h1>
+      <PageHeader>Nostr Relays</PageHeader>
     <div>
     <form onSubmit={onSubmit}>
       <label class='hidden' for="id">URL</label>
@@ -89,19 +90,19 @@ const NostrRelays = (props: {
     {(nostrRelay) => (
         <Collapsible.Root class="collapsible" defaultOpen={true}>
           <Collapsible.Content class='collapsible-content'>
-            <p class='flex justify-start'>
+            <div class='flex justify-start'>
+              <Switch 
+                class="flex display-inline pt-2"
+                checked={nostrRelay.checked}
+                onChange={() => handleToggleChecked(`${nostrRelay.id}`)}
+                label=''
+              />
               <Button 
                 onClick={() => props.removeNostrRelay(nostrRelay)}
                 label='✕'
-              >
-              </Button>
-              <Switch 
-                class="flex display-inline"
-                checked={nostrRelay.checked}
-                onChange={() => handleToggleChecked(`${nostrRelay.id}`)}
-                label={nostrRelay.id}
               />
-            </p>
+              <div class='pt-2'>{nostrRelay.id}</div>
+            </div>
           </Collapsible.Content>
         </Collapsible.Root>
       )}
