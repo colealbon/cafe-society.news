@@ -1,10 +1,10 @@
 import {
   createFilter,
-  Switch,
   Combobox,
-  Collapsible,
   Separator
 } from "@kobalte/core";
+import { Switch } from './components/Switch'
+import { PageHeader } from './components/PageHeader'
 import {
   For,
   createSignal,
@@ -45,8 +45,12 @@ const RSSFeeds = (props: {
     trainLabels: createFormControl([])
   });
 
-  const onSubmit = async (event: any) => {
-    event.preventDefault()
+  const onSubmit = async (event: Event) => {
+    try {
+      event.preventDefault()
+    } catch (err) {
+      //pass
+    }
     if (group.isSubmitted) {
       console.log('already submitted')
       return;
@@ -108,7 +112,7 @@ const RSSFeeds = (props: {
 
   return (
     <>
-      <h1>{'Edit Feeds'}</h1>
+      <PageHeader>Nostr Global</PageHeader>
       <Combobox.Root<string>
         multiple
         options={props.trainLabels.map(trainLabel => trainLabel.id)}
@@ -175,35 +179,25 @@ const RSSFeeds = (props: {
       <For each={props.rssFeeds}>
           {(feed) => (
             <Show when={feed.id != ''}>
-              <Collapsible.Root class="collapsible" defaultOpen={true}>
-                <Collapsible.Content class="collapsible__content">
-                  <Collapsible.Trigger class="collapsible__trigger  bg-transparent">
-                    <Button 
-                      title={`remove ${feed.id}`}
-                      onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}
-                      label='✕'
-                    />
-                    </Collapsible.Trigger>
-                    &nbsp;
-                    <Switch.Root
-                      class="switch"
-                      defaultChecked={feed.checked}
-                      onChange={(newVal) => {
-                        handleToggleChecked(`${feed.id}`, newVal)
-                      }}
-                    >
-                      <Switch.Input class="switch__input" />
-                      <Switch.Control class="switch__control">
-                        <Switch.Thumb class="switch__thumb" />
-                      </Switch.Control>
-                    </Switch.Root>
-                    <Button
-                      onClick={() => handleKeyClick(feed.id)}
-                      label={feed.id.replace('http[s?]://', '').slice(0, 25) || ''}
-                    />
-                    <span>{feed.trainLabels.join(', ')}</span>
-                </Collapsible.Content>
-              </Collapsible.Root>
+              <div class='flex justify-start'>
+                  <Button 
+                    title={`remove ${feed.id}`}
+                    onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}
+                    label='✕'
+                  />
+                  <Switch 
+                    label=''
+                    class="flex display-inline pt-2"
+                    checked={feed.checked}
+                    onChange={() => handleToggleChecked(`${feed.id}`, !feed.checked)}
+                  />
+                  <Button
+                    class='text-base pt-0 mt-0'
+                    onClick={() => handleKeyClick(feed.id)}
+                    label={feed.id.replace('http[s?]://', '').slice(0, 25) || ''}
+                  />
+                <div class='pt-2'>{feed.trainLabels.join(', ').slice(0, 100)}</div>
+              </div>
             </Show>
           )}
       </For>
