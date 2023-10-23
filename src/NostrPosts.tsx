@@ -10,7 +10,6 @@ import {
 import { Button } from './components/Button'
 
 import PostTrain from './PostTrain'
-import { CgUserAdd } from 'solid-icons/cg'
 import { IoRemoveCircleOutline } from 'solid-icons/io'
 import { NostrKey } from "./db-fixture";
 import { nip19 } from 'nostr-tools'
@@ -26,21 +25,7 @@ const NostrPosts = (props: {
   putProcessedPost: any,
   markComplete: any
 }) => {
-  const handleClickDrillPubkey = (publicKey: string) => {
-    props.setSelectedNostrAuthor(publicKey)
-  }
-
-  const handleFollow = (publicKey: string) => {
-    const newNostrKey: NostrKey = {
-      publicKey: publicKey,
-      secretKey:'',
-      label:'',
-      follow: true,
-      ignore: false
-    }
-    props.putNostrKey(newNostrKey)
-  }
-
+  
   const handleIgnore = (publicKey: string) => {
     const newNostrKey: NostrKey = {
       publicKey: publicKey,
@@ -64,50 +49,6 @@ const NostrPosts = (props: {
         <h1>nostr global feed</h1>
       </div>
       <Separator.Root />
-      <Show when={props.selectedNostrAuthor() !== ''}>
-        <div class='flex flex-row m-0 p-0'>
-          <Button
-            class='bg-transparent border-none rounded'
-            onClick={() => {
-              handleClickDrillPubkey('')
-            }}
-            title='nostr global feed'
-          >
-            <div class='text-xl text-orange hover-bg-orange hover-text-white text-xl rounded-2 ml-1 mr-1'>
-             {` ${props.selectedNostrAuthor().substring(0,5)}...${props.selectedNostrAuthor().substring(props.selectedNostrAuthor().length - 5)} `}
-            </div>
-          </Button>
-          <Button
-            title='follow'
-            class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-green-900 rounded-full`}
-            onClick={() => {
-              handleFollow(props.selectedNostrAuthor())
-              props.setSelectedNostrAuthor('')
-            }}
-          >
-            <div class='text-green-900 hover-text-white mt-1'>
-              <CgUserAdd />
-            </div>
-           </Button>
-
-           <Button
-            title='ignore author'
-            label='-'
-            // class={`text-4xl transition-all bg-transparent border-none hover-text-white hover:bg-red rounded-full`}
-            onClick={() => {
-              handleIgnore(props.selectedNostrAuthor())
-              props.setSelectedNostrAuthor('')
-            }}
-          >
-            <IoRemoveCircleOutline />
-          </Button>
-          <div />
-          <div />
-          <div />
-          <div />
-        </div>
-        <Separator.Root class="separator" />
-      </Show>
       <For
         each={props.nostrPosts()}
         fallback={
@@ -127,6 +68,7 @@ const NostrPosts = (props: {
                       <Show when={(props.selectedNostrAuthor() == '')}>
                         <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
                           <Button
+                            label='ignore author'
                             title='ignore author'
                             onClick={() => {
                               handleIgnore(post.pubkey)
@@ -142,7 +84,7 @@ const NostrPosts = (props: {
                           </Button>
                         </Collapsible.Trigger>
                       </Show>
-                      <div>{`${nip19.npubEncode(post.pubkey)}`}</div>
+                      <div>{`${nip19.npubEncode(post.pubkey).slice(0, 20)}...`}</div>
                       <div class="fade-in">
                         <span style={{'color': 'grey'}}>{`${parseInt((((Date.now() / 1000) - parseFloat(post.created_at)) / 60).toString())} minutes ago`}</span>
                         <span class='ml-4'>

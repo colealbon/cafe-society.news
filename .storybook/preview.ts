@@ -1,4 +1,5 @@
 import { themes } from '@storybook/theming';
+import '../src/style.css'
 
 const preview: Preview = {
   parameters: {

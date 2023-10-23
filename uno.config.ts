@@ -5,6 +5,7 @@ import {
   presetTypography,
   presetUno
 } from 'unocss'
+import { presetKobalte } from 'unocss-preset-primitives'
 import presetEase from "unocss-preset-ease";
 
 export default defineConfig({
@@ -16,6 +17,7 @@ export default defineConfig({
   },
   presets: [
     presetUno(),
+    presetKobalte(),
     presetEase(),
     presetAttributify(),
     presetIcons({

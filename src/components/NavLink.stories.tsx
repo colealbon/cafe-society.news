@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from 'storybook-solidjs';
 import { within, userEvent } from '@storybook/testing-library';
 import "virtual:uno.css"
 import { Router } from "@solidjs/router";
-import { NavLink } from './NavLink'
+import { NavLink, DEFAULT_CLASS} from './NavLink'
 
 // More on how to set up stories at: https://storybook.js.org/docs/7.0/solid/writing-stories/introduction
 const meta = {
@@ -13,7 +13,7 @@ const meta = {
   component: NavLink,
   decorators: [
     (Story) => (
-    <div class='bg-black p7 rounded-7'>
+    <div>
       <Router>
         <Story />
       </Router>
@@ -34,7 +34,7 @@ type Story = StoryObj<typeof meta>;
 export const Basic: Story = {
   args: {
     href:'/',
-    class:'no-underline text-left text-xl text-white border-none transition-all bg-transparent hover-bg-transparent hover-text-slate-500 hover-text-4v xl',
+    class:'font-sans',
     children: 'home'
   },
   play: async({ canvasElement }) => {

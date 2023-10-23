@@ -1,6 +1,9 @@
 button {
   border: none;
 }
+a {
+  color: black;
+}
 .collapsible__content {
   animation: slideUp 100ms ease-out;
 }
@@ -149,12 +152,12 @@ button {
     transition: 250ms background-color;
   }
 .switch__input:focus-visible + .switch__control {
-    outline: 2px solid hsl(200 98% 39%);
+    outline: 2px solid black;
     outline-offset: 2px;
   }
 .switch__control[data-checked] {
-    border-color: hsl(200 98% 39%);
-    background-color: hsl(200 98% 39%);
+    border-color: black;
+    background-color: black;
   }
 .switch__thumb {
     height: 20px;

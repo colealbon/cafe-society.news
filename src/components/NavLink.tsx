@@ -8,7 +8,7 @@ export interface NavLinkProps {
   href: string;
   testid?: string;
 }
-const DEFAULT_CLASS="no-underline text-left text-xl text-white border-none transition-all bg-transparent hover-text-slate-500 hover-text-4v xl"
+export const DEFAULT_CLASS="'bg-black p7 rounded-7 no-underline text-left text-xl text-white border-none transition-all bg-transparent hover-text-slate-500 hover-text-4v xl"
 
 export const NavLink: Component<NavLinkProps> = (props) => {
   props = mergeProps(

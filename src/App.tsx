@@ -3,7 +3,6 @@ import {Button} from './components/Button';
 import {NavBar} from './components/NavBar'
 import {
   createEffect,
-  Show,
   createSignal,
   createResource,
   lazy
@@ -592,7 +591,7 @@ const App: Component = () => {
   const [rssPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
   const toggleNav = () => setNavIsOpen(!navIsOpen())
   return (
-    <div class='flex flex-row font-sans'>
+    <div class='flex justify-start font-sans'>
       <div 
         class={` bg-black overflow-visible ease-in-out duration-300 transform-translate-x  ${navIsOpen() ? 'w-200px' : 'w-0 mr-30px'}`}
       >

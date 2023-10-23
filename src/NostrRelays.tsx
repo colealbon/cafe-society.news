@@ -3,11 +3,12 @@ import {
 } from 'solid-js';
 
 import {
-  Button,
-  Separator,
-  Switch,
   Collapsible
 } from "@kobalte/core";
+
+import { Switch } from './components/Switch'
+
+import {Button} from './components/Button'
 
 import {
   createFormGroup,
@@ -76,40 +77,31 @@ const NostrRelays = (props: {
   return (
     <div class='fade-in'>
       <h1>Edit Nostr Relays</h1>
-      <Separator.Root />
     <div>
     <form onSubmit={onSubmit}>
-      <label for="id">URL</label>
-      <div class='w-9/10'><TextInput name="id" control={group.controls.id} /></div>
+      <label class='hidden' for="id">URL</label>
+      <div class='w-9/10'>
+        <TextInput name="id" control={group.controls.id} />
+      </div>
     </form>
 </div>
 <div>
-  <h4 class="text-muted">NostrRelays</h4>
-    <For each={props.nostrRelays}>
-      {(nostrRelay) => (
+  <For each={props.nostrRelays}>
+    {(nostrRelay) => (
         <Collapsible.Root class="collapsible" defaultOpen={true}>
           <Collapsible.Content class='collapsible-content'>
             <p class='flex justify-start'>
-              <Button.Root class='border-none text-slate-900 hover-text-white bg-transparent hover-bg-slate-900 rounded-full m-0' onClick={() => {
-                setTimeout(() => {
-                  props.removeNostrRelay(nostrRelay)
-                }, 300)
-              }}>
-                <Collapsible.Trigger class='bg-inherit ease-in-out rounded-full border-inherit hover-text-white hover-bg-slate-900 m-0 animate-fade-in animate-duration-1s'>
-                  ✕
-                </Collapsible.Trigger>
-              </Button.Root>
-              <Switch.Root
+              <Button 
+                onClick={() => props.removeNostrRelay(nostrRelay)}
+                label='✕'
+              >
+              </Button>
+              <Switch 
                 class="flex display-inline"
                 checked={nostrRelay.checked}
                 onChange={() => handleToggleChecked(`${nostrRelay.id}`)}
-              >
-                <Switch.Input class="switch__input ml-1" />
-                <Switch.Control class="switch__control">
-                  <Switch.Thumb class="switch__thumb" />
-                </Switch.Control>
-                <Switch.Label class="switch__label"><div class='hover-text-slate-400 rounded-full m-1'>{nostrRelay.id}</div></Switch.Label>
-              </Switch.Root>
+                label={nostrRelay.id}
+              />
             </p>
           </Collapsible.Content>
         </Collapsible.Root>
