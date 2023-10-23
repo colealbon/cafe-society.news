@@ -40,7 +40,6 @@ export const NavBar: Component<NavBarProps> = (props) => {
                       href={`/rssposts/${trainLabel.id}`}
                       onClick={() => {
                         props.mutateRssPosts()
-                        props.toggleNav()
                         props.setSelectedTrainLabel(trainLabel.id)
                       }} 
                     >
@@ -64,11 +63,10 @@ export const NavBar: Component<NavBarProps> = (props) => {
               testid='nostrposts-link'
               href='/nostrposts'
               onClick={() => {
-                props.toggleNav()
                 props.setSelectedTrainLabel('nostr')
               }}
             >
-              Nostr&nbsp;Global&nbsp;(6&nbsp;hours)
+              Nostr&nbsp;Global
             </NavLink>
             </div>
             <div>

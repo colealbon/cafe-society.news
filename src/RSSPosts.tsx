@@ -2,9 +2,13 @@ import {
   For,
   Show
 } from 'solid-js'
+import {PageHeader} from './components/PageHeader'
 import PostDisplay from './PostDisplay'
 import PostTrain from './PostTrain'
-import { Collapsible } from "@kobalte/core";
+import {
+  Collapsible,
+  Skeleton
+} from "@kobalte/core";
 
 const removePunctuation = (text: string) => {
   return `${text}`
@@ -28,13 +32,8 @@ const Posts = (props: {
 }) => {
   return (
     <div>
-      <h1 class="bg-white sticky top-0 uppercase w-auto flex flex justify-center">{props.trainLabel || 'all rss posts'}</h1>
-      <For each={props.rssPosts?.flat()} fallback={
-        <div>
-          <div class='fade-in'>LOADING</div>
-          <div class='fade-in-slow'>try setting up <a href='https://www.npmjs.com/package/cors-anywhere'>cors proxy</a> and add it to the cors proxies settings</div>
-        </div>
-      }>
+      <PageHeader>{props.trainLabel || 'all rss posts'}</PageHeader>
+      <For each={props.rssPosts?.flat()} fallback={<Skeleton.Root class="skeleton"  height={50} radius={10} /> }>
         {(post) => {
           const shortGuid = (input: string) => {
             try {
@@ -51,22 +50,24 @@ const Posts = (props: {
                 <PostDisplay {...post}/>
                 <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
                   <Show when={props.trainLabel != ''}>
-                    <PostTrain
-                      trainLabel={props.trainLabel}
-                      train={(mlClass: string) => {
-                        setTimeout(() => {
-                          props.train({
-                            mlClass: mlClass,
-                            mlText: post.mlText
-                          })
-                        }, 300)
- 
-                      }}
-                      mlText={post.mlText}
-                      prediction={post.prediction}
-                      docCount={post.docCount}
-                      markComplete={() => props.markComplete(post.mlText, processedPostsID)}
-                    />
+                    <div class='justify-center'>
+                      <PostTrain
+                        trainLabel={props.trainLabel}
+                        train={(mlClass: string) => {
+                          setTimeout(() => {
+                            props.train({
+                              mlClass: mlClass,
+                              mlText: post.mlText
+                            })
+                          }, 300)
+  
+                        }}
+                        mlText={post.mlText}
+                        prediction={post.prediction}
+                        docCount={post.docCount}
+                        markComplete={() => props.markComplete(post.mlText, processedPostsID)}
+                      />
+                    </div>
                   </Show>
                 </Collapsible.Trigger>
               </Collapsible.Content>

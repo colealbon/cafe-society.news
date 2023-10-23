@@ -610,7 +610,7 @@ const App: Component = () => {
             />
           </div>
       </div>
-      <div class='w-auto ml-30px'>
+      <div class='w-auto pl-3'>
         <Routes>
           <Route path='/cors' component={() => {
             const CorsProxies = lazy(() => import("./CorsProxies"))
