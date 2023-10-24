@@ -50,7 +50,7 @@ const NostrPosts = (props: {
       <PageHeader>Nostr Global</PageHeader>
       <For
         each={props.nostrPosts()}
-        fallback={<Skeleton.Root class="skeleton w-full pl-5"  height={50} radius={10} /> }
+        fallback={<Skeleton.Root class="skeleton w-full p-5"  height={50} radius={10} /> }
       >
         {(post) => {
           return (

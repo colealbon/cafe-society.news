@@ -19,7 +19,7 @@ export const PageHeader: Component<PageHeaderProps> = (props) => {
   ]);
 
   return (
-    <div class='sticky top-0px justify-center min-w-450px'>
+    <div class='sticky top-0px justify-center'>
         <div class='h-20px bg-white'></div>
         <h1 class={`${local.class} ${DEFAULT_CLASS} pl-60px pt-2 pb-2 mt-0px bg-white z-50 mb-0`}>{local.children}</h1>
         <div class='bg-gradient-to-b from-white p-6' />

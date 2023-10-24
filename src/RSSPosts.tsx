@@ -33,7 +33,7 @@ const Posts = (props: {
   return (
     <div>
       <PageHeader>{props.trainLabel || 'all rss posts'}</PageHeader>
-      <For each={props.rssPosts?.flat()} fallback={<Skeleton.Root class="skeleton pl-5"  height={50} radius={10} /> }>
+      <For each={props.rssPosts?.flat()} fallback={<Skeleton.Root class="skeleton pl-5" pr-2 height={50} radius={10} /> }>
         {(post) => {
           const shortGuid = (input: string) => {
             try {
@@ -46,7 +46,7 @@ const Posts = (props: {
           const processedPostsID = post.feedLink === "" ? shortGuid(post.guid) : shortUrl(post.feedLink)
           return (
             <Collapsible.Root defaultOpen={true}>
-              <Collapsible.Content class="collapsible__content">
+              <Collapsible.Content class="collapsible__content pr-2">
                 <PostDisplay {...post}/>
                 <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
                   <Show when={props.trainLabel != ''}>
