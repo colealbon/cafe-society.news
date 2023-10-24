@@ -1,11 +1,10 @@
 import type { Component } from 'solid-js';
-import { Separator } from "@kobalte/core";
+import { PageHeader } from './components/PageHeader'
 
 const Contact: Component = () => {
   return (
     <div>
-      <h1>Contact</h1>
-      <Separator.Root />
+      <PageHeader>Contact</PageHeader>
       <main>
         <div>
           nostr: npub1c0le4pgu49j76fnt54xfyclkszlfrcjx2c5vvjatdfvey5sat3ws76lcvg

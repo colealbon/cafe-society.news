@@ -9,6 +9,7 @@ import {
   createFormControl,
 } from "solid-forms";
 import TextInput from './TextInput'
+import { PageHeader } from './components/PageHeader'
 import {
   VsTrash
 } from 'solid-icons/vs'
@@ -71,7 +72,7 @@ const CorsProxies = (props: {
 
   return (
     <div>
-      <h1>Cors Proxies</h1>
+      <PageHeader>Cors Proxies</PageHeader>
       <Separator.Root />
       <main>
         <div>

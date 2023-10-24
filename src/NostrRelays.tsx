@@ -77,38 +77,38 @@ const NostrRelays = (props: {
   return (
     <div class='fade-in'>
       <PageHeader>Nostr Relays</PageHeader>
-    <div>
-    <form onSubmit={onSubmit}>
-      <label class='hidden' for="id">URL</label>
-      <div class='w-9/10'>
-        <TextInput name="id" control={group.controls.id} />
+      <div>
+        <form onSubmit={onSubmit}>
+          <label class='hidden' for="id">URL</label>
+          <div class='w-9/10'>
+            <TextInput name="id" control={group.controls.id} />
+          </div>
+        </form>
       </div>
-    </form>
-</div>
-<div>
-  <For each={props.nostrRelays}>
-    {(nostrRelay) => (
-        <Collapsible.Root class="collapsible" defaultOpen={true}>
-          <Collapsible.Content class='collapsible-content'>
-            <div class='flex justify-start'>
-              <Switch 
-                class="flex display-inline pt-2"
-                checked={nostrRelay.checked}
-                onChange={() => handleToggleChecked(`${nostrRelay.id}`)}
-                label=''
-              />
-              <Button 
-                onClick={() => props.removeNostrRelay(nostrRelay)}
-                label='✕'
-              />
-              <div class='pt-2'>{nostrRelay.id}</div>
-            </div>
-          </Collapsible.Content>
-        </Collapsible.Root>
-      )}
-    </For>
-  </div>
-</div>
+      <div>
+      <For each={props.nostrRelays}>
+        {(nostrRelay) => (
+            <Collapsible.Root class="collapsible" defaultOpen={true}>
+              <Collapsible.Content class='collapsible-content'>
+                <div class='flex justify-start'>
+                  <Switch 
+                    class="flex display-inline pt-2"
+                    checked={nostrRelay.checked}
+                    onChange={() => handleToggleChecked(`${nostrRelay.id}`)}
+                    label=''
+                  />
+                  <Button 
+                    onClick={() => props.removeNostrRelay(nostrRelay)}
+                    label='✕'
+                  />
+                  <div class='pt-2'>{nostrRelay.id}</div>
+                </div>
+              </Collapsible.Content>
+            </Collapsible.Root>
+          )}
+        </For>
+      </div>
+    </div>
   )
 }
 export default NostrRelays;

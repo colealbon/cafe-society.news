@@ -2,7 +2,6 @@ import {
   For
 } from 'solid-js';
 import { Collapsible } from "@kobalte/core";
-import { Link } from "@kobalte/core";
 
 import {
   createFormGroup,
@@ -12,10 +11,12 @@ import TextInput from './TextInput'
 
 import {
   VsAdd,
-  VsTrash,
   VsCopy
 } from 'solid-icons/vs'
 import { Classifier } from './db-fixture'
+import { PageHeader } from './components/PageHeader'
+import { Button } from './components/Button'
+
 const Classifiers = (props: {
   classifiers: Classifier[],
   // eslint-disable-next-line no-unused-vars
@@ -88,14 +89,13 @@ const Classifiers = (props: {
     navigator.clipboard.writeText(group.controls.model.rawValue);
   }
 
-  const handleRemoveClick = (classifier) => {
-    event.preventDefault()
+  const handleRemoveClick = (classifier: any) => {
     props.removeClassifier(classifier)
   }
 
   return (
   <div class='fade-in'>
-    <h1>Edit Classifiers</h1>
+    <PageHeader>Edit Classifiers</PageHeader>
     <form onSubmit={onSubmit}>
       <label for="id">label</label>
       <TextInput name="id" control={group.controls.id} />
@@ -105,11 +105,10 @@ const Classifiers = (props: {
       <div />
       <label for="Model">Bayes Model</label>
       <TextInput name="model" control={group.controls.model} />
-      <div>
-        <Link.Root onClick={handleAddClick}>
-          <VsAdd />
-        </Link.Root>
-      </div>
+      <Button
+        onClick={() => handleAddClick}
+        label={<VsAdd />}
+      />
     </form>
     <Collapsible.Root class="collapsible border-none bg-transparent" defaultOpen={false}>
     <Collapsible.Trigger class="collapsible__trigger hover-bg-slate-900 hover-text-white bg-transparent border-none">
@@ -118,11 +117,10 @@ const Classifiers = (props: {
     <Collapsible.Content class="collapsible__content">
       <p class="collapsible__content-text">
       {<>
-        <div>
-        <Link.Root onClick={handleCopyClick}>
-          <VsCopy />
-        </Link.Root>
-      </div>
+        <Button
+          onClick={handleCopyClick}
+          label={<VsCopy />}
+        />
       <div style={{'max-width': '500px'}}>
         <pre>{JSON.stringify(group.controls.model.rawValue, null, 2)}</pre>
       </div>
@@ -150,12 +148,10 @@ const Classifiers = (props: {
             'display': 'block',
             'transition':'0.3s'
           }}>
-        <Link.Root onClick={() => {
-          event.preventDefault()
-          handleRemoveClick(classifier)
-        }}>
-            <VsTrash />
-          </Link.Root>
+        <Button 
+          onClick={() => handleRemoveClick(classifier)}
+          label='✕'
+        />
         </div>
         <div style={
         {
@@ -166,13 +162,11 @@ const Classifiers = (props: {
           'display': 'block',
           'transition':'0.3s'
         }}>
-        <Link.Root onClick={(event) => {
-          event.preventDefault()
-          handleKeyClick(classifier.id)
-        }}>
-          {classifier.id || ''}
-        </Link.Root>
-      </div>
+          <Button
+            onClick={() => handleKeyClick(classifier.id)}
+            label={classifier.id || ''}
+          />
+        </div>
       </div>
     )}
   </For>

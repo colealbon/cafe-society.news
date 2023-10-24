@@ -11,6 +11,7 @@ import {
   useSearchParams
 } from '@solidjs/router'
 import {Button} from './components/Button';
+import { PageHeader } from './components/PageHeader'
 
 async function generateCodeChallenge(codeVerifier: string) {
   var digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(codeVerifier));
@@ -87,10 +88,9 @@ const Profile = (props: {
 
   return (
     <div>
-      <h1>
+      <PageHeader>
         Profile
-      </h1>
-      <Separator.Root />
+      </PageHeader>
       <Show
         when={props.albyTokenReadInvoice() != ''}
         fallback={

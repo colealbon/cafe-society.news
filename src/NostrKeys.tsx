@@ -7,19 +7,21 @@ import {
   createFormControl,
 } from "solid-forms";
 import TextInput from './TextInput'
-import { Link, Separator } from "@kobalte/core";
+import { Link } from "@kobalte/core";
 import { nip19 } from 'nostr-tools'
 import * as Y from 'yjs'
 
 import {
-  VsAdd,
-  VsTrash
+  VsAdd
 } from 'solid-icons/vs'
 import { CgErase } from 'solid-icons/cg'
 import {
   generatePrivateKey,
   getPublicKey
 } from 'nostr-tools'
+
+import { PageHeader } from './components/PageHeader'
+import { Button } from './components/Button'
 import { NostrKey } from './db-fixture'
 
 const NostrKeys = (props: {
@@ -128,8 +130,8 @@ const NostrKeys = (props: {
 
   return (
   <div class='fade-in'>
-    <h1>Edit Nostr Keys</h1>
-    <Separator.Root />
+    <PageHeader>Nostr Keys</PageHeader>
+    <div>
       <form onSubmit={onSubmit}>
         <label for="publicKey">Public Key</label>
         <TextInput name="publicKey" control={group.controls.publicKey} />
@@ -182,12 +184,10 @@ const NostrKeys = (props: {
                   'display': 'block',
                   'transition':'0.3s'
                 }}>
-                <Link.Root onClick={(event) => {
-                  event.preventDefault()
-                  props.removeNostrKey(nostrKey)
-                }}>
-                  <VsTrash onClick={() => props.removeNostrKey(nostrKey)} />
-                </Link.Root>
+                <Button 
+                  onClick={() => props.removeNostrKey(nostrKey)}
+                  label='✕'
+                />
               </div>
               <div style={
                 {
@@ -198,17 +198,16 @@ const NostrKeys = (props: {
                   'display': 'block',
                   'transition':'0.3s'
                 }}>
-                <Link.Root onClick={(event) => {
-                  event.preventDefault()
-                  handleKeyClick(nostrKey.publicKey)
-                }}>
-                  {nip19.npubEncode(nostrKey.publicKey)}
-                </Link.Root>
+                <Button 
+                  onClick={() => handleKeyClick(nostrKey.publicKey)}
+                  label={nip19.npubEncode(nostrKey.publicKey)}
+                />
               </div>
             </div>
           )}
         </For>
       </div>
+    </div>
     </div>
   )
 }
