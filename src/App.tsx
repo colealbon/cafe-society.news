@@ -88,7 +88,7 @@ function createStoredSignal<T>(
   return [value, setValueAndStore];
 }
 
-const prepTask = function ( text: string ) {
+const prepNLPTask = function ( text: string ) {
   const tokens: string[] = [];
   nlp.readDoc(text)
       .tokens()
@@ -101,7 +101,7 @@ const prepTask = function ( text: string ) {
 
 const prepNostrPost = (post: any) => {
   return {
-    mlText: prepTask(convert(
+    mlText: prepNLPTask(convert(
       `${post.content}`
       .replace(/\d+/g, '')
       .replace(/#/g, ''),
@@ -194,7 +194,7 @@ const parseRSS = (content:any) => {
       ...itemEntry,
       postId: itemEntry.link || itemEntry.guid,
       postTitle: itemEntry.title,
-      mlText: prepTask(convert(`${itemEntry.title} ${itemEntry.postSummary}`))
+      mlText: prepNLPTask(convert(`${itemEntry.title} ${itemEntry.postSummary}`))
         .filter((word) => word.length < 30)
         .join(' ')
         .toLowerCase()
@@ -223,7 +223,7 @@ const parseAtom = (content: any) => {
       ...itemEntry,
       postId: itemEntry?.id,
       postTitle: `${itemEntry.title}`,
-      mlText: prepTask(convert(`${itemEntry.title} ${itemEntry.postSummary}`))
+      mlText: prepNLPTask(convert(`${itemEntry.title} ${itemEntry.postSummary}`))
         .filter((word) => word.length < 30)
         .join(' ')
         .toLowerCase()
@@ -285,7 +285,7 @@ const App: Component = () => {
   const classifiers = createDexieArrayQuery(() => db.classifiers.toArray());
   const putClassifier = async (newClassifierEntry: Classifier) => {
     const winkClassifier = WinkClassifier()
-    winkClassifier.definePrepTasks( [ prepTask ] );
+    winkClassifier.definePrepTasks( [ prepNLPTask ] );
     winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
     if (newClassifierEntry.model != '') {
       winkClassifier.importJSON(newClassifierEntry.model)
@@ -375,7 +375,7 @@ const App: Component = () => {
         }))
       })
       const winkClassifier = WinkClassifier()
-      winkClassifier.definePrepTasks( [ prepTask ] );
+      winkClassifier.definePrepTasks( [ prepNLPTask ] );
       winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
       const classifierModel: string = classifiers.find((classifierEntry: any) => classifierEntry?.id == selectedTrainLabel())?.model || ''
       if (classifierModel != '') {
@@ -390,6 +390,7 @@ const App: Component = () => {
         const suppressOdds = classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds
         resolve(parsed?.flat()
         .filter(post => `${post?.mlText}`.trim() != '')
+        .filter(post => post?.postTitle != null)
         .map(post => {
           return {
             ...post,
@@ -448,7 +449,7 @@ const App: Component = () => {
   }) => {
     const oldModel: string = classifiers.find((classifierEntry) => classifierEntry?.id == params.trainLabel)?.model || ''
     const winkClassifier = WinkClassifier()
-    winkClassifier.definePrepTasks( [ prepTask ] );
+    winkClassifier.definePrepTasks( [ prepNLPTask ] );
     winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
     if (oldModel != '') {
       winkClassifier.importJSON(oldModel)
@@ -514,7 +515,7 @@ const App: Component = () => {
       }
       // const maxPosts = `${paramsObj.nostrAuthor}` == '' ? 10000 : 10000
       const winkClassifier = WinkClassifier()
-      winkClassifier.definePrepTasks( [ prepTask ] );
+      winkClassifier.definePrepTasks( [ prepNLPTask ] );
       winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
       const classifierModel: string = classifiers.find((classifierEntry: any) => classifierEntry?.id == 'nostr')?.model || ''
       if (classifierModel != '') {
