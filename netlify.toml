@@ -3,11 +3,6 @@
   functions = "netlify/functions"
   publish = "dist"
 
-[[redirects]]
-  from = "http://localhost/*"
-  status = 200
-  to = "https://localhost/index.html"
-
 [[headers]]
   for = "/"
   [headers.values]

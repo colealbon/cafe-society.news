@@ -85,6 +85,11 @@ export const NavBar: Component<NavBarProps> = (props) => {
       <NavLink testid='contact-link' href='/contact' onClick={() => handleClickNavLink()}>
         Contact
       </NavLink>
+      <div>
+      <NavLink testid='subscriptions-link' href='/subscriptions' onClick={() => handleClickNavLink()}>
+        Subscriptions
+      </NavLink>
+      </div>
       </div>
       <div>
       <NavLink testid='nostrrelays-link' href='/nostrrelays' onClick={() => handleClickNavLink()}>

@@ -5,7 +5,8 @@ import {
   createEffect,
   createSignal,
   createResource,
-  lazy
+  lazy,
+  onMount
 } from 'solid-js';
 import type {
   Component
@@ -29,6 +30,7 @@ import {
 } from "nostr-fetch";
 import axios from 'axios';
 
+import Payment from './Payment';
 import Contact from './Contact';
 import NostrRelays from './NostrRelays';
 import NostrKeys from './NostrKeys';
@@ -54,7 +56,9 @@ import {
   Classifier,
   ProcessedPost
 } from "./db-fixture";
+import * as Y from 'yjs'
 import { nHoursAgo } from './util';
+
 const fetcher = NostrFetcher.init();
 const db = new DbFixture();
 const nlp = winkNLP( model );
@@ -591,6 +595,19 @@ const App: Component = () => {
   const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts);
   const [rssPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
   const toggleNav = () => setNavIsOpen(!navIsOpen())
+
+  // onMount(async () => {
+  //   console.log("you are tiger")
+  //   const wsProvider = new WebsocketProvider('ws://localhost:1234', 'my-roomname', doc, { WebSocketPolyfill: require('ws') })
+  //   // const doc = new Y.Doc();
+  //   // const yarray = doc.getArray('my-array')
+  //   // yarray.observe(event => {
+  //   //   console.log('yarray was modified')
+  //   // })
+  //   // // every time a local or remote client modifies yarray, the observer is called
+  //   // yarray.insert(0, ['val']) // => "yarray was modified"
+  // })
+
   return (
     <div class='flex justify-start font-sans'>
       <div 
@@ -734,6 +751,10 @@ const App: Component = () => {
 
           <Route path='/contact' component={() => {
             return <Contact/>
+          }} />
+
+          <Route path='/subscriptions' component={() => {
+            return <Payment />
           }} />
 
           <Route path='/nostrrelays' component={() => {
