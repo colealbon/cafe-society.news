@@ -40,7 +40,7 @@ const NostrPosts = (props: {
   }
 
   const removeLinks = (text: string) => {
-    return text.replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g, '')
+    return text.replace(/((http|https|ftp|trojan):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g, '')
     .replace(/nostr:.*/g, '')
     .replace(/note1.*/g, '')
     .replace('undefined', '')

@@ -609,7 +609,7 @@ const App: Component = () => {
   // })
 
   return (
-    <div class='flex justify-start font-sans'>
+    <div class='flex justify-start font-sans mr-30px'>
       <div 
         class={` bg-black overflow-visible ease-in-out duration-300 transform-translate-x  ${navIsOpen() ? 'w-200px' : 'w-0 mr-30px'}`}
       >
@@ -628,7 +628,7 @@ const App: Component = () => {
             />
           </div>
       </div>
-      <div class='w-auto pl-3'>
+      <div class='w-auto pl-3 mr-2'>
         <Routes>
           <Route path='/cors' component={() => {
             const CorsProxies = lazy(() => import("./CorsProxies"))
