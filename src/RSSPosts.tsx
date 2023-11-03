@@ -9,6 +9,9 @@ import {
   Collapsible,
   Skeleton
 } from "@kobalte/core";
+import {
+  SkeletonPost
+} from './components/SkeletonPost'
 
 const removePunctuation = (text: string) => {
   return `${text}`
@@ -33,7 +36,7 @@ const Posts = (props: {
   return (
     <div>
       <PageHeader>{props.trainLabel || 'all rss posts'}</PageHeader>
-      <For each={props.rssPosts?.flat()} fallback={<Skeleton.Root class="skeleton pl-5" pr-2 height={50} radius={10} /> }>
+      <For each={props.rssPosts?.flat()} fallback={<div class="pl-6"><SkeletonPost /> <SkeletonPost /> </div>}>
         {(post) => {
           const shortGuid = (input: string) => {
             try {

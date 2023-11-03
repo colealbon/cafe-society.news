@@ -5,11 +5,11 @@ import {
 import {
   Link,
   Collapsible,
-  Skeleton,
   Separator
 } from "@kobalte/core";
 import { Button } from './components/Button'
 import { PageHeader } from './components/PageHeader'
+import { SkeletonPost } from './components/SkeletonPost'
 
 import PostTrain from './PostTrain'
 import { IoRemoveCircleOutline } from 'solid-icons/io'
@@ -50,7 +50,7 @@ const NostrPosts = (props: {
       <PageHeader>Nostr Global</PageHeader>
       <For
         each={props.nostrPosts()}
-        fallback={<Skeleton.Root class="skeleton w-full p-5"  height={50} radius={10} /> }
+        fallback={<div><SkeletonPost /><SkeletonPost /></div> }
       >
         {(post) => {
           return (

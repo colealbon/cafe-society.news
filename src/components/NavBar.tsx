@@ -15,7 +15,6 @@ export interface NavBarProps {
 }
 
 export const NavBar: Component<NavBarProps> = (props) => {
-
   const handleClickNavLink = () => {
     // props.toggleNav()
     props.setSelectedTrainLabel('')
@@ -23,7 +22,7 @@ export const NavBar: Component<NavBarProps> = (props) => {
 
   return (
     <div>
-    <div>
+      <div>
       <NavLink href='/rssposts'
         onClick={() => {
           props.mutateRssPosts()
@@ -32,7 +31,7 @@ export const NavBar: Component<NavBarProps> = (props) => {
       >
         RSS&nbsp;Posts
       </NavLink>
-    </div>
+      </div>
       <For each={props.checkedTrainLabels()}>
         {
           (trainLabel) => (
@@ -51,67 +50,67 @@ export const NavBar: Component<NavBarProps> = (props) => {
           )
         }
       </For>
-    <div>
-      <NavLink
-        testid='rssfeeds-link'
-        href='/rssfeeds'
-        onClick={() => handleClickNavLink()}
-      >
-        RSS&nbsp;Feeds
-      </NavLink>
+      <div>
+        <NavLink 
+          testid='nostrposts-link'
+          href='/nostrposts'
+          onClick={() => {
+            props.setSelectedTrainLabel('nostr')
+          }}
+        >
+          Nostr&nbsp;Global
+        </NavLink>
       </div>
       <div>
-      <NavLink 
-        testid='nostrposts-link'
-        href='/nostrposts'
-        onClick={() => {
-          props.setSelectedTrainLabel('nostr')
-        }}
-      >
-        Nostr&nbsp;Global
-      </NavLink>
+        <NavLink
+          testid='rssfeeds-link'
+          href='/rssfeeds'
+          onClick={() => handleClickNavLink()}
+        >
+          RSS&nbsp;Feeds
+        </NavLink>
       </div>
       <div>
-      <NavLink testid='alby-link' href='/alby' onClick={() => handleClickNavLink()}>
-        Profile
-      </NavLink>
+        <NavLink testid='alby-link' href='/alby' onClick={() => handleClickNavLink()}>
+          Profile
+        </NavLink>
       </div>
       <div>
-      <NavLink testid='cors-link' href='/cors'onClick={() => handleClickNavLink()}>
-        Cors&nbsp;Proxies
-      </NavLink>
+        <NavLink testid='cors-link' href='/cors'onClick={() => handleClickNavLink()}>
+          Cors&nbsp;Proxies
+        </NavLink>
       </div>
       <div>
-      <NavLink testid='contact-link' href='/contact' onClick={() => handleClickNavLink()}>
-        Contact
-      </NavLink>
-      <div>
-      <NavLink testid='subscriptions-link' href='/subscriptions' onClick={() => handleClickNavLink()}>
-        Subscriptions
-      </NavLink>
-      </div>
+        <NavLink testid='contact-link' href='/contact' onClick={() => handleClickNavLink()}>
+          Contact
+        </NavLink>
       </div>
       <div>
-      <NavLink testid='nostrrelays-link' href='/nostrrelays' onClick={() => handleClickNavLink()}>
-        Nostr&nbsp;Relays
-      </NavLink>
+        <NavLink testid='subscriptions-link' href='/subscriptions' onClick={() => handleClickNavLink()}>
+          Subscriptions
+        </NavLink>
       </div>
       <div>
-      <NavLink testid='nostrkeys-link' href='/nostrkeys' onClick={() => handleClickNavLink()}>
-        Nostr&nbsp;Keys
-      </NavLink>
+        <NavLink testid='nostrrelays-link' href='/nostrrelays' onClick={() => handleClickNavLink()}>
+          Nostr&nbsp;Relays
+        </NavLink>
       </div>
       <div>
-      <NavLink testid='classifiers-link' href='/classifiers' onClick={() => handleClickNavLink()}>
-        Classifiers
-      </NavLink>
+        <NavLink testid='nostrkeys-link' href='/nostrkeys' onClick={() => handleClickNavLink()}>
+          Nostr&nbsp;Keys
+        </NavLink>
       </div>
       <div>
-      <NavLink testid='trainlabels-link' href='/trainlabels' onClick={() => handleClickNavLink()}>
-        Train&nbsp;Labels
-      </NavLink>
+        <NavLink testid='classifiers-link' href='/classifiers' onClick={() => handleClickNavLink()}>
+          Classifiers
+        </NavLink>
       </div>
- </div>
-      )
-    }
+      <div>
+        <NavLink testid='trainlabels-link' href='/trainlabels' onClick={() => handleClickNavLink()}>
+          Train&nbsp;Labels
+        </NavLink>
+      </div>
+    </div>
+    )
+  }
 export default NavBar;
