@@ -14,7 +14,7 @@ const PostDisplay = (props: {
           props.postTitle
         }</a>
       </h2>
-      <div class='bg-white pr-2'>
+      <div class='bg-white pr-2 break-words'>
         {props.postSummary}
       </div>
   </div>

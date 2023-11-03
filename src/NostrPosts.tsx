@@ -88,7 +88,7 @@ const NostrPosts = (props: {
                         </span>
                       </div>
                       <Separator.Root />
-                      <div class='flex text-wrap fade-in pr-3'>
+                      <div class='flex text-wrap fade-in pr-3 break-words'>
                         {
                           removeLinks(post.content)
                         }
