@@ -179,25 +179,28 @@ const RSSFeeds = (props: {
       <For each={props.rssFeeds}>
           {(feed) => (
             <Show when={feed.id != ''}>
-              <div class='flex justify-start'>
+              <div class='flex justify-between'>
+                <div class='pt-2'>{feed.trainLabels.join(', ').slice(0, 100)}</div>
+                <div class="flex justify-start">
+                  <div class="flex justify-start">
+                    <Button
+                      class='text-base pt-0 mt-0'
+                      onClick={() => handleKeyClick(feed.id)}
+                      label={feed.id.replace('http[s?]://', '').slice(0, 25) || ''}
+                    />
+                  </div>
+                  <Button 
+                    title={`remove ${feed.id}`}
+                    onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}
+                    label='✕'
+                  />
                   <Switch 
                     label=''
                     class="flex display-inline pt-2"
                     checked={feed.checked}
                     onChange={() => handleToggleChecked(`${feed.id}`, !feed.checked)}
                   />
-                  <Button 
-                    title={`remove ${feed.id}`}
-                    onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}
-                    label='✕'
-                  />
-                  <Button
-                    class='text-base pt-0 mt-0'
-                    onClick={() => handleKeyClick(feed.id)}
-                    label={feed.id.replace('http[s?]://', '').slice(0, 25) || ''}
-                  />
-
-                <div class='pt-2'>{feed.trainLabels.join(', ').slice(0, 100)}</div>
+                </div>
               </div>
             </Show>
           )}

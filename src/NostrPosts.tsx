@@ -88,7 +88,6 @@ const NostrPosts = (props: {
                           <Link.Root target='_blank' href={`https://astral.ninja/${nip19.npubEncode(post.pubkey)}`}><div class='fade-in ml-4'>astral.ninja</div></Link.Root>
                         </span>
                       </div>
-                      <Separator.Root />
                       <div class='flex text-wrap fade-in pr-3 break-words'>
                         {
                           removeLinks(post.content)
