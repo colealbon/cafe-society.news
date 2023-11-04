@@ -91,7 +91,6 @@ function createStoredSignal<T>(
   }) as typeof setValue;
   return [value, setValueAndStore];
 }
-
 const prepNLPTask = function ( text: string ) {
   const tokens: string[] = [];
   nlp.readDoc(text)
@@ -468,7 +467,6 @@ const App: Component = () => {
     }
     putClassifier(newClassifierEntry)
   }
-
   const [nostrQuery, setNostrQuery] = createSignal('')
   const [fetchRssParams, setFetchRssParams] = createSignal('')
 
@@ -611,7 +609,7 @@ const App: Component = () => {
   return (
     <div class='flex justify-start font-sans mr-30px'>
       <div 
-        class={` bg-black overflow-visible ease-in-out duration-300 transform-translate-x  ${navIsOpen() ? 'w-200px' : 'w-0 mr-30px'}`}
+        class={` bg-black overflow-visible ease-in-out transform-translate-x  ${navIsOpen() ? 'w-200px' : 'w-0 mr-30px'}`}
       >
           <Button
               class={`sticky top-25px   ${navIsOpen() ? 'text-white' : ''}`}
