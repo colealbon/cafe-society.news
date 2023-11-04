@@ -43,6 +43,7 @@ const NostrPosts = (props: {
     return text.replace(/((http|https|ftp|trojan):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g, '')
     .replace(/nostr:.*/g, '')
     .replace(/note1.*/g, '')
+    .replace(/data:image.*/g, '')
     .replace('undefined', '')
   }
   return (
