@@ -1,5 +1,9 @@
 const defaultNostrRelays = [
   {
+  "id": "wss://140.f7z.io",
+    "checked": true
+  },
+  {
   "id": "wss://relay.nostr.bg",
     "checked": false
   },
@@ -13,7 +17,7 @@ const defaultNostrRelays = [
   },
   {
   "id": "wss://nos.lol",
-    "checked": true
+    "checked": false
   },
   {
   "id": "wss://nostr.mom",
