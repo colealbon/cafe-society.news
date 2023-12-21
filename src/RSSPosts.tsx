@@ -2,12 +2,17 @@ import {
   For,
   Show
 } from 'solid-js'
+import {
+  Title
+  ,Meta 
+} from "@solidjs/meta";
 import {PageHeader} from './components/PageHeader'
 import PostDisplay from './PostDisplay'
 import PostTrain from './PostTrain'
+import defaultMetadata from './defaultMetadata';
+
 import {
-  Collapsible,
-  Skeleton
+  Collapsible
 } from "@kobalte/core";
 import {
   SkeletonPost
@@ -29,12 +34,17 @@ export const shortUrl = (text: string) => {
 
 const Posts = (props: {
   trainLabel: string,
+  metadata: {description: string, title: string, keywords: string},
   train: any,
   rssPosts: any,
   markComplete: any
 }) => {
   return (
-    <div>
+    <>
+      <Title>{`cafe-society.news - ${props.trainLabel}`}</Title>
+      <Meta name="description" content={`${props.metadata?.description}`} />
+      <Meta name="title" content={props.metadata?.title} />
+      <Meta name="keywords" content={props.metadata?.keywords} />
       <PageHeader>{props.trainLabel || 'all rss posts'}</PageHeader>
       <For each={props.rssPosts?.flat()} fallback={<div class="pl-6"><SkeletonPost /> <SkeletonPost /> </div>}>
         {(post) => {
@@ -77,7 +87,7 @@ const Posts = (props: {
             </Collapsible.Root>        
           )}}
       </For>
-    </div>
+    </>
   )
 }
 export default Posts;

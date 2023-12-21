@@ -5,8 +5,7 @@ import {
   createEffect,
   createSignal,
   createResource,
-  lazy,
-  onMount
+  lazy
 } from 'solid-js';
 import type {
   Component
@@ -37,8 +36,9 @@ import NostrKeys from './NostrKeys';
 import Classifiers from './Classifiers';
 import TrainLabels from './TrainLabels';
 import NostrPosts from './NostrPosts';
-import {shortUrl} from './RSSPosts'
+import {shortUrl} from './RSSPosts';
 
+import defaultMetadata from './defaultMetadata';
 import defaultCorsProxies from './defaultCorsProxies';
 import defaultNostrRelays from './defaultNostrRelays';
 import defaultNostrKeys from './defaultNostrKeys';
@@ -56,7 +56,6 @@ import {
   Classifier,
   ProcessedPost
 } from "./db-fixture";
-import * as Y from 'yjs'
 import { nHoursAgo } from './util';
 
 const fetcher = NostrFetcher.init();
@@ -259,6 +258,7 @@ const App: Component = () => {
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
   const [albyTokenReadInvoice, setAlbyTokenReadInvoice] = createStoredSignal('albyTokenReadInvoice', '')
   const [selectedTrainLabel, setSelectedTrainLabel] = createStoredSignal('selectedTrainLabel', '')
+  const [selectedMetadata, setSelectedMetadata] = createStoredSignal('selectedMetadata', '')
   const [selectedNostrAuthor, setSelectedNostrAuthor] = createStoredSignal('selectedNostrAuthor', '')
   
   const corsProxies = createDexieArrayQuery(() => db.corsproxies.toArray());
@@ -324,6 +324,11 @@ const App: Component = () => {
       feedsForTrainLabel: feedsForTrainLabel,
       corsProxies: corsProxyList
     }))
+  })
+
+  createEffect(() => {
+    const newSelectedMetadata = defaultMetadata[`${selectedTrainLabel()}`] || {description: '', title:'cafe-society.news', keywords: ''}
+    setSelectedMetadata(newSelectedMetadata)
   })
 
   const putTrainLabel = async (newTrainLabel: TrainLabel) => {
@@ -405,6 +410,8 @@ const App: Component = () => {
             .replace(/&#8216;/g, "'")
             .replace(/&#8230;/g, "…")
             .replace(/&#038;/g, "&")
+            .replace(/&#8221;/g, "'")
+            .replace(/&#8220;/g, "'")
             .replace(/&#x2019;/g,"'")
             .replace(/&#x2018;/g,"'")
           }
@@ -439,7 +446,6 @@ const App: Component = () => {
   const handleFeedToggleChecked = (id: string) => {
     const valuesForSelectedFeed = rssFeeds
     .find(feed => feed['id'] === id)
-
     const newValueObj = {
         ...valuesForSelectedFeed
       , checked: !valuesForSelectedFeed?.checked
@@ -664,6 +670,7 @@ const App: Component = () => {
             const RSSPosts = lazy(() => import("./RSSPosts"))
             return <RSSPosts
               trainLabel={selectedTrainLabel() || ''}
+              metadata={selectedMetadata()}
               train={(params: {
                 mlText: string,
                 mlClass: string,
