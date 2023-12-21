@@ -37,6 +37,7 @@ import Classifiers from './Classifiers';
 import TrainLabels from './TrainLabels';
 import NostrPosts from './NostrPosts';
 import {shortUrl} from './RSSPosts';
+import Prompt from './Prompt';
 
 import defaultMetadata from './defaultMetadata';
 import defaultCorsProxies from './defaultCorsProxies';
@@ -712,7 +713,6 @@ const App: Component = () => {
           <Route path='/rssposts/:trainlabel' component={() => {
             const RSSPosts = lazy(() => import("./RSSPosts"))
             const {trainlabel} = useParams()
-            setSelectedTrainLabel(trainlabel)
             return <RSSPosts
               trainLabel={selectedTrainLabel() || ''}
               train={(params: {
@@ -731,6 +731,15 @@ const App: Component = () => {
               setSelectedTrainLabel={setSelectedTrainLabel}
             />
           }} />
+          <Route path='/prompt/:trainlabel' component={() => {
+            const RSSPosts = lazy(() => import("./Prompt"))
+            const {trainlabel} = useParams()
+            return <Prompt
+              rssPosts={rssPosts()}
+              setSelectedTrainLabel={setSelectedTrainLabel}
+            />
+          }} />
+
           <Route 
             path='/nostrposts'
             component={() => {
