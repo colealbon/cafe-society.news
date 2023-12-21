@@ -1,7 +1,11 @@
 import {
   For,
-  Show
+  Show,
+  createEffect
 } from 'solid-js'
+import {
+  useParams
+} from '@solidjs/router'
 import {
   Title
   ,Meta 
@@ -31,13 +35,28 @@ export const shortUrl = (text: string) => {
   return newPath;
 };
 
+
 const Posts = (props: {
   trainLabel: string,
   metadata: {description: string, title: string, keywords: string},
   train: any,
   rssPosts: any,
-  markComplete: any
+  markComplete: any,
+  setSelectedTrainLabel: any,
 }) => {
+  createEffect(() => {
+    try {
+      if (`${useParams().trainlabel}` === 'undefined') {
+        props.setSelectedTrainLabel('')
+        return
+      }
+      props.setSelectedTrainLabel(`${useParams().trainlabel}`)
+    } catch (error) {
+      console.log(error)
+      return
+    }
+  })
+
   return (
     <>
       <Title>{`cafe-society.news - ${props.trainLabel}`}</Title>

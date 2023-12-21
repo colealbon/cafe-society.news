@@ -2,14 +2,14 @@ import { convert } from 'html-to-text'
 import {Button} from './components/Button';
 import {NavBar} from './components/NavBar'
 import {
-  createEffect,
   createSignal,
   createResource,
-  lazy
+  lazy,
+  createEffect
 } from 'solid-js';
 import type {
-  Component
-  ,Signal
+  Component,
+  Signal,
 } from 'solid-js';
 
 import { XMLParser } from 'fast-xml-parser'
@@ -671,6 +671,7 @@ const App: Component = () => {
             return <RSSPosts
               trainLabel={selectedTrainLabel() || ''}
               metadata={selectedMetadata()}
+              setSelectedTrainLabel={setSelectedTrainLabel}
               train={(params: {
                 mlText: string,
                 mlClass: string,
@@ -690,6 +691,8 @@ const App: Component = () => {
             const RSSPosts = lazy(() => import("./RSSPosts"))
             return <RSSPosts
               trainLabel=''
+              metadata={selectedMetadata()}
+              setSelectedTrainLabel={() => setSelectedTrainLabel('')}
               train={(params: {
                 mlText: string,
                 mlClass: string,
@@ -709,6 +712,7 @@ const App: Component = () => {
           <Route path='/rssposts/:trainlabel' component={() => {
             const RSSPosts = lazy(() => import("./RSSPosts"))
             const {trainlabel} = useParams()
+            setSelectedTrainLabel(trainlabel)
             return <RSSPosts
               trainLabel={selectedTrainLabel() || ''}
               train={(params: {
@@ -724,6 +728,7 @@ const App: Component = () => {
               }}
               markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
               rssPosts={rssPosts()}
+              setSelectedTrainLabel={setSelectedTrainLabel}
             />
           }} />
           <Route 
