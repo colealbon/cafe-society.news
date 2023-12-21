@@ -1,6 +1,21 @@
 const defaultRSSFeeds =
 [
   {
+    "id": "https://lmsys.org/rss.xml",
+      "checked": true,
+      "trainLabels": ["AI"]
+  },
+  {
+    "id": "https://news.mit.edu/rss/topic/artificial-intelligence2",
+      "checked": true,
+      "trainLabels": ["AI"]
+  },
+  {
+    "id": "https://bair.berkeley.edu/blog/feed.xml",
+      "checked": false,
+      "trainLabels": ["medicine"]
+    },
+  {
   "id": "https://www.thelancet.com/rssfeed/lancet_current.xml",
     "checked": false,
     "trainLabels": ["medicine"]
@@ -77,7 +92,7 @@ const defaultRSSFeeds =
   },
   {
     "id": "https://cointelegraph.com/rss",
-    "checked": true,
+    "checked": false,
     "trainLabels": ["bitcoin"]
   },
   {
@@ -107,7 +122,7 @@ const defaultRSSFeeds =
   },
   {
     "id": "https://www.scmp.com/rss/5/feed",
-    "checked": false,
+    "checked": true,
     "trainLabels": ["world"]
   },
   {
@@ -117,12 +132,12 @@ const defaultRSSFeeds =
   },
   {
     "id": "https://asiatimes.com/feed/",
-    "checked": false,
+    "checked": true,
     "trainLabels": ["world"]
   },
   {
     "id": "https://www.france24.com/en/rss",
-    "checked": false,
+    "checked": true,
     "trainLabels": ["world"]
   },
   {
