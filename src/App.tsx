@@ -206,26 +206,34 @@ const parseRSS = (content:any) => {
   )
 }
 const parseAtom = (content: any) => {
-  const feedTitle = content.feed?.feedTitle
-  const feedLink = content.feed?.id
+  console.log(content)
+  console.log(content.feed.author)
+  const feedTitle = content.feed.author.name || content.feed?.feedTitle || content.feed.title
+  const feedLink = content.feed.generator === 'https://njump.me' ? `https://njump.me${content.feed?.id}`: content.feed?.id; 
   const feedDescription = content.feed?.subtitle
   const feedPosts = content.feed?.entry
-  return feedPosts?.map((itemEntry: any) => ({
+  return feedPosts?.map((itemEntry: any) => {
+    console.log(itemEntry)
+    const fixItemEntry = itemEntry.content ? itemEntry : itemEntry[0]
+    return {
       feedTitle: feedTitle,
       feedLink: feedLink,
       feedDescription: feedDescription,
-      ...itemEntry[0]
-    }))
-    .map((itemEntry: any) => ({
+      ...fixItemEntry
+    }})
+    .map((itemEntry: any) => {
+      console.log(itemEntry)
+      return {
       postSummary: convert(itemEntry.content, { ignoreLinks: true, ignoreHref: true, ignoreImage: true, linkBrackets: false  })
       .replace(/\[.*?\]/g, '')
       .replace(/\n/g,' ')?.toString()
       .trim(),
       ...itemEntry
-    }))
+      }}
+    )
     .map((itemEntry: any) => ({
       ...itemEntry,
-      postId: itemEntry?.id,
+      postId: content.feed.generator === 'https://njump.me' ? `https://njump.me/${itemEntry?.id}` : itemEntry.id,
       postTitle: `${itemEntry.title}`,
       mlText: prepNLPTask(convert(`${itemEntry.title} ${itemEntry.postSummary}`))
         .filter((word) => word.length < 30)
@@ -415,10 +423,12 @@ const App: Component = () => {
             .replace(/&#8220;/g, "'")
             .replace(/&#x2019;/g,"'")
             .replace(/&#x2018;/g,"'")
+            .replace(/&#39;/g,"'")
           }
         })
         .filter(post => post?.feedLink || post?.guid != null)
         .filter((postItem: any) => {
+          // console.log(postItem)
           const processedPostsID = postItem.feedLink === "" ? postItem.guid : shortUrl(postItem.feedLink)
           const processedPostsForFeedLink = processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == processedPostsID)?.processedPosts
           if (processedPostsForFeedLink == undefined) {
