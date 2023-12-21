@@ -9,7 +9,6 @@ import {
 import {PageHeader} from './components/PageHeader'
 import PostDisplay from './PostDisplay'
 import PostTrain from './PostTrain'
-import defaultMetadata from './defaultMetadata';
 
 import {
   Collapsible
