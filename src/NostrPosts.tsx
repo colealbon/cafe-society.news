@@ -87,6 +87,9 @@ const NostrPosts = (props: {
                         <span>
                           <Link.Root target='_blank' href={`https://astral.ninja/${nip19.npubEncode(post.pubkey)}`}><div class='fade-in ml-4'>astral.ninja</div></Link.Root>
                         </span>
+                        <span>
+                          <Link.Root target='_blank' href={`https://njump.me/${nip19.npubEncode(post.pubkey)}`}><div class='fade-in ml-4'>njump.me</div></Link.Root>
+                        </span>
                       </div>
                       <div class='flex text-wrap fade-in pr-3 break-words'>
                         {

@@ -206,14 +206,11 @@ const parseRSS = (content:any) => {
   )
 }
 const parseAtom = (content: any) => {
-  console.log(content)
-  console.log(content.feed.author)
-  const feedTitle = content.feed.author.name || content.feed?.feedTitle || content.feed.title
-  const feedLink = content.feed.generator === 'https://njump.me' ? `https://njump.me${content.feed?.id}`: content.feed?.id; 
+  const feedTitle = content.feed?.author.name || content.feed?.feedTitle || content.feed?.title
+  const feedLink = `${content.feed?.generator}${content.feed?.id}`
   const feedDescription = content.feed?.subtitle
   const feedPosts = content.feed?.entry
   return feedPosts?.map((itemEntry: any) => {
-    console.log(itemEntry)
     const fixItemEntry = itemEntry.content ? itemEntry : itemEntry[0]
     return {
       feedTitle: feedTitle,
@@ -222,7 +219,6 @@ const parseAtom = (content: any) => {
       ...fixItemEntry
     }})
     .map((itemEntry: any) => {
-      console.log(itemEntry)
       return {
       postSummary: convert(itemEntry.content, { ignoreLinks: true, ignoreHref: true, ignoreImage: true, linkBrackets: false  })
       .replace(/\[.*?\]/g, '')
