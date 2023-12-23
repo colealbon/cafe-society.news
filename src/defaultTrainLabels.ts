@@ -11,6 +11,7 @@ const defaultTrainLabels= [
   { "id": "politics", "checked": true },
   { "id": "technology", "checked": false },
   { "id": "variety", "checked": false },
-  { "id": "medicine", "checked": false }
+  { "id": "medicine", "checked": false },
+  { "id": "shadowysupercoders", "checked": true }
 ]
 export default defaultTrainLabels

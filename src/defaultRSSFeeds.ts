@@ -149,6 +149,26 @@ const defaultRSSFeeds =
     "id": "https://www.reutersagency.com/feed/",
     "checked": false,
     "trainLabels": ["variety"]
+  },
+  {
+    "id": "https://njump.me/npub1q6mcr8tlr3l4gus3sfnw6772s7zae6hqncmw5wj27ejud5wcxf7q0nx7d5.rss",
+    "checked": true,
+    "trainLabels": ["shadowysupercoders"]
+  },
+  {
+    "id": "https://njump.me/npub1l2vyh47mk2p0qlsku7hg0vn29faehy9hy34ygaclpn66ukqp3afqutajft.rss",
+    "checked": true,
+    "trainLabels": ["shadowysupercoders"]
+  },
+  {
+    "id": "https://njump.me/npub1gcxzte5zlkncx26j68ez60fzkvtkm9e0vrwdcvsjakxf9mu9qewqlfnj5z.rss",
+    "checked": true,
+    "trainLabels": ["shadowysupercoders"]
+  },
+  {
+    "id": "https://njump.me/npub1c0le4pgu49j76fnt54xfyclkszlfrcjx2c5vvjatdfvey5sat3ws76lcvg.rss",
+    "checked": true,
+    "trainLabels": ["shadowysupercoders"],
   }
 ]
 export default defaultRSSFeeds

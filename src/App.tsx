@@ -420,6 +420,10 @@ const App: Component = () => {
             .replace(/&#x2019;/g,"'")
             .replace(/&#x2018;/g,"'")
             .replace(/&#39;/g,"'")
+            .replace(/&#34;/g,"'")
+            .replace(/&gt;/g,">")
+            .replace(/&lt;/g,"<")
+            .replace(/&#43;/g,"+")
           }
         })
         .filter(post => post?.feedLink || post?.guid != null)
