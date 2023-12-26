@@ -1,4 +1,4 @@
-import { convert } from 'html-to-text'
+import {convert} from 'html-to-text'
 import {Button} from './components/Button';
 import {NavBar} from './components/NavBar'
 import {
@@ -8,8 +8,7 @@ import {
   createEffect
 } from 'solid-js';
 import type {
-  Component,
-  Signal,
+  Component
 } from 'solid-js';
 
 import { XMLParser } from 'fast-xml-parser'
@@ -21,8 +20,6 @@ import {
   Route,
   useParams
 } from "@solidjs/router";
-import winkNLP from 'wink-nlp';
-import model from 'wink-eng-lite-web-model';
 import {
   NostrFetcher
   , eventKind
@@ -57,12 +54,15 @@ import {
   Classifier,
   ProcessedPost
 } from "./db-fixture";
-import { nHoursAgo } from './util';
+import {
+  nHoursAgo,
+  prepNostrPost,
+  prepNLPTask,
+  createStoredSignal
+} from './util';
 
 const fetcher = NostrFetcher.init();
 const db = new DbFixture();
-const nlp = winkNLP( model );
-const its = nlp.its;
 const parser = new XMLParser();
 
 db.on("populate", () => {
@@ -74,69 +74,6 @@ db.on("populate", () => {
   db.classifiers.bulkAdd(defaultClassifiers as Classifier[]);
   db.processedposts.bulkAdd(defaultProcessed as ProcessedPost[]);
 });
-
-function createStoredSignal<T>(
-  key: string,
-  defaultValue: T,
-  storage = localStorage
-): Signal<T> {
-  const initialValue = storage.getItem(key) != undefined && storage.getItem(key) !== 'undefined'
-    ? JSON.parse(`${storage.getItem(key)}`) as T
-    : defaultValue;
-  const [value, setValue] = createSignal<T>(initialValue);
-  const setValueAndStore = ((arg: any) => {
-    const v = setValue(arg);
-    storage.setItem(key, JSON.stringify(v));
-    return v;
-  }) as typeof setValue;
-  return [value, setValueAndStore];
-}
-
-const prepNLPTask = function ( text: string ) {
-  const tokens: string[] = [];
-  nlp.readDoc(text)
-      .tokens()
-      // Use only words ignoring punctuations etc and from them remove stop words
-      .filter( (t: any) => ( t.out(its.type) === 'word' && !t.out(its.stopWordFlag) ) )
-      // Handle negation and extract stem of the word
-      .each( (t: any) => tokens.push( (t.out(its.negationFlag)) ? '!' + t.out(its.stem) : t.out(its.stem) ) );
-  return tokens;
-};
-
-const prepNostrPost = (post: any) => {
-  return {
-    mlText: prepNLPTask(convert(
-      `${post.content}`
-      .replace(/\d+/g, '')
-      .replace(/#/g, ''),
-      {
-        ignoreLinks: true,
-        ignoreHref: true,
-        ignoreImage: true,
-        linkBrackets: false,
-        wordwrap: false
-      }
-    )
-    )
-    .filter((word: string) => word.length < 30)
-    .filter((word: string) => word!='nostr')
-    .filter((word: string) => word!='vmess')
-    .join(' ')
-    .toLowerCase() || '',
-
-    links: convert(
-      `${post.content}`,
-      {
-        ignoreLinks: true,
-        ignoreHref: true,
-        ignoreImage: true,
-        linkBrackets: false,
-        wordwrap: false
-      }
-      ).toLowerCase().match(/((file|http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g),
-    ...post
-  }
-}
 
 const applyPrediction = (params: {
   post: any,
@@ -454,6 +391,7 @@ const App: Component = () => {
       })
     })
   }
+
   const handleFeedToggleChecked = (id: string) => {
     const valuesForSelectedFeed = rssFeeds
     .find(feed => feed['id'] === id)
