@@ -45,11 +45,11 @@ export const shortUrl = (text: string) => {
 const Posts = (props: {
   trainLabel: string,
   metadata: {description: string, title: string, keywords: string},
-  train: any,
+  train?: any,
   rssPosts: any,
   markComplete: any,
   setSelectedTrainLabel: any,
-  suppressOdds?:string
+  suppressOdds:number
 }) => {
   createEffect(() => {
     try {
@@ -63,7 +63,7 @@ const Posts = (props: {
       return
     }
   })
-
+  console.log(props.suppressOdds)
   return (
     <>
       <Title>{`cafe-society.news - ${props.trainLabel}`}</Title>
@@ -83,7 +83,6 @@ const Posts = (props: {
           }
           const processedPostsID = `${post.feedLink}` === "" ? shortGuid(post.guid) : shortUrl(`${post.feedLink}`)
           return (
-            <Show when={post.prediction?.suppress || 0 <= (parseFloat(props.suppressOdds || '0.0')) }>
               <Collapsible.Root defaultOpen={true}>
                 <Collapsible.Content class="collapsible__content pr-2 fade-in">
                   <PostDisplay {...post}/>
@@ -107,8 +106,7 @@ const Posts = (props: {
                     </Show>
                   </Collapsible.Trigger>
                 </Collapsible.Content>
-              </Collapsible.Root>     
-            </Show>   
+              </Collapsible.Root>      
           )}}       
       </For>
     </>

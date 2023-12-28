@@ -280,6 +280,7 @@ const App: Component = () => {
     if (dedupedRSSPosts() == '') {
       return
     }
+    const suppressOdds = classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds
     const winkClassifier = WinkClassifier()
     winkClassifier.definePrepTasks( [ prepNLPTask ] );
     winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
@@ -293,7 +294,11 @@ const App: Component = () => {
         classifier: winkClassifier
       }))
       .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
+      .filter(post => {
+        return suppressOdds === undefined || (post.prediction.suppress * -1) >= suppressOdds as unknown as number + 0
+      })
     setScoredRSSPosts(newScoredRSSPosts)
+    
   })
 
   createEffect(() => {
@@ -605,7 +610,8 @@ createEffect(() => {
   //   // // every time a local or remote client modifies yarray, the observer is called
   //   // yarray.insert(0, ['val']) // => "yarray was modified"
   // })
-  const suppressOdds = classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds
+
+  // const suppressOdds = classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds
 
   return (
     <div class='flex justify-start font-sans mr-30px'>
@@ -721,7 +727,6 @@ createEffect(() => {
               markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
               rssPosts={scoredRSSPosts()}
               setSelectedTrainLabel={setSelectedTrainLabel}
-              suppressOdds={classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds}
             />
           }} />
           <Route path='/prompt/:trainlabel' component={() => {
