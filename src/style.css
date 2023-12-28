@@ -192,6 +192,7 @@ a {
     font-size: 16px;
     line-height: 0;
     transition: 250ms background-color;
+    transition-delay: 4s;
   }
   .tooltip__trigger:hover {
     background-color: hsl(201 96% 32%);

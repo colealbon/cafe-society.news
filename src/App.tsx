@@ -5,7 +5,9 @@ import {
   createSignal,
   createResource,
   lazy,
-  createEffect
+  createEffect,
+  onMount,
+  mapArray
 } from 'solid-js';
 import type {
   Component
@@ -202,7 +204,13 @@ const App: Component = () => {
   const [selectedTrainLabel, setSelectedTrainLabel] = createStoredSignal('selectedTrainLabel', '')
   const [selectedMetadata, setSelectedMetadata] = createStoredSignal('selectedMetadata', '')
   const [selectedNostrAuthor, setSelectedNostrAuthor] = createStoredSignal('selectedNostrAuthor', '')
-  
+
+  const [fetchedRSSPosts, setFetchedRSSPosts] = createSignal('')
+  const [parsedRSSPosts, setParsedRSSPosts] = createSignal('')
+  const [preppedRSSPosts, setPreppedRSSPosts] = createSignal('')
+  const [dedupedRSSPosts, setDedupedRSSPosts] = createSignal('')
+  const [scoredRSSPosts, setScoredRSSPosts] = createSignal('')
+
   const corsProxies = createDexieArrayQuery(() => db.corsproxies.toArray());
   const putCorsProxy = async (newCorsProxy: CorsProxy) => {
     await db.corsproxies.put(newCorsProxy)
@@ -269,6 +277,98 @@ const App: Component = () => {
   })
 
   createEffect(() => {
+    if (dedupedRSSPosts() == '') {
+      return
+    }
+    const winkClassifier = WinkClassifier()
+    winkClassifier.definePrepTasks( [ prepNLPTask ] );
+    winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
+    const classifierModel: string = classifiers.find((classifierEntry: any) => classifierEntry?.id == selectedTrainLabel())?.model || ''
+    if (classifierModel != '') {
+      winkClassifier.importJSON(classifierModel)
+    }
+    const newScoredRSSPosts = JSON.parse(dedupedRSSPosts())
+      .map((post: any) => applyPrediction({
+        post: post,
+        classifier: winkClassifier
+      }))
+      .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
+    setScoredRSSPosts(newScoredRSSPosts)
+  })
+
+  createEffect(() => {
+    if (preppedRSSPosts() == '') {
+      return
+    }
+    const newDedupedRSSPosts = JSON.parse(preppedRSSPosts())
+      .filter((postItem: any) => {
+        const processedPostsID = postItem.feedLink === "" ? postItem.guid : shortUrl(postItem.feedLink)
+        const processedPostsForFeedLink = processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == processedPostsID)?.processedPosts
+        if (processedPostsForFeedLink == undefined) {
+          return true
+        }
+        return !processedPostsForFeedLink.find((processedPost) => {
+          const similarity = stringSimilarity.compareTwoStrings(
+            `${processedPost}`,
+            `${postItem.mlText}`
+          );
+          return similarity > 0.8;
+        });
+      })
+    setDedupedRSSPosts(JSON.stringify(newDedupedRSSPosts))
+  })
+
+  createEffect(() => {
+  if (`${parsedRSSPosts()}` === '') {
+    return
+  }
+  const newPreppedRSSPosts = JSON.parse(parsedRSSPosts())[0]
+    .filter(post => `${post.mlText}`.trim() != '')
+    .filter(post => {
+      return post.postTitle != null
+    })
+    .map(post => {
+      return {
+        ...post,
+        postTitle: post?.postTitle
+        .replace(/&#039;/g, "'")
+        .replace(/&#8217;/g, "'")
+        .replace(/&#8211;/g, "-")
+        .replace(/&#8216;/g, "'")
+        .replace(/&#8230;/g, "…")
+        .replace(/&#038;/g, "&")
+        .replace(/&#8221;/g, "'")
+        .replace(/&#8220;/g, "'")
+        .replace(/&#x2019;/g,"'")
+        .replace(/&#x2018;/g,"'")
+        .replace(/&#39;/g,"'")
+        .replace(/&#34;/g,"'")
+        .replace(/&gt;/g,">")
+        .replace(/&lt;/g,"<")
+        .replace(/&#43;/g,"+")
+      }
+    })
+    .filter(post => post?.feedLink || post?.guid != null)
+  setPreppedRSSPosts(JSON.stringify(newPreppedRSSPosts))
+})
+
+createEffect(() => {
+    const fetchedRSSPostsStr = fetchedRSSPosts()
+    if (fetchedRSSPostsStr === '') {
+      return
+    }
+    const fetchedPostsArr = JSON.parse(fetchedRSSPostsStr)
+    parsePosts(fetchedPostsArr)
+    .then((newParsedPosts) => {
+        if ([newParsedPosts?.flat()].length === 0) {
+          return
+        }
+      const newParsedPostsStr: string = JSON.stringify(newParsedPosts)
+      setParsedRSSPosts(newParsedPostsStr)
+    })
+})
+
+  createEffect(() => {
     const newSelectedMetadata = defaultMetadata[`${selectedTrainLabel()}`] || {description: '', title:'cafe-society.news', keywords: ''}
     setSelectedMetadata(newSelectedMetadata)
   })
@@ -296,6 +396,7 @@ const App: Component = () => {
   const checkedCorsProxies = createDexieArrayQuery(() => db.corsproxies
     .filter(corsProxy => corsProxy.checked === true)
     .toArray());
+    
   function fetchRssPosts(params: string) {
     if (params == '') {
       return
@@ -325,69 +426,10 @@ const App: Component = () => {
           }
         }))
       })
-      const winkClassifier = WinkClassifier()
-      winkClassifier.definePrepTasks( [ prepNLPTask ] );
-      winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
-      const classifierModel: string = classifiers.find((classifierEntry: any) => classifierEntry?.id == selectedTrainLabel())?.model || ''
-      if (classifierModel != '') {
-        winkClassifier.importJSON(classifierModel)
-      }
       Promise.all(fetchQueue)
-      .then(fetchedPosts => parsePosts(fetchedPosts))
-      .then((parsed: any[]) => {
-        if ([parsed?.flat()].length === 0) {
-          resolve([])
-        }
-        const suppressOdds = classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds
-        resolve(parsed?.flat()
-        .filter(post => `${post?.mlText}`.trim() != '')
-        .filter(post => post?.postTitle != null)
-        .map(post => {
-          return {
-            ...post,
-            postTitle: post?.postTitle
-            .replace(/&#039;/g, "'")
-            .replace(/&#8217;/g, "'")
-            .replace(/&#8211;/g, "-")
-            .replace(/&#8216;/g, "'")
-            .replace(/&#8230;/g, "…")
-            .replace(/&#038;/g, "&")
-            .replace(/&#8221;/g, "'")
-            .replace(/&#8220;/g, "'")
-            .replace(/&#x2019;/g,"'")
-            .replace(/&#x2018;/g,"'")
-            .replace(/&#39;/g,"'")
-            .replace(/&#34;/g,"'")
-            .replace(/&gt;/g,">")
-            .replace(/&lt;/g,"<")
-            .replace(/&#43;/g,"+")
-          }
-        })
-        .filter(post => post?.feedLink || post?.guid != null)
-        .filter((postItem: any) => {
-          // console.log(postItem)
-          const processedPostsID = postItem.feedLink === "" ? postItem.guid : shortUrl(postItem.feedLink)
-          const processedPostsForFeedLink = processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == processedPostsID)?.processedPosts
-          if (processedPostsForFeedLink == undefined) {
-            return true
-          }
-          return !processedPostsForFeedLink.find((processedPost) => {
-            const similarity = stringSimilarity.compareTwoStrings(
-              `${processedPost}`,
-              `${postItem.mlText}`
-            );
-            return similarity > 0.8;
-          });
-        })
-        .map((post: any) => applyPrediction({
-          post: post,
-          classifier: winkClassifier
-        }))
-        .filter((post: any) => {
-          return (post.prediction?.suppress || 0) <= (suppressOdds || 0)
-        })
-        .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
-        )
+      .then(fetchedPosts => {
+        const fetchedPostsStr = JSON.stringify(fetchedPosts)
+        setFetchedRSSPosts(fetchedPostsStr)
       })
     })
   }
@@ -542,6 +584,7 @@ const App: Component = () => {
           .filter((post: any) => {
             return ( 0.0 + post.prediction?.suppress || 0.0) != 0.0
           })
+          .filter(post => post.prediction?.suppress || 0 <= (suppressOdds || 0))
           .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
         resolve(filteredPosts)
       })
@@ -553,7 +596,7 @@ const App: Component = () => {
 
   // onMount(async () => {
   //   console.log("you are tiger")
-  //   const wsProvider = new WebsocketProvider('ws://localhost:1234', 'my-roomname', doc, { WebSocketPolyfill: require('ws') })
+  //   // const wsProvider = new WebsocketProvider('ws://localhost:1234', 'my-roomname', doc, { WebSocketPolyfill: require('ws') })
   //   // const doc = new Y.Doc();
   //   // const yarray = doc.getArray('my-array')
   //   // yarray.observe(event => {
@@ -562,6 +605,7 @@ const App: Component = () => {
   //   // // every time a local or remote client modifies yarray, the observer is called
   //   // yarray.insert(0, ['val']) // => "yarray was modified"
   // })
+  const suppressOdds = classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds
 
   return (
     <div class='flex justify-start font-sans mr-30px'>
@@ -654,7 +698,7 @@ const App: Component = () => {
                 })
               }}
               markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
-              rssPosts={rssPosts()}
+              rssPosts={scoredRSSPosts()}
             />
           }} />
 
@@ -675,15 +719,16 @@ const App: Component = () => {
                 })
               }}
               markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
-              rssPosts={rssPosts()}
+              rssPosts={scoredRSSPosts()}
               setSelectedTrainLabel={setSelectedTrainLabel}
+              suppressOdds={classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds}
             />
           }} />
           <Route path='/prompt/:trainlabel' component={() => {
             const RSSPosts = lazy(() => import("./Prompt"))
             const {trainlabel} = useParams()
             return <Prompt
-              rssPosts={rssPosts()}
+              rssPosts={scoredRSSPosts()}
               setSelectedTrainLabel={setSelectedTrainLabel}
             />
           }} />

@@ -2,8 +2,7 @@ import {
   Show
 } from 'solid-js'
 import {
-  Tooltip,
-  Separator
+  Tooltip
 } from "@kobalte/core";
 import {Button} from './components/Button';
 
@@ -21,7 +20,7 @@ const PostTrain = (props: {
     props.train(mlClass)
   }
   const handleComplete = () => {
-    props.markComplete()
+      props.markComplete()    
   }
 
   return(
@@ -29,12 +28,14 @@ const PostTrain = (props: {
       <Button 
         label='↓'
         onClick={() => {
-          handleComplete()
-          handleTrain('suppress')
+          // setTimeout(() => {
+            handleComplete()
+            handleTrain('suppress')
+          // }, 300)
         }}
       />
       <Tooltip.Root>
-        <Tooltip.Trigger class='border-none p-o bg-transparent'>
+        <Tooltip.Trigger class='tooltip__trogger border-none p-o bg-transparent'>
           <Button label={`${(0.0 + props.prediction['promote'] || 0.0).toFixed(2).replace('NaN', '-')}`} onClick={() => handleComplete()} />
         </Tooltip.Trigger>
         <Tooltip.Portal>
@@ -55,8 +56,10 @@ const PostTrain = (props: {
       <Button
         label='↑'
         onClick={() => {
-          handleComplete()
-          handleTrain('promote')
+          // setTimeout(() => {
+            handleComplete()
+            handleTrain('promote')
+          // }, 300)
         }} />
     </div>
   )

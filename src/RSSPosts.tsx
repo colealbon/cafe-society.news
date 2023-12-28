@@ -28,6 +28,12 @@ const removePunctuation = (text: string) => {
 };
 
 export const shortUrl = (text: string) => {
+  if (text === 'undefined') {
+    return
+  }
+  if (text === '') {
+    return
+  }
   const theUrl = new URL(text);
   const newPath = removePunctuation(`${theUrl.hostname}${theUrl.pathname}`)
     .replace(/-/g, '')
@@ -43,6 +49,7 @@ const Posts = (props: {
   rssPosts: any,
   markComplete: any,
   setSelectedTrainLabel: any,
+  suppressOdds?:string
 }) => {
   createEffect(() => {
     try {
@@ -64,7 +71,7 @@ const Posts = (props: {
       <Meta name="title" content={props.metadata?.title} />
       <Meta name="keywords" content={props.metadata?.keywords} />
       <PageHeader>{props.trainLabel || 'all rss posts'}</PageHeader>
-      <For each={props.rssPosts?.flat()} fallback={<div class="pl-6"><SkeletonPost /> <SkeletonPost /> </div>}>
+      <For each={props.rssPosts} fallback={<div class="pl-6"><SkeletonPost /> <SkeletonPost /> </div>}>
         {(post) => {
           const shortGuid = (input: string) => {
             try {
@@ -74,36 +81,35 @@ const Posts = (props: {
               return post.guid.replace(/\?.*$/,'')
             }
           }
-          const processedPostsID = post.feedLink === "" ? shortGuid(post.guid) : shortUrl(post.feedLink)
+          const processedPostsID = `${post.feedLink}` === "" ? shortGuid(post.guid) : shortUrl(`${post.feedLink}`)
           return (
-            <Collapsible.Root defaultOpen={true}>
-              <Collapsible.Content class="collapsible__content pr-2">
-                <PostDisplay {...post}/>
-                <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
-                  <Show when={props.trainLabel != ''}>
-                    <div class='justify-center'>
-                      <PostTrain
-                        trainLabel={props.trainLabel}
-                        train={(mlClass: string) => {
-                          setTimeout(() => {
-                            props.train({
-                              mlClass: mlClass,
-                              mlText: post.mlText
-                            })
-                          }, 300)
-  
-                        }}
-                        mlText={post.mlText}
-                        prediction={post.prediction}
-                        docCount={post.docCount}
-                        markComplete={() => props.markComplete(post.mlText, processedPostsID)}
-                      />
-                    </div>
-                  </Show>
-                </Collapsible.Trigger>
-              </Collapsible.Content>
-            </Collapsible.Root>        
-          )}}
+            <Show when={post.prediction?.suppress || 0 <= (parseFloat(props.suppressOdds || '0.0')) }>
+              <Collapsible.Root defaultOpen={true}>
+                <Collapsible.Content class="collapsible__content pr-2 fade-in">
+                  <PostDisplay {...post}/>
+                  <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
+                    <Show when={props.trainLabel != ''}>
+                      <div class='justify-center'>
+                        <PostTrain
+                          trainLabel={props.trainLabel}
+                          train={(mlClass: string) => {
+                              props.train({
+                                mlClass: mlClass,
+                                mlText: post.mlText
+                              })
+                          }}
+                          mlText={post.mlText}
+                          prediction={post.prediction}
+                          docCount={post.docCount}
+                          markComplete={() => props.markComplete(post.mlText, processedPostsID)}
+                        />
+                      </div>
+                    </Show>
+                  </Collapsible.Trigger>
+                </Collapsible.Content>
+              </Collapsible.Root>     
+            </Show>   
+          )}}       
       </For>
     </>
   )
