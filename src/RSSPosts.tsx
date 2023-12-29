@@ -49,7 +49,6 @@ const Posts = (props: {
   rssPosts: any,
   markComplete: any,
   setSelectedTrainLabel: any,
-  suppressOdds:number
 }) => {
   createEffect(() => {
     try {
@@ -63,7 +62,6 @@ const Posts = (props: {
       return
     }
   })
-  console.log(props.suppressOdds)
   return (
     <>
       <Title>{`cafe-society.news - ${props.trainLabel}`}</Title>

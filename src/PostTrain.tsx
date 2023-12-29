@@ -36,7 +36,7 @@ const PostTrain = (props: {
       />
       <Tooltip.Root>
         <Tooltip.Trigger class='tooltip__trogger border-none p-o bg-transparent'>
-          <Button label={`${(0.0 + props.prediction['promote'] || 0.0).toFixed(2).replace('NaN', '-')}`} onClick={() => handleComplete()} />
+          <Button label={`${(0.0 + (props.prediction && props.prediction['promote']) || 0.0).toFixed(2).replace('NaN', '-')}`} onClick={() => handleComplete()} />
         </Tooltip.Trigger>
         <Tooltip.Portal>
           <Tooltip.Content class="tooltip__content p-0">

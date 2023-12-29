@@ -5,9 +5,7 @@ import {
   createSignal,
   createResource,
   lazy,
-  createEffect,
-  onMount,
-  mapArray
+  createEffect
 } from 'solid-js';
 import type {
   Component
@@ -205,7 +203,7 @@ const App: Component = () => {
   const [selectedMetadata, setSelectedMetadata] = createStoredSignal('selectedMetadata', '')
   const [selectedNostrAuthor, setSelectedNostrAuthor] = createStoredSignal('selectedNostrAuthor', '')
 
-  const [fetchedRSSPosts, setFetchedRSSPosts] = createSignal('')
+  // const [fetchedRSSPosts, setFetchedRSSPosts] = createSignal('')
   const [parsedRSSPosts, setParsedRSSPosts] = createSignal('')
   const [preppedRSSPosts, setPreppedRSSPosts] = createSignal('')
   const [dedupedRSSPosts, setDedupedRSSPosts] = createSignal('')
@@ -288,38 +286,48 @@ const App: Component = () => {
     if (classifierModel != '') {
       winkClassifier.importJSON(classifierModel)
     }
-    const newScoredRSSPosts = JSON.parse(dedupedRSSPosts())
+    const newScoredRSSPosts = JSON.parse(dedupedRSSPosts()) && JSON.parse(dedupedRSSPosts())
       .map((post: any) => applyPrediction({
         post: post,
         classifier: winkClassifier
       }))
       .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
       .filter(post => {
-        return suppressOdds === undefined || (post.prediction.suppress * -1) >= suppressOdds as unknown as number + 0
+        if (`${selectedTrainLabel}` == '') {
+          return true
+        }
+        if (suppressOdds == undefined ) {
+          return true
+        }
+        if (post.prediction.suppress == undefined) {
+          return true
+        }
+        return (post.prediction.suppress * -1) >= (suppressOdds as unknown as number + 0)
       })
-    setScoredRSSPosts(newScoredRSSPosts)
-    
+      setScoredRSSPosts(JSON.stringify(newScoredRSSPosts))
   })
 
   createEffect(() => {
     if (preppedRSSPosts() == '') {
       return
     }
-    const newDedupedRSSPosts = JSON.parse(preppedRSSPosts())
-      .filter((postItem: any) => {
-        const processedPostsID = postItem.feedLink === "" ? postItem.guid : shortUrl(postItem.feedLink)
-        const processedPostsForFeedLink = processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == processedPostsID)?.processedPosts
-        if (processedPostsForFeedLink == undefined) {
-          return true
-        }
-        return !processedPostsForFeedLink.find((processedPost) => {
-          const similarity = stringSimilarity.compareTwoStrings(
-            `${processedPost}`,
-            `${postItem.mlText}`
-          );
-          return similarity > 0.8;
-        });
-      })
+    //console.log(JSON.parse(preppedRSSPosts()) && JSON.parse(preppedRSSPosts()))
+    const newDedupedRSSPosts = JSON.parse(preppedRSSPosts()) && JSON.parse(preppedRSSPosts())
+    .filter((postItem: any) => {
+      const processedPostsID = postItem.feedLink === "" ? postItem.guid : shortUrl(postItem.feedLink)
+      const processedPostsForFeedLink = processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == processedPostsID)?.processedPosts
+      if (processedPostsForFeedLink == undefined) {
+        return true
+      }
+      return !processedPostsForFeedLink.find((processedPost) => {
+        const similarity = stringSimilarity.compareTwoStrings(
+          `${processedPost}`,
+          `${postItem.mlText}`
+        );
+        return similarity > 0.8;
+      });
+    })
+    //console.log(newDedupedRSSPosts)
     setDedupedRSSPosts(JSON.stringify(newDedupedRSSPosts))
   })
 
@@ -327,8 +335,10 @@ const App: Component = () => {
   if (`${parsedRSSPosts()}` === '') {
     return
   }
-  const newPreppedRSSPosts = JSON.parse(parsedRSSPosts())[0]
-    .filter(post => `${post.mlText}`.trim() != '')
+  // console.log(parsedRSSPosts())
+  // console.log(JSON.parse(parsedRSSPosts()).flat() && JSON.parse(parsedRSSPosts()).flat())
+  const newPreppedRSSPosts = JSON.parse(parsedRSSPosts()).flat() && JSON.parse(parsedRSSPosts()).flat()
+    .filter(post => post && `${post.mlText}`.trim() != '')
     .filter(post => {
       return post.postTitle != null
     })
@@ -358,19 +368,30 @@ const App: Component = () => {
 })
 
 createEffect(() => {
-    const fetchedRSSPostsStr = fetchedRSSPosts()
-    if (fetchedRSSPostsStr === '') {
+  if (fetchedRSSPosts() == undefined) {
+    return
+  }
+  try {
+    if (!JSON.parse(fetchedRSSPosts() as string)) {
       return
     }
-    const fetchedPostsArr = JSON.parse(fetchedRSSPostsStr)
-    parsePosts(fetchedPostsArr)
-    .then((newParsedPosts) => {
-        if ([newParsedPosts?.flat()].length === 0) {
-          return
-        }
-      const newParsedPostsStr: string = JSON.stringify(newParsedPosts)
-      setParsedRSSPosts(newParsedPostsStr)
-    })
+  } catch {
+    return
+  }
+  const fetchedRSSPostsStr = fetchedRSSPosts()
+  if (fetchedRSSPostsStr === '') {
+    return
+  }
+  const fetchedPostsArr = JSON.parse(fetchedRSSPostsStr)
+  // console.log(fetchedPostsArr)
+  parsePosts(fetchedPostsArr)
+  .then((newParsedPosts) => {
+      if ([newParsedPosts?.flat()].length === 0) {
+        return
+      }
+    const newParsedPostsStr: string = JSON.stringify(newParsedPosts)
+    setParsedRSSPosts(newParsedPostsStr)
+  })
 })
 
   createEffect(() => {
@@ -434,7 +455,8 @@ createEffect(() => {
       Promise.all(fetchQueue)
       .then(fetchedPosts => {
         const fetchedPostsStr = JSON.stringify(fetchedPosts)
-        setFetchedRSSPosts(fetchedPostsStr)
+        resolve(fetchedPostsStr)
+        // setFetchedRSSPosts()
       })
     })
   }
@@ -589,14 +611,14 @@ createEffect(() => {
           .filter((post: any) => {
             return ( 0.0 + post.prediction?.suppress || 0.0) != 0.0
           })
-          .filter(post => post.prediction?.suppress || 0 <= (suppressOdds || 0))
+          // .filter(post => post.prediction?.suppress || 0 <= (suppressOdds || 0))
           .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
         resolve(filteredPosts)
       })
     })
   }
   const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts);
-  const [rssPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
+  const [fetchedRSSPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
   const toggleNav = () => setNavIsOpen(!navIsOpen())
 
   // onMount(async () => {
@@ -683,7 +705,7 @@ createEffect(() => {
                 })
               }}
               markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
-              rssPosts={rssPosts()}
+              rssPosts={dedupedRSSPosts() && JSON.parse(dedupedRSSPosts())}
             />
           }} />
           <Route path='/' component={() => {
@@ -704,7 +726,7 @@ createEffect(() => {
                 })
               }}
               markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
-              rssPosts={scoredRSSPosts()}
+              rssPosts={dedupedRSSPosts() && JSON.parse(dedupedRSSPosts())}
             />
           }} />
 
@@ -725,7 +747,7 @@ createEffect(() => {
                 })
               }}
               markComplete={(postId: string, feedId: string) => markComplete(postId, feedId)}
-              rssPosts={scoredRSSPosts()}
+              rssPosts={scoredRSSPosts() && JSON.parse(scoredRSSPosts())}
               setSelectedTrainLabel={setSelectedTrainLabel}
             />
           }} />
@@ -733,7 +755,7 @@ createEffect(() => {
             const RSSPosts = lazy(() => import("./Prompt"))
             const {trainlabel} = useParams()
             return <Prompt
-              rssPosts={scoredRSSPosts()}
+              rssPosts={scoredRSSPosts() && JSON.parse(scoredRSSPosts())}
               setSelectedTrainLabel={setSelectedTrainLabel}
             />
           }} />

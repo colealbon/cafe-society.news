@@ -167,7 +167,7 @@ const defaultRSSFeeds =
   },
   {
     "id": "https://njump.me/npub1c0le4pgu49j76fnt54xfyclkszlfrcjx2c5vvjatdfvey5sat3ws76lcvg.rss",
-    "checked": true,
+    "checked": false,
     "trainLabels": ["shadowysupercoders"],
   }
 ]
