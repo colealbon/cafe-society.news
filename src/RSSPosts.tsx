@@ -21,26 +21,10 @@ import {
   SkeletonPost
 } from './components/SkeletonPost'
 
-const removePunctuation = (text: string) => {
-  return `${text}`
-    .replace(/[/?…".,#!$%^&*;:{}=_`~()'’‘“”]/g, '')
-    .replace(/\s{2,}/g, ' ');
-};
-
-export const shortUrl = (text: string) => {
-  if (text === 'undefined') {
-    return
-  }
-  if (text === '') {
-    return
-  }
-  const theUrl = new URL(text);
-  const newPath = removePunctuation(`${theUrl.hostname}${theUrl.pathname}`)
-    .replace(/-/g, '')
-    .toLowerCase();
-  return newPath;
-};
-
+import {
+  shortUrl,
+  shortGuid
+} from './util'
 
 const Posts = (props: {
   trainLabel: string,
@@ -71,14 +55,6 @@ const Posts = (props: {
       <PageHeader>{props.trainLabel || 'all rss posts'}</PageHeader>
       <For each={props.rssPosts} fallback={<div class="pl-6"><SkeletonPost /> <SkeletonPost /> </div>}>
         {(post) => {
-          const shortGuid = (input: string) => {
-            try {
-              const newShortGuid = shortUrl(post.guid.replace(/\?.*$/,''))
-              return newShortGuid
-            } catch (error) {
-              return post.guid.replace(/\?.*$/,'')
-            }
-          }
           const processedPostsID = `${post.feedLink}` === "" ? shortGuid(post.guid) : shortUrl(`${post.feedLink}`)
           return (
               <Collapsible.Root defaultOpen={true}>

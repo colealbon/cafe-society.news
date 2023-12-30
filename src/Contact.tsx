@@ -18,9 +18,6 @@ const Contact: Component = () => {
         <div>
           github: <a href="https://github.com/colealbon/cafe-society.news">https://github.com/colealbon/cafe-society.news</a>
         </div>
-        <div>
-          github experimental: <a href="https://github.com/colealbon/squelch">https://github.com/colealbon/squelch</a>
-        </div>
       </main>
     </div>
   )

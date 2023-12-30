@@ -11,6 +11,35 @@ import {
 const nlp = winkNLP( model );
 const its = nlp.its;
 
+const removePunctuation = (text: string) => {
+  return `${text}`
+    .replace(/[/?…".,#!$%^&*;:{}=_`~()'’‘“”]/g, '')
+    .replace(/\s{2,}/g, ' ');
+};
+
+export const shortUrl = (text: string) => {
+  if (text === 'undefined') {
+    return
+  }
+  if (text === '') {
+    return
+  }
+  const theUrl = new URL(text);
+  const newPath = removePunctuation(`${theUrl.hostname}${theUrl.pathname}`)
+    .replace(/-/g, '')
+    .toLowerCase();
+  return newPath;
+};
+
+export const shortGuid = (input: string) => {
+  try {
+    const newShortGuid = shortUrl(input.replace(/\?.*$/,''))
+    return newShortGuid
+  } catch (error) {
+    return input.replace(/\?.*$/,'')
+  }
+}
+
 export const nHoursAgo = (hrs: number): number => Math.floor((Date.now() - hrs * 60 * 60 * 1000) / 1000);
 
 export const prepNLPTask = function ( text: string ) {

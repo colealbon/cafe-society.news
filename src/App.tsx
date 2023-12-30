@@ -1,11 +1,12 @@
-import {convert} from 'html-to-text'
-import {Button} from './components/Button';
-import {NavBar} from './components/NavBar'
+import { convert } from 'html-to-text'
+import { Button } from './components/Button';
+import { NavBar } from './components/NavBar'
 import {
   createSignal,
   createResource,
   lazy,
-  createEffect
+  createEffect,
+  onMount
 } from 'solid-js';
 import type {
   Component
@@ -20,12 +21,8 @@ import {
   Route,
   useParams
 } from "@solidjs/router";
-import {
-  NostrFetcher
-  , eventKind
-} from "nostr-fetch";
+import { NostrFetcher } from "nostr-fetch";
 import axios from 'axios';
-
 import Payment from './Payment';
 import Contact from './Contact';
 import NostrRelays from './NostrRelays';
@@ -33,7 +30,6 @@ import NostrKeys from './NostrKeys';
 import Classifiers from './Classifiers';
 import TrainLabels from './TrainLabels';
 import NostrPosts from './NostrPosts';
-import {shortUrl} from './RSSPosts';
 import Prompt from './Prompt';
 
 import defaultMetadata from './defaultMetadata';
@@ -58,6 +54,7 @@ import {
   nHoursAgo,
   prepNostrPost,
   prepNLPTask,
+  shortUrl,
   createStoredSignal
 } from './util';
 
@@ -192,18 +189,13 @@ const parsePosts = (postsXML: any[]) => {
   })
   return Promise.all(parseQueue)
 }
-
 const App: Component = () => {
-
   const [navIsOpen, setNavIsOpen] = createSignal(false);
   const [albyCodeVerifier, setAlbyCodeVerifier] = createStoredSignal('albyCodeVerifier', '')
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
   const [albyTokenReadInvoice, setAlbyTokenReadInvoice] = createStoredSignal('albyTokenReadInvoice', '')
   const [selectedTrainLabel, setSelectedTrainLabel] = createStoredSignal('selectedTrainLabel', '')
   const [selectedMetadata, setSelectedMetadata] = createStoredSignal('selectedMetadata', '')
-  const [selectedNostrAuthor, setSelectedNostrAuthor] = createStoredSignal('selectedNostrAuthor', '')
-
-  // const [fetchedRSSPosts, setFetchedRSSPosts] = createSignal('')
   const [parsedRSSPosts, setParsedRSSPosts] = createSignal('')
   const [preppedRSSPosts, setPreppedRSSPosts] = createSignal('')
   const [dedupedRSSPosts, setDedupedRSSPosts] = createSignal('')
@@ -311,7 +303,6 @@ const App: Component = () => {
     if (preppedRSSPosts() == '') {
       return
     }
-    //console.log(JSON.parse(preppedRSSPosts()) && JSON.parse(preppedRSSPosts()))
     const newDedupedRSSPosts = JSON.parse(preppedRSSPosts()) && JSON.parse(preppedRSSPosts())
     .filter((postItem: any) => {
       const processedPostsID = postItem.feedLink === "" ? postItem.guid : shortUrl(postItem.feedLink)
@@ -327,7 +318,6 @@ const App: Component = () => {
         return similarity > 0.8;
       });
     })
-    //console.log(newDedupedRSSPosts)
     setDedupedRSSPosts(JSON.stringify(newDedupedRSSPosts))
   })
 
@@ -335,8 +325,6 @@ const App: Component = () => {
   if (`${parsedRSSPosts()}` === '') {
     return
   }
-  // console.log(parsedRSSPosts())
-  // console.log(JSON.parse(parsedRSSPosts()).flat() && JSON.parse(parsedRSSPosts()).flat())
   const newPreppedRSSPosts = JSON.parse(parsedRSSPosts()).flat() && JSON.parse(parsedRSSPosts()).flat()
     .filter(post => post && `${post.mlText}`.trim() != '')
     .filter(post => {
@@ -383,7 +371,6 @@ createEffect(() => {
     return
   }
   const fetchedPostsArr = JSON.parse(fetchedRSSPostsStr)
-  // console.log(fetchedPostsArr)
   parsePosts(fetchedPostsArr)
   .then((newParsedPosts) => {
       if ([newParsedPosts?.flat()].length === 0) {
@@ -456,16 +443,15 @@ createEffect(() => {
       .then(fetchedPosts => {
         const fetchedPostsStr = JSON.stringify(fetchedPosts)
         resolve(fetchedPostsStr)
-        // setFetchedRSSPosts()
       })
     })
   }
 
   const handleFeedToggleChecked = (id: string) => {
     const valuesForSelectedFeed = rssFeeds
-    .find(feed => feed['id'] === id)
+      .find(feed => feed['id'] === id)
     const newValueObj = {
-        ...valuesForSelectedFeed
+      ...valuesForSelectedFeed
       , checked: !valuesForSelectedFeed?.checked
     }
     putRSSFeed({...newValueObj} as RSSFeed)
@@ -518,10 +504,8 @@ createEffect(() => {
   createEffect(() => {
     const nostrRelayList = checkedNostrRelays
       .map((relay: NostrRelay) => relay.id)
-    const nostrAuthor = selectedNostrAuthor()
     const newQuery = JSON.stringify({
       'nostrRelayList': nostrRelayList,
-      'nostrAuthor': nostrAuthor,
       'ignore': ignoreNostrKeys,
     })
     setNostrQuery(newQuery)
@@ -533,15 +517,6 @@ createEffect(() => {
       if (paramsObj.nostrRelayList?.length == 0) {
         return
       }
-      const filterOptions = `${paramsObj.nostrAuthor}` != '' ?
-      {
-        kinds: [ eventKind.text, 30023 ],
-        authors: [`${paramsObj.nostrAuthor}`],
-      } :
-      {
-        kinds: [ 1, 30023 ]
-      }
-      // const maxPosts = `${paramsObj.nostrAuthor}` == '' ? 10000 : 10000
       const winkClassifier = WinkClassifier()
       winkClassifier.definePrepTasks( [ prepNLPTask ] );
       winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
@@ -552,9 +527,8 @@ createEffect(() => {
 
       fetcher.fetchAllEvents(
         [...paramsObj.nostrRelayList],
-        filterOptions,
+        { kinds: [ 1, 30023 ] },
         { since: nHoursAgo(6) }
-        // maxPosts
       )
       .then((allThePosts: any) => {
         const processedNostrPosts = [processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == 'nostr')?.processedPosts].flat().map((post) => post?.toString().split(' ').slice(0, 50).join(' '))
@@ -611,7 +585,12 @@ createEffect(() => {
           .filter((post: any) => {
             return ( 0.0 + post.prediction?.suppress || 0.0) != 0.0
           })
-          // .filter(post => post.prediction?.suppress || 0 <= (suppressOdds || 0))
+          .filter(post => {
+            if (post.prediction?.suppress === undefined) {
+              return true
+            }
+            post.prediction?.suppress || 0.0 <= (parseFloat(`${suppressOdds}`) || 0.0)
+          })
           .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
         resolve(filteredPosts)
       })
@@ -621,19 +600,17 @@ createEffect(() => {
   const [fetchedRSSPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
   const toggleNav = () => setNavIsOpen(!navIsOpen())
 
-  // onMount(async () => {
-  //   console.log("you are tiger")
-  //   // const wsProvider = new WebsocketProvider('ws://localhost:1234', 'my-roomname', doc, { WebSocketPolyfill: require('ws') })
-  //   // const doc = new Y.Doc();
-  //   // const yarray = doc.getArray('my-array')
-  //   // yarray.observe(event => {
-  //   //   console.log('yarray was modified')
-  //   // })
-  //   // // every time a local or remote client modifies yarray, the observer is called
-  //   // yarray.insert(0, ['val']) // => "yarray was modified"
-  // })
-
-  // const suppressOdds = classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds
+  onMount(async () => {
+    console.log("you are tiger")
+    // const wsProvider = new WebsocketProvider('ws://localhost:1234', 'my-roomname', doc, { WebSocketPolyfill: require('ws') })
+    // const doc = new Y.Doc();
+    // const yarray = doc.getArray('my-array')
+    // yarray.observe(event => {
+    //   console.log('yarray was modified')
+    // })
+    // // every time a local or remote client modifies yarray, the observer is called
+    // yarray.insert(0, ['val']) // => "yarray was modified"
+  })
 
   return (
     <div class='flex justify-start font-sans mr-30px'>
@@ -649,7 +626,11 @@ createEffect(() => {
           <div class={`${navIsOpen() ? 'w-200px sticky top-20 mt-10 pb-20' : 'w-0 overflow-hidden'}`}>
             <NavBar
               toggleNav={() => toggleNav()}
-              mutateRssPosts={() => mutateRssPosts(()=> [])}
+              mutateRssPosts={() => {
+                mutateRssPosts(()=> [])
+                setDedupedRSSPosts('')
+                setScoredRSSPosts('')
+              }}
               setSelectedTrainLabel={(newLabel: string) => setSelectedTrainLabel(newLabel)}
               checkedTrainLabels={() => checkedTrainLabels}
             />
