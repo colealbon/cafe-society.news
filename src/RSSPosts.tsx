@@ -28,7 +28,11 @@ import {
 
 const Posts = (props: {
   trainLabel: string,
-  metadata: {description: string, title: string, keywords: string},
+  metadata: {
+    description: string, 
+    title: string, 
+    keywords: string
+  },
   train?: any,
   rssPosts: any,
   markComplete: any,

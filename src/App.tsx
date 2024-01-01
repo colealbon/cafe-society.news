@@ -5,8 +5,7 @@ import {
   createSignal,
   createResource,
   lazy,
-  createEffect,
-  onMount
+  createEffect
 } from 'solid-js';
 import type {
   Component
@@ -21,7 +20,9 @@ import {
   Route,
   useParams
 } from "@solidjs/router";
-import { NostrFetcher } from "nostr-fetch";
+import { 
+  NostrFetcher
+} from "nostr-fetch";
 import axios from 'axios';
 import Payment from './Payment';
 import Contact from './Contact';
@@ -195,7 +196,7 @@ const App: Component = () => {
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
   const [albyTokenReadInvoice, setAlbyTokenReadInvoice] = createStoredSignal('albyTokenReadInvoice', '')
   const [selectedTrainLabel, setSelectedTrainLabel] = createStoredSignal('selectedTrainLabel', '')
-  const [selectedMetadata, setSelectedMetadata] = createStoredSignal('selectedMetadata', '')
+  const [selectedMetadata, setSelectedMetadata] = createStoredSignal('selectedMetadata', {title:'', description:'', keywords: ''})
   const [parsedRSSPosts, setParsedRSSPosts] = createSignal('')
   const [preppedRSSPosts, setPreppedRSSPosts] = createSignal('')
   const [dedupedRSSPosts, setDedupedRSSPosts] = createSignal('')
@@ -234,10 +235,7 @@ const App: Component = () => {
     if (newClassifierEntry.model != '') {
       winkClassifier.importJSON(newClassifierEntry.model)
     }
-    if (newClassifierEntry.model === '') {
-      return
-    }
-    if (newClassifierEntry?.id === undefined) {
+    if (newClassifierEntry.model === '' || newClassifierEntry?.id === undefined) {
       return
     }
     await db.classifiers.put(newClassifierEntry)
@@ -366,7 +364,7 @@ createEffect(() => {
   } catch {
     return
   }
-  const fetchedRSSPostsStr = fetchedRSSPosts()
+  const fetchedRSSPostsStr: string = fetchedRSSPosts() as unknown as string
   if (fetchedRSSPostsStr === '') {
     return
   }
@@ -448,8 +446,7 @@ createEffect(() => {
   }
 
   const handleFeedToggleChecked = (id: string) => {
-    const valuesForSelectedFeed = rssFeeds
-      .find(feed => feed['id'] === id)
+    const valuesForSelectedFeed = rssFeeds.find(feed => feed['id'] === id)
     const newValueObj = {
       ...valuesForSelectedFeed
       , checked: !valuesForSelectedFeed?.checked
@@ -502,8 +499,7 @@ createEffect(() => {
   );
 
   createEffect(() => {
-    const nostrRelayList = checkedNostrRelays
-      .map((relay: NostrRelay) => relay.id)
+    const nostrRelayList = checkedNostrRelays.map((relay: NostrRelay) => relay.id)
     const newQuery = JSON.stringify({
       'nostrRelayList': nostrRelayList,
       'ignore': ignoreNostrKeys,
@@ -517,6 +513,10 @@ createEffect(() => {
       if (paramsObj.nostrRelayList?.length == 0) {
         return
       }
+      const filterOptions = {
+        kinds: [ 1, 30023 ]
+      }
+      // const maxPosts = `${paramsObj.nostrAuthor}` == '' ? 10000 : 10000
       const winkClassifier = WinkClassifier()
       winkClassifier.definePrepTasks( [ prepNLPTask ] );
       winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
@@ -527,8 +527,9 @@ createEffect(() => {
 
       fetcher.fetchAllEvents(
         [...paramsObj.nostrRelayList],
-        { kinds: [ 1, 30023 ] },
+        filterOptions,
         { since: nHoursAgo(6) }
+        // maxPosts
       )
       .then((allThePosts: any) => {
         const processedNostrPosts = [processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == 'nostr')?.processedPosts].flat().map((post) => post?.toString().split(' ').slice(0, 50).join(' '))
@@ -585,12 +586,6 @@ createEffect(() => {
           .filter((post: any) => {
             return ( 0.0 + post.prediction?.suppress || 0.0) != 0.0
           })
-          .filter(post => {
-            if (post.prediction?.suppress === undefined) {
-              return true
-            }
-            post.prediction?.suppress || 0.0 <= (parseFloat(`${suppressOdds}`) || 0.0)
-          })
           .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
         resolve(filteredPosts)
       })
@@ -600,17 +595,17 @@ createEffect(() => {
   const [fetchedRSSPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
   const toggleNav = () => setNavIsOpen(!navIsOpen())
 
-  onMount(async () => {
-    console.log("you are tiger")
-    // const wsProvider = new WebsocketProvider('ws://localhost:1234', 'my-roomname', doc, { WebSocketPolyfill: require('ws') })
-    // const doc = new Y.Doc();
-    // const yarray = doc.getArray('my-array')
-    // yarray.observe(event => {
-    //   console.log('yarray was modified')
-    // })
-    // // every time a local or remote client modifies yarray, the observer is called
-    // yarray.insert(0, ['val']) // => "yarray was modified"
-  })
+  // onMount(async () => {
+  //   console.log("you are tiger")
+  //   // const wsProvider = new WebsocketProvider('ws://localhost:1234', 'my-roomname', doc, { WebSocketPolyfill: require('ws') })
+  //   // const doc = new Y.Doc();
+  //   // const yarray = doc.getArray('my-array')
+  //   // yarray.observe(event => {
+  //   //   console.log('yarray was modified')
+  //   // })
+  //   // // every time a local or remote client modifies yarray, the observer is called
+  //   // yarray.insert(0, ['val']) // => "yarray was modified"
+  // })
 
   return (
     <div class='flex justify-start font-sans mr-30px'>
@@ -760,8 +755,6 @@ createEffect(() => {
                     })
                   }}
                   nostrPosts={nostrPosts}
-                  selectedNostrAuthor={selectedNostrAuthor}
-                  setSelectedNostrAuthor={setSelectedNostrAuthor}
                   putNostrKey={putNostrKey}
                   putProcessedPost={putProcessedPost}
                   putClassifier={putClassifier}
@@ -770,15 +763,8 @@ createEffect(() => {
               )
             }}
           />
-
-          <Route path='/contact' component={() => {
-            return <Contact/>
-          }} />
-
-          <Route path='/subscriptions' component={() => {
-            return <Payment />
-          }} />
-
+          <Route path='/contact' component={() => <Contact/>} />
+          <Route path='/subscriptions' component={() => <Payment />} />
           <Route path='/nostrrelays' component={() => {
             return <NostrRelays
               nostrRelays={nostrRelays}
@@ -792,10 +778,7 @@ createEffect(() => {
               putNostrKey={putNostrKey}
               removeNostrKey={removeNostrKey}
               />}} />
-          <Route path='/nostrkeys/raw' component={() => {
-            return <pre>{JSON.stringify(nostrKeys, null, 2)}
-              </pre>
-            }}/>
+          <Route path='/nostrkeys/raw' component={() => <pre>{JSON.stringify(nostrKeys, null, 2)}</pre>}/>
           <Route path='/classifiers' component={() => {
             return <Classifiers
               classifiers={classifiers}

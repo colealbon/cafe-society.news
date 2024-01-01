@@ -20,8 +20,6 @@ const NostrPosts = (props: {
   selectedTrainLabel: any,
   train: any,
   nostrPosts: any,
-  selectedNostrAuthor: any,
-  setSelectedNostrAuthor:any,
   putNostrKey: any,
   putClassifier: any,
   putProcessedPost: any,
