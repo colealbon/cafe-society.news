@@ -105,3 +105,53 @@ export const prepNostrPost = (post: any) => {
       ...post
     }
   }
+
+  export const parseRSS: (
+    content: {rss: any}
+  ) => {
+    feedTitle: string,
+    feedLink: string,
+    feedDescription: string,
+    postId: string,
+    postTitle: string,
+    mlText: string
+  }[] = (content: {rss: any}) => {
+    const feedTitle = content.rss.channel.title
+    const feedLink = content.rss.channel.link
+    const feedDescription = content.rss.channel.description
+    const feedPosts = content.rss.channel.item?.length == null ?
+      [content.rss.channel.item] :
+      content.rss.channel.item
+  
+    return [...feedPosts]
+      .map((itemEntry) => ({
+        feedTitle: feedTitle,
+        feedLink: `${feedLink}`,
+        feedDescription: feedDescription,
+        ...itemEntry
+      }))
+      .map(itemEntry => ({
+        postSummary: convert(
+          itemEntry.description,
+          {
+            ignoreLinks: true,
+            ignoreHref: true,
+            ignoreImage: true,
+            linkBrackets: false
+          })
+        .replace(/\[.*?\]/g, '')
+        .replace(/\n/g,' ')?.toString()
+        .trim(),
+        ...itemEntry
+      }))
+      .map(itemEntry => ({
+        ...itemEntry,
+        postId: itemEntry.link || itemEntry.guid,
+        postTitle: itemEntry.title,
+        mlText: prepNLPTask(convert(`${itemEntry.title} ${itemEntry.postSummary}`))
+          .filter((word) => word.length < 30)
+          .join(' ')
+          .toLowerCase()
+      })
+    )
+  }

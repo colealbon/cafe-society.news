@@ -56,7 +56,8 @@ import {
   prepNostrPost,
   prepNLPTask,
   shortUrl,
-  createStoredSignal
+  createStoredSignal,
+  parseRSS
 } from './util';
 
 const fetcher = NostrFetcher.init();
@@ -100,46 +101,6 @@ const applyPrediction = (params: {
   }
 }
 
-const parseRSS = (content:any) => {
-  const feedTitle = content.rss.channel.title
-  const feedLink = content.rss.channel.link
-  const feedDescription = content.rss.channel.description
-  const feedPosts = content.rss.channel.item?.length == null ?
-    [content.rss.channel.item] :
-    content.rss.channel.item
-
-  return [...feedPosts]
-    .map((itemEntry) => ({
-      feedTitle: feedTitle,
-      feedLink: `${feedLink}`,
-      feedDescription: feedDescription,
-      ...itemEntry
-    }))
-    .map(itemEntry => ({
-      postSummary: convert(
-        itemEntry.description,
-        {
-          ignoreLinks: true,
-          ignoreHref: true,
-          ignoreImage: true,
-          linkBrackets: false
-        })
-      .replace(/\[.*?\]/g, '')
-      .replace(/\n/g,' ')?.toString()
-      .trim(),
-      ...itemEntry
-    }))
-    .map(itemEntry => ({
-      ...itemEntry,
-      postId: itemEntry.link || itemEntry.guid,
-      postTitle: itemEntry.title,
-      mlText: prepNLPTask(convert(`${itemEntry.title} ${itemEntry.postSummary}`))
-        .filter((word) => word.length < 30)
-        .join(' ')
-        .toLowerCase()
-    })
-  )
-}
 const parseAtom = (content: any) => {
   const feedTitle = content.feed?.author.name || content.feed?.feedTitle || content.feed?.title
   const feedLink = `${content.feed?.generator}${content.feed?.id}`
@@ -277,12 +238,19 @@ const App: Component = () => {
       winkClassifier.importJSON(classifierModel)
     }
     const newScoredRSSPosts = JSON.parse(dedupedRSSPosts()) && JSON.parse(dedupedRSSPosts())
-      .map((post: any) => applyPrediction({
+      .map((post: {
+        prediction: any,
+        classifier: any
+      }) => applyPrediction({
         post: post,
         classifier: winkClassifier
       }))
       .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
-      .filter(post => {
+      .filter((post: {
+        prediction: {
+          suppress: number
+        }
+      }) => {
         if (`${selectedTrainLabel}` == '') {
           return true
         }
@@ -324,11 +292,11 @@ const App: Component = () => {
     return
   }
   const newPreppedRSSPosts = JSON.parse(parsedRSSPosts()).flat() && JSON.parse(parsedRSSPosts()).flat()
-    .filter(post => post && `${post.mlText}`.trim() != '')
-    .filter(post => {
+    .filter((post: {mlText: string}) => post && `${post.mlText}`.trim() != '')
+    .filter((post: {postTitle: string}) => {
       return post.postTitle != null
     })
-    .map(post => {
+    .map((post: {postTitle: string})  => {
       return {
         ...post,
         postTitle: post?.postTitle
@@ -349,38 +317,42 @@ const App: Component = () => {
         .replace(/&#43;/g,"+")
       }
     })
-    .filter(post => post?.feedLink || post?.guid != null)
-  setPreppedRSSPosts(JSON.stringify(newPreppedRSSPosts))
-})
-
-createEffect(() => {
-  if (fetchedRSSPosts() == undefined) {
-    return
-  }
-  try {
-    if (!JSON.parse(fetchedRSSPosts() as string)) {
-      return
-    }
-  } catch {
-    return
-  }
-  const fetchedRSSPostsStr: string = fetchedRSSPosts() as unknown as string
-  if (fetchedRSSPostsStr === '') {
-    return
-  }
-  const fetchedPostsArr = JSON.parse(fetchedRSSPostsStr)
-  parsePosts(fetchedPostsArr)
-  .then((newParsedPosts) => {
-      if ([newParsedPosts?.flat()].length === 0) {
-        return
-      }
-    const newParsedPostsStr: string = JSON.stringify(newParsedPosts)
-    setParsedRSSPosts(newParsedPostsStr)
-  })
-})
+    .filter((post: {
+      feedLink?: string,
+      guid: string
+    }) => post?.feedLink || post?.guid != null)
+      setPreppedRSSPosts(JSON.stringify(newPreppedRSSPosts))
+    })
 
   createEffect(() => {
-    const newSelectedMetadata = defaultMetadata[`${selectedTrainLabel()}`] || {description: '', title:'cafe-society.news', keywords: ''}
+    if (fetchedRSSPosts() == undefined) {
+      return
+    }
+    try {
+      if (!JSON.parse(fetchedRSSPosts() as string)) {
+        return
+      }
+    } catch {
+      return
+    }
+    const fetchedRSSPostsStr: string = fetchedRSSPosts() as unknown as string
+    if (fetchedRSSPostsStr === '') {
+      return
+    }
+    const fetchedPostsArr = JSON.parse(fetchedRSSPostsStr)
+    parsePosts(fetchedPostsArr)
+    .then((newParsedPosts) => {
+        if ([newParsedPosts?.flat()].length === 0) {
+          return
+        }
+      const newParsedPostsStr: string = JSON.stringify(newParsedPosts)
+      setParsedRSSPosts(newParsedPostsStr)
+    })
+  })
+
+  createEffect(() => {
+    // @ts-ignore
+    const newSelectedMetadata: {description: string, title:string, keywords: string} = defaultMetadata[`${selectedTrainLabel()}`] || {description: '', title:'cafe-society.news', keywords: ''}
     setSelectedMetadata(newSelectedMetadata)
   })
 
@@ -459,6 +431,7 @@ createEffect(() => {
     trainLabel: string
   }) => {
     const oldModel: string = classifiers.find((classifierEntry) => classifierEntry?.id == params.trainLabel)?.model || ''
+    const thresholdSuppressOdds: string = classifiers.find((classifierEntry) => classifierEntry?.id == params.trainLabel)?.thresholdSuppressOdds || '99'
     const winkClassifier = WinkClassifier()
     winkClassifier.definePrepTasks( [ prepNLPTask ] );
     winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
@@ -471,7 +444,8 @@ createEffect(() => {
       id: params.trainLabel,
       model: newModel,
       thresholdSuppressDocCount: '10',
-      thresholdPromoteDocCount: '10'
+      thresholdPromoteDocCount: '10',
+      thresholdSuppressOdds: thresholdSuppressOdds
     }
     putClassifier(newClassifierEntry)
   }
@@ -711,6 +685,7 @@ createEffect(() => {
             const {trainlabel} = useParams()
             return <RSSPosts
               trainLabel={selectedTrainLabel() || ''}
+              metadata={selectedMetadata()}
               train={(params: {
                 mlText: string,
                 mlClass: string,

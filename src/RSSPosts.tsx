@@ -62,7 +62,7 @@ const Posts = (props: {
           const processedPostsID = `${post.feedLink}` === "" ? shortGuid(post.guid) : shortUrl(`${post.feedLink}`)
           return (
               <Collapsible.Root defaultOpen={true}>
-                <Collapsible.Content class="collapsible__content pr-2 fade-in">
+                <Collapsible.Content class="collapsible__content pr-2">
                   <PostDisplay {...post}/>
                   <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
                     <Show when={props.trainLabel != ''}>
@@ -78,7 +78,10 @@ const Posts = (props: {
                           mlText={post.mlText}
                           prediction={post.prediction}
                           docCount={post.docCount}
-                          markComplete={() => props.markComplete(post.mlText, processedPostsID)}
+                          markComplete={() => setTimeout(() => {
+                            props.markComplete(post.mlText, processedPostsID)
+                          }, 300)
+                          }
                         />
                       </div>
                     </Show>
