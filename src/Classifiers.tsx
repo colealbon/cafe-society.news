@@ -1,7 +1,15 @@
 import {
-  For
+  For,
+  createEffect,
 } from 'solid-js';
-import { Collapsible } from "@kobalte/core";
+import {
+  Collapsible,
+  Link
+} from "@kobalte/core";
+import {
+  useParams,
+  useLocation
+} from "@solidjs/router";
 
 import {
   createFormGroup,
@@ -10,7 +18,6 @@ import {
 import TextInput from './TextInput'
 
 import {
-  VsAdd,
   VsCopy
 } from 'solid-icons/vs'
 import { Classifier } from './db-fixture'
@@ -31,7 +38,7 @@ const Classifiers = (props: {
     thresholdSuppressOdds: createFormControl('')
   });
 
-  const onSubmit = async (event) => {
+  const onSubmit = async (event: Event) => {
     event.preventDefault()
     if (group.isSubmitted) {
       // console.log('already submitted')
@@ -64,7 +71,7 @@ const Classifiers = (props: {
     })
   };
 
-  const handleAddClick = (event) => {
+  const handleAddClick = (event: Event) => {
     event.preventDefault()
     onSubmit(event)
     group.setValue({
@@ -93,6 +100,30 @@ const Classifiers = (props: {
     props.removeClassifier(classifier)
   }
 
+  createEffect(() => {
+    if (useParams().trainLabel == null) {
+      return
+    } 
+    const valuesForSelectedClassifier = props.classifiers
+    .find(classifierEdit => classifierEdit['id'] === useParams().trainLabel)
+    const newClassifier: any = {
+      id: `${valuesForSelectedClassifier?.id}`,
+      model: `${valuesForSelectedClassifier?.model}`,
+      thresholdSuppressOdds: `${valuesForSelectedClassifier?.thresholdSuppressOdds}`
+    }
+    group.setValue(newClassifier)
+    // try {
+    //   if (`${useParams().trainlabel}` === 'undefined') {
+    //     props.setSelectedTrainLabel('')
+    //     return
+    //   }
+    //   props.setSelectedTrainLabel(`${useParams().trainlabel}`)
+    // } catch (error) {
+    //   console.log(error)
+    //   return
+    // }
+  })
+
   return (
   <div class='fade-in'>
     <PageHeader>Edit Classifiers</PageHeader>
@@ -107,12 +138,12 @@ const Classifiers = (props: {
       <TextInput name="model" control={group.controls.model} />
       <Button
         onClick={() => handleAddClick}
-        label={<VsAdd />}
+        label='SUBMIT'
       />
     </form>
     <Collapsible.Root class="collapsible border-none bg-transparent" defaultOpen={false}>
     <Collapsible.Trigger class="collapsible__trigger hover-bg-slate-900 hover-text-white bg-transparent border-none">
-      <div class='hover-bg-slate-900 hover-text-white bg-transparent border-none'>JSON</div>
+      <div class='hover-bg-slate-900 hover-text-white bg-transparent border-none'>copy JSON</div>
     </Collapsible.Trigger>
     <Collapsible.Content class="collapsible__content">
       <p class="collapsible__content-text">
@@ -123,6 +154,9 @@ const Classifiers = (props: {
         />
       <div style={{'max-width': '500px'}}>
         <pre>{JSON.stringify(group.controls.model.rawValue, null, 2)}</pre>
+      </div>
+      <div style={{'max-width': '500px'}}>
+        <Link.Root href={`/rssposts/${group.controls.id.value}?model=${btoa(encodeURIComponent(group.controls.model.rawValue))}`}>{`/rssposts/${group.controls.id.value}?model=${btoa(encodeURIComponent(group.controls.model.rawValue))}`}</Link.Root>
       </div>
     </>}
     </p>

@@ -4,7 +4,8 @@ import {
   createEffect
 } from 'solid-js'
 import {
-  useParams
+  useParams,
+  useSearchParams
 } from '@solidjs/router'
 import {
   Title
@@ -50,6 +51,9 @@ const Posts = (props: {
       return
     }
   })
+  // createEffect(() => {
+  //   console.log(useSearchParams())
+  // })
   return (
     <>
       <Title>{`cafe-society.news - ${props.trainLabel}`}</Title>

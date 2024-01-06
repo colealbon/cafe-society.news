@@ -1,15 +1,15 @@
-import {convert} from 'html-to-text'
+import { convert } from 'html-to-text'
 import winkNLP from 'wink-nlp';
 import model from 'wink-eng-lite-web-model';
-import type {
-  Signal
-} from 'solid-js';
-import {
-  createSignal
-} from 'solid-js';
+import { XMLParser } from 'fast-xml-parser'
+import type { Signal } from 'solid-js';
+import { createSignal } from 'solid-js';
+import axios from 'axios';
+import { RSSFeed } from "./db-fixture";
 
 const nlp = winkNLP( model );
 const its = nlp.its;
+const parser = new XMLParser();
 
 const removePunctuation = (text: string) => {
   return `${text}`
@@ -154,4 +154,118 @@ export const prepNostrPost = (post: any) => {
           .toLowerCase()
       })
     )
+  }
+
+export const applyPrediction = (params: {
+    post: any,
+    classifier: any
+  }) => {
+    try {
+      const docCount: number = params.classifier.stats().labelWiseSamples ? Object.values(params.classifier.stats().labelWiseSamples).reduce((val, runningTotal: any) => val as number + runningTotal, 0) as number : 0
+      if (docCount > 2) {
+        params.classifier.consolidate()
+      }
+      const prediction = Object.fromEntries(params.classifier.computeOdds(params.post?.mlText))
+      const postWithPrediction = {
+        ...params.post,
+        ...{
+          'prediction': prediction,
+          'docCount': docCount
+        }
+      }
+      return postWithPrediction
+    } catch (error) {
+      if (error != null) {
+        const newPost = params.post
+        newPost.prediction = params.classifier.stats()
+        return newPost
+      }
+    }
+  }
+
+export const parseAtom = (content: any) => {
+    const feedTitle = content.feed?.author.name || content.feed?.feedTitle || content.feed?.title
+    const feedLink = `${content.feed?.generator}${content.feed?.id}`
+    const feedDescription = content.feed?.subtitle
+    const feedPosts = content.feed?.entry
+    return feedPosts?.map((itemEntry: any) => {
+      const fixItemEntry = itemEntry.content ? itemEntry : itemEntry[0]
+      return {
+        feedTitle: feedTitle,
+        feedLink: feedLink,
+        feedDescription: feedDescription,
+        ...fixItemEntry
+      }})
+      .map((itemEntry: any) => {
+        return {
+        postSummary: convert(itemEntry.content, { ignoreLinks: true, ignoreHref: true, ignoreImage: true, linkBrackets: false  })
+        .replace(/\[.*?\]/g, '')
+        .replace(/\n/g,' ')?.toString()
+        .trim(),
+        ...itemEntry
+        }}
+      )
+      .map((itemEntry: any) => ({
+        ...itemEntry,
+        postId: content.feed.generator === 'https://njump.me' ? `https://njump.me/${itemEntry?.id}` : itemEntry.id,
+        postTitle: `${itemEntry.title}`,
+        mlText: prepNLPTask(convert(`${itemEntry.title} ${itemEntry.postSummary}`))
+          .filter((word) => word.length < 30)
+          .join(' ')
+          .toLowerCase()
+      })
+    )
+  }
+  export const parsePosts = (postsXML: any[]) => {
+    const parseQueue: any[] = []
+    postsXML.forEach(xmlEntry => {
+      parseQueue.push(new Promise(resolve => {
+        try {
+          const content = parser.parse(xmlEntry.data)
+          const parsed = content.rss ? parseRSS(content) : parseAtom(content)
+          resolve(parsed)
+        } catch (error) {
+          console.log(error)
+          console.log(xmlEntry)
+          resolve([])
+        }
+      }))
+    })
+    return Promise.all(parseQueue)
+  }
+export function fetchRssPosts(params: string) {
+    if (params == '') {
+      return
+    }
+    const paramsObj = JSON.parse(params)
+    if (paramsObj.feedsForTrainLabel.length < 1) {
+      return
+    }
+    return new Promise((resolve) => {
+      const fetchQueue: any[] = []
+      paramsObj.feedsForTrainLabel.forEach((feed: RSSFeed) => {
+        fetchQueue.push(new Promise((resolve) => {
+          try {
+            paramsObj.corsProxies?.slice().forEach((corsProxy: any) => {
+              try {
+                axios.get(`${corsProxy}${feed}`)
+                .then(response => {
+                  resolve(response)
+                })
+              } catch(error) {
+                console.log(`${corsProxy}${feed} failed`)
+                console.log(error)
+              }
+            })
+          } catch (error) {
+            resolve('')
+          }
+        }))
+      })
+      Promise.all(fetchQueue)
+      .then(fetchedPosts => {
+        const fetchedPostsStr = JSON.stringify(fetchedPosts)
+        resolve(fetchedPostsStr)
+      })
+    })
   }
