@@ -16,7 +16,7 @@ export interface NavBarProps {
 
 export const NavBar: Component<NavBarProps> = (props) => {
   const handleClickNavLink = () => {
-    // props.toggleNav()
+    props.toggleNav()
     props.setSelectedTrainLabel('')
   }
 

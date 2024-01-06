@@ -447,7 +447,7 @@ const App: Component = () => {
   //   // // every time a local or remote client modifies yarray, the observer is called
   //   // yarray.insert(0, ['val']) // => "yarray was modified"
   // })
-  console.log(scoredRSSPosts())
+  // console.log(scoredRSSPosts())
 
   return (
     <div class='flex justify-start font-sans mr-30px'>
