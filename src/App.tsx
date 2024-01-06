@@ -142,7 +142,7 @@ const App: Component = () => {
     if (dedupedRSSPosts() == '') {
       return
     }
-    const suppressOdds: number = parseFloat(classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds || '99')
+    const suppressOdds: number = parseFloat(classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds || '999')
     const winkClassifier = WinkClassifier()
     winkClassifier.definePrepTasks( [ prepNLPTask ] );
     winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
@@ -154,6 +154,7 @@ const App: Component = () => {
     if (classifierModel != '') {
       winkClassifier.importJSON(classifierModel)
     }
+
     const newScoredRSSPosts = JSON.parse(dedupedRSSPosts()) && JSON.parse(dedupedRSSPosts())
       .map((post: {
         prediction: any,
@@ -165,7 +166,7 @@ const App: Component = () => {
       .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
       .filter((post: {
         prediction: {
-          suppress: number
+          promote: number
         }
       }) => {
         if (`${selectedTrainLabel}` == '') {
@@ -174,10 +175,10 @@ const App: Component = () => {
         if (suppressOdds == undefined ) {
           return true
         }
-        if (post.prediction.suppress == undefined) {
+        if (post.prediction.promote == undefined) {
           return true
         }
-        return (post.prediction.suppress * -1) >= suppressOdds
+        return post.prediction.promote >= suppressOdds * -1
       })
       setScoredRSSPosts(JSON.stringify(newScoredRSSPosts))
   })
@@ -201,6 +202,7 @@ const App: Component = () => {
         return similarity > 0.8;
       });
     })
+    // console.log(newDedupedRSSPosts)
     setDedupedRSSPosts(JSON.stringify(newDedupedRSSPosts))
   })
   createEffect(() => {
@@ -305,6 +307,7 @@ const App: Component = () => {
     trainLabel: string
   }) => {
     const oldModel: string = classifiers.find((classifierEntry) => classifierEntry?.id == params.trainLabel)?.model || ''
+    const thresholdSuppressOdds: string = classifiers.find((classifierEntry) => classifierEntry?.id == params.trainLabel)?.thresholdSuppressOdds || '999'
     const winkClassifier = WinkClassifier()
     winkClassifier.definePrepTasks( [ prepNLPTask ] );
     winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
@@ -317,7 +320,8 @@ const App: Component = () => {
       id: params.trainLabel,
       model: newModel,
       thresholdSuppressDocCount: '10',
-      thresholdPromoteDocCount: '10'
+      thresholdPromoteDocCount: '10',
+      thresholdSuppressOdds: thresholdSuppressOdds
     }
     // console.log(newClassifierEntry)
     putClassifier(newClassifierEntry)
@@ -370,7 +374,7 @@ const App: Component = () => {
       )
       .then((allThePosts: any) => {
         const processedNostrPosts = [processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == 'nostr')?.processedPosts].flat().map((post) => post?.toString().split(' ').slice(0, 50).join(' '))
-        const suppressOdds = classifiers.find((classifierEntry) => classifierEntry?.id == 'nostr')?.thresholdSuppressOdds
+        const suppressOdds = parseFloat(classifiers.find((classifierEntry) => classifierEntry?.id == 'nostr')?.thresholdSuppressOdds || '999')
         const filteredPosts = allThePosts
           .filter((nostrPost: any) => `${nostrPost.mlText}`.replace(' ','') != '')
           .filter((nostrPost: any) => {
