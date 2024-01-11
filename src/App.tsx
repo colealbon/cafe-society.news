@@ -1,10 +1,12 @@
 import { Button } from './components/Button';
-import { NavBar } from './components/NavBar'
+import { NavBar } from './components/NavBar';
+import { IndexeddbPersistence } from 'y-indexeddb'
 import {
   createSignal,
   createResource,
   lazy,
-  createEffect
+  createEffect,
+  onMount
 } from 'solid-js';
 import type {
   Component
@@ -55,6 +57,9 @@ import {
   parsePosts,
   fetchRssPosts
 } from './util';
+import * as Y from 'yjs'
+import { WebrtcProvider } from 'y-webrtc'
+
 const fetcher = NostrFetcher.init();
 const db = new DbFixture();
 db.on("populate", () => {
@@ -189,11 +194,12 @@ const App: Component = () => {
     const newDedupedRSSPosts = JSON.parse(preppedRSSPosts()) && JSON.parse(preppedRSSPosts())
     .filter((postItem: any) => {
       const processedPostsID = postItem.feedLink === "" ? postItem.guid : shortUrl(postItem.feedLink)
-      const processedPostsForFeedLink = processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == processedPostsID)?.processedPosts
-      if (processedPostsForFeedLink == undefined) {
+      const processedPostsForFeedLink = yProcessedPosts.get(processedPostsID) as Array<string>
+      //.find((processedPostsEntry) => processedPostsEntry?.id == processedPostsID)?.processedPosts
+      if (processedPostsForFeedLink == undefined) { 
         return true
       }
-      return !processedPostsForFeedLink.find((processedPost) => {
+      return !processedPostsForFeedLink.find((processedPost: string) => {
         // replace this with winkNLP version of string similarity
         const similarity = stringSimilarity.compareTwoStrings(
           `${processedPost}`,
@@ -289,6 +295,7 @@ const App: Component = () => {
   const checkedFeeds = createDexieArrayQuery(() => db.rssfeeds
     .filter(rssfeed => rssfeed.checked === true)
     .toArray());
+
   const checkedCorsProxies = createDexieArrayQuery(() => db.corsproxies
     .filter(corsProxy => corsProxy.checked === true)
     .toArray());
@@ -328,16 +335,19 @@ const App: Component = () => {
   }
   const [nostrQuery, setNostrQuery] = createSignal('')
   const [fetchRssParams, setFetchRssParams] = createSignal('')
-  const processedPosts = createDexieArrayQuery(() => db.processedposts.toArray());
+  // const processedPosts = createDexieArrayQuery(() => db.processedposts.toArray());
+
+  const ydoc = new Y.Doc()
+  const processedPostsProvider = new IndexeddbPersistence('processedposts', ydoc)
+  const yProcessedPosts = ydoc.getMap();
+
   const putProcessedPost = async (newProcessedPost: ProcessedPost) => {
     await db.processedposts.put(newProcessedPost)
   }
   const markComplete = (postId: string, feedId: string) => {
-    const newProcessedPostsForFeed = processedPosts.find((processedPostForFeed) => processedPostForFeed.id == feedId)?.processedPosts?.slice()
-    putProcessedPost({
-      id: feedId,
-      processedPosts: Array.from(new Set([newProcessedPostsForFeed, postId].flat())) as string[]
-    })
+    const newProcessedPostsForFeed = yProcessedPosts.get(feedId)
+    yProcessedPosts.set(feedId, Array.from(new Set([newProcessedPostsForFeed, postId].flat())) as string[])
+ 
   }
   const ignoreNostrKeys = createDexieArrayQuery(() => db.nostrkeys
   .filter(nostrKey => nostrKey.ignore === true)
@@ -373,7 +383,15 @@ const App: Component = () => {
         { since: nHoursAgo(6) }
       )
       .then((allThePosts: any) => {
-        const processedNostrPosts = [processedPosts.find((processedPostsEntry) => processedPostsEntry?.id == 'nostr')?.processedPosts].flat().map((post) => post?.toString().split(' ').slice(0, 50).join(' '))
+
+
+        // const newProcessedPostsForFeed = yProcessedPosts.get(feedId)
+        // yProcessedPosts.set(feedId, Array.from(new Set([newProcessedPostsForFeed, postId].flat())) as string[])
+       
+
+        const processedNostrPosts = yProcessedPosts.get('nostr') as string[]
+         // .map((post: string) => post?.toString().split(' ').slice(0, 50).join(' '))
+
         const suppressOdds = parseFloat(classifiers.find((classifierEntry) => classifierEntry?.id == 'nostr')?.thresholdSuppressOdds || '999')
         const filteredPosts = allThePosts
           .filter((nostrPost: any) => `${nostrPost.mlText}`.replace(' ','') != '')
@@ -437,17 +455,32 @@ const App: Component = () => {
   const toggleNav = () => setNavIsOpen(!navIsOpen())
 
   // onMount(async () => {
-  //   console.log("you are tiger")
-  //   // const wsProvider = new WebsocketProvider('ws://localhost:1234', 'my-roomname', doc, { WebSocketPolyfill: require('ws') })
-  //   // const doc = new Y.Doc();
-  //   // const yarray = doc.getArray('my-array')
-  //   // yarray.observe(event => {
-  //   //   console.log('yarray was modified')
-  //   // })
-  //   // // every time a local or remote client modifies yarray, the observer is called
-  //   // yarray.insert(0, ['val']) // => "yarray was modified"
+    //clients connected to the same room-name share document updates
+
+    // const rtcProvider = new WebrtcProvider('default', ydoc, {})
+    // const yProcessedPosts = ydoc.get('array', Y.Array)
+    // const yMapProcessedPosts = ydoc.getMap()
+    // yProcessedPosts.observe(event => {
+    //   const processedPostsObj = Object.fromEntries(Array.from(yMapProcessedPosts))
+    //   console.log(processedPostsObj)
+    // })
+    // const yarray = ydoc.get('array', Y.Array)
+    // yarray.observe(event => {
+    //   console.log('yarray was modified')
+    // })
+// const wsProvider = new WebsocketProvider('ws://localhost:1234', 'park-demo', ydoc, [{wsOpts: {
+//     WebsocketPolyfill: ws
+// }}])
+    // const wsProvider = new WebsocketProvider('ws://localhost:1234', 'my-roomname', doc, { WebSocketPolyfill: require('ws') })
+    // const doc = new Y.Doc();
+    // const yarray = doc.getArray('my-array')
+    // yarray.observe(event => {
+    //   console.log('yarray was modified')
+    // })
+    // // every time a local or remote client modifies yarray, the observer is called
+    // yarray.insert(0, ['val']) // => "yarray was modified"
   // })
-  // console.log(scoredRSSPosts())
+  //console.log(scoredRSSPosts())
 
   return (
     <div class='flex justify-start font-sans mr-30px'>

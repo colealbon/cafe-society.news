@@ -2,13 +2,13 @@ import {
   For,
   createEffect,
 } from 'solid-js';
+import { compress } from 'compress-json'
 import {
   Collapsible,
   Link
 } from "@kobalte/core";
 import {
-  useParams,
-  useLocation
+  useParams
 } from "@solidjs/router";
 
 import {
@@ -123,7 +123,6 @@ const Classifiers = (props: {
     //   return
     // }
   })
-
   return (
   <div class='fade-in'>
     <PageHeader>Edit Classifiers</PageHeader>
@@ -156,7 +155,11 @@ const Classifiers = (props: {
         <pre>{JSON.stringify(group.controls.model.rawValue, null, 2)}</pre>
       </div>
       <div style={{'max-width': '500px'}}>
-        <Link.Root href={`/rssposts/${group.controls.id.value}?model=${btoa(encodeURIComponent(group.controls.model.rawValue))}`}>{`/rssposts/${group.controls.id.value}?model=${btoa(encodeURIComponent(group.controls.model.rawValue))}`}</Link.Root>
+        <Link.Root 
+          href={`/rssposts/${group.controls.id.value}?model=${btoa(encodeURIComponent(JSON.stringify(compress(JSON.parse(group.controls.model.rawValue)))))}`}
+        >
+          {`/rssposts/${group.controls.id.value}?model=${btoa(encodeURIComponent(JSON.stringify(compress(JSON.parse(group.controls.model.rawValue)))))}`}
+        </Link.Root>
       </div>
     </>}
     </p>
