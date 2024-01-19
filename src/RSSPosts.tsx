@@ -4,8 +4,7 @@ import {
   createEffect
 } from 'solid-js'
 import {
-  useParams,
-  useSearchParams
+  useParams
 } from '@solidjs/router'
 import {
   Title

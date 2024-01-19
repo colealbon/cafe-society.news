@@ -1,13 +1,6 @@
 import Dexie, { Table } from "dexie";
+import {NostrKey } from './NostrKeys'
 
-export interface NostrKey {
-  publicKey: string;
-  secretKey?: string;
-  label?: string;
-  lightningAddress?: string;
-  follow?: boolean;
-  ignore?: boolean;
-}
 
 export interface Classifier {
   "id": string,

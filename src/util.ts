@@ -11,6 +11,25 @@ const nlp = winkNLP( model );
 const its = nlp.its;
 const parser = new XMLParser();
 
+export const htmlInnerText = (input: string) => {
+  return input
+  .replace(/&#039;/g, "'")
+  .replace(/&#8217;/g, "'")
+  .replace(/&#8211;/g, "-")
+  .replace(/&#8216;/g, "'")
+  .replace(/&#8230;/g, "…")
+  .replace(/&#038;/g, "&")
+  .replace(/&#8221;/g, "'")
+  .replace(/&#8220;/g, "'")
+  .replace(/&#x2019;/g,"'")
+  .replace(/&#x2018;/g,"'")
+  .replace(/&#39;/g,"'")
+  .replace(/&#34;/g,"'")
+  .replace(/&gt;/g,">")
+  .replace(/&lt;/g,"<")
+  .replace(/&#43;/g,"+")
+}
+
 const removePunctuation = (text: string) => {
   return `${text}`
     .replace(/[/?…".,#!$%^&*;:{}=_`~()'’‘“”]/g, '')
@@ -184,7 +203,7 @@ export const applyPrediction = (params: {
   }
 
 export const parseAtom = (content: any) => {
-    const feedTitle = content.feed?.author.name || content.feed?.feedTitle || content.feed?.title
+    const feedTitle = content.feed?.author?.name || content.feed?.feedTitle || content.feed?.title
     const feedLink = `${content.feed?.generator}${content.feed?.id}`
     const feedDescription = content.feed?.subtitle
     const feedPosts = content.feed?.entry

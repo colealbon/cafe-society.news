@@ -4,6 +4,7 @@ export interface ButtonProps {
   label: Element | any;
   disabled?: boolean;
   onClick: () => void;
+  onPointerDown?: (e: any) => any;
   class?: string;
   children?: any;
 }

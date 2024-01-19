@@ -135,7 +135,7 @@ const RSSFeeds = (props: {
         <TextInput name="id" control={group.controls.id} />
         <Combobox.Control<string> 
           aria-label="Feeds"
-          class="bg-white combobox__control bg-white" 
+          class="bg-white combobox__control" 
         >
         {state => (
           <> 

@@ -32,3 +32,8 @@ Your app is ready to be deployed!
 ## Deployment
 
 You can deploy the `dist` folder to any static host provider (netlify, surge, now, etc.)
+
+## Development
+
+trainwrecks are now multiple day events, so we have added a checklist.txt to read before commits.  We will move as much into liters as possible.
+

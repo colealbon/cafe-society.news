@@ -5,9 +5,6 @@ import {
   createEffect
 } from 'solid-js'
 import {
-  Separator
-} from "@kobalte/core"
-import {
   useSearchParams
 } from '@solidjs/router'
 import {Button} from './components/Button';

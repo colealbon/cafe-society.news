@@ -24,11 +24,12 @@ import { NostrFetcher } from "nostr-fetch";
 import Payment from './Payment';
 import Contact from './Contact';
 import NostrRelays from './NostrRelays';
-import NostrKeys from './NostrKeys';
+import NostrKeys, { NostrKey } from './NostrKeys';
 import Classifiers from './Classifiers';
 import TrainLabels from './TrainLabels';
 import NostrPosts from './NostrPosts';
 import Prompt from './Prompt';
+import Melds from './Melds'
 import defaultMetadata from './defaultMetadata';
 import defaultCorsProxies from './defaultCorsProxies';
 import defaultNostrRelays from './defaultNostrRelays';
@@ -40,7 +41,6 @@ import defaultRSSFeeds from './defaultRSSFeeds';
 import {
   DbFixture,
   NostrRelay,
-  NostrKey,
   TrainLabel,
   RSSFeed,
   CorsProxy,
@@ -55,7 +55,8 @@ import {
   createStoredSignal,
   applyPrediction,
   parsePosts,
-  fetchRssPosts
+  fetchRssPosts,
+  htmlInnerText
 } from './util';
 import * as Y from 'yjs'
 import { WebrtcProvider } from 'y-webrtc'
@@ -73,7 +74,7 @@ db.on("populate", () => {
 });
 
 const App: Component = () => {
-  const [params, setParams] = useSearchParams();
+  // const [params, setParams] = useSearchParams();
   const [navIsOpen, setNavIsOpen] = createSignal(false);
   const [albyCodeVerifier, setAlbyCodeVerifier] = createStoredSignal('albyCodeVerifier', '')
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
@@ -224,22 +225,7 @@ const App: Component = () => {
       // replace this big replace with html innerText?
       return {
         ...post,
-        postTitle: post?.postTitle
-        .replace(/&#039;/g, "'")
-        .replace(/&#8217;/g, "'")
-        .replace(/&#8211;/g, "-")
-        .replace(/&#8216;/g, "'")
-        .replace(/&#8230;/g, "…")
-        .replace(/&#038;/g, "&")
-        .replace(/&#8221;/g, "'")
-        .replace(/&#8220;/g, "'")
-        .replace(/&#x2019;/g,"'")
-        .replace(/&#x2018;/g,"'")
-        .replace(/&#39;/g,"'")
-        .replace(/&#34;/g,"'")
-        .replace(/&gt;/g,">")
-        .replace(/&lt;/g,"<")
-        .replace(/&#43;/g,"+")
+        postTitle: htmlInnerText(post?.postTitle)
       }
     })
     .filter((post: {
@@ -337,21 +323,25 @@ const App: Component = () => {
   const [fetchRssParams, setFetchRssParams] = createSignal('')
   // const processedPosts = createDexieArrayQuery(() => db.processedposts.toArray());
 
-  const ydoc = new Y.Doc()
-  const processedPostsProvider = new IndexeddbPersistence('processedposts', ydoc)
-  const yProcessedPosts = ydoc.getMap();
+  const ydocProcessedPosts = new Y.Doc()
+  const processedPostsProvider = new IndexeddbPersistence('processedposts', ydocProcessedPosts)
+  const yProcessedPosts = ydocProcessedPosts.getMap();
+
+  const ydocMelds = new Y.Doc()
+  const meldsProvider = new IndexeddbPersistence('melds', ydocMelds)
+  const yMelds = ydocMelds.getMap();
 
   const putProcessedPost = async (newProcessedPost: ProcessedPost) => {
     await db.processedposts.put(newProcessedPost)
   }
   const markComplete = (postId: string, feedId: string) => {
-    const newProcessedPostsForFeed = yProcessedPosts.get(feedId)
-    yProcessedPosts.set(feedId, Array.from(new Set([newProcessedPostsForFeed, postId].flat())) as string[])
- 
+    const newProcessedPostsForFeed: string[] = yProcessedPosts.get(feedId) as string[]
+    yProcessedPosts.set(feedId, Array.from(new Set([...newProcessedPostsForFeed, postId])))
+    // yProcessedPosts.get(feedId)
   }
   const ignoreNostrKeys = createDexieArrayQuery(() => db.nostrkeys
-  .filter(nostrKey => nostrKey.ignore === true)
-  .toArray()
+    .filter(nostrKey => nostrKey.ignore === true)
+    .toArray()
   );
   createEffect(() => {
     const nostrRelayList = checkedNostrRelays.map((relay: NostrRelay) => relay.id)
@@ -383,12 +373,8 @@ const App: Component = () => {
         { since: nHoursAgo(6) }
       )
       .then((allThePosts: any) => {
-
-
         // const newProcessedPostsForFeed = yProcessedPosts.get(feedId)
         // yProcessedPosts.set(feedId, Array.from(new Set([newProcessedPostsForFeed, postId].flat())) as string[])
-       
-
         const processedNostrPosts = yProcessedPosts.get('nostr') as string[]
          // .map((post: string) => post?.toString().split(' ').slice(0, 50).join(' '))
 
@@ -446,6 +432,7 @@ const App: Component = () => {
             return ( 0.0 + post.prediction?.suppress || 0.0) != 0.0
           })
           .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
+
         resolve(filteredPosts)
       })
     })
@@ -662,6 +649,14 @@ const App: Component = () => {
           />
           <Route path='/contact' component={() => <Contact/>} />
           <Route path='/subscriptions' component={() => <Payment />} />
+          <Route
+            path='/melds'
+            component={() => {
+              return <Melds 
+                nostrKeys={nostrKeys}
+              />
+            }}
+          />
           <Route path='/nostrrelays' component={() => {
             return <NostrRelays
               nostrRelays={nostrRelays}

@@ -22,7 +22,6 @@ import {
 
 import { PageHeader } from './components/PageHeader'
 import { Button } from './components/Button'
-import { NostrKey } from './db-fixture'
 
 const NostrKeys = (props: {
   nostrKeys: NostrKey[],
@@ -110,22 +109,22 @@ const NostrKeys = (props: {
         ignore: false
       })
   }
-  const ydoc = new Y.Doc()
-  const ymap = ydoc.getMap()
-  ymap.set('keyA', 'valueA')
+  // const ydoc = new Y.Doc()
+  // const ymap = ydoc.getMap()
+  // ymap.set('keyA', 'valueA')
   
-  // Create another Yjs document (simulating a remote user)
-  // and create some conflicting changes
-  const ydocRemote = new Y.Doc()
-  const ymapRemote = ydocRemote.getMap()
-  ymapRemote.set('keyB', 'valueB')
+  // // Create another Yjs document (simulating a remote user)
+  // // and create some conflicting changes
+  // const ydocRemote = new Y.Doc()
+  // const ymapRemote = ydocRemote.getMap()
+  // ymapRemote.set('keyB', 'valueB')
   
-  // Merge changes from remote
-  const update = Y.encodeStateAsUpdate(ydocRemote)
-  Y.applyUpdate(ydoc, update)
+  // // Merge changes from remote
+  // const update = Y.encodeStateAsUpdate(ydocRemote)
+  // Y.applyUpdate(ydoc, update)
   
-  // Observe that the changes have merged
-  console.log(ymap.toJSON()) // => { keyA: 'valueA', keyB: 'valueB' }
+  // // Observe that the changes have merged
+  // console.log(ymap.toJSON()) // => { keyA: 'valueA', keyB: 'valueB' }
 
 
   return (
@@ -212,6 +211,14 @@ const NostrKeys = (props: {
   )
 }
 export default NostrKeys;
+export interface NostrKey {
+  publicKey: string;
+  secretKey?: string;
+  label?: string;
+  lightningAddress?: string;
+  follow?: boolean;
+  ignore?: boolean;
+}
 
 // const nostrClient = relayInit("ws://0.0.0.0:8080");
 // await nostrClient.connect();
