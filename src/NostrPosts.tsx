@@ -1,6 +1,7 @@
 import {
   Show,
-  For
+  For,
+  createSignal
 } from 'solid-js';
 import {
   Link,
@@ -13,7 +14,7 @@ import { SkeletonPost } from './components/SkeletonPost'
 
 import PostTrain from './PostTrain'
 import { IoRemoveCircleOutline } from 'solid-icons/io'
-import { NostrKey } from "./db-fixture";
+import { NostrKey } from './NostrKeys'
 import { nip19 } from 'nostr-tools'
 
 const NostrPosts = (props: {
@@ -44,6 +45,9 @@ const NostrPosts = (props: {
     .replace(/data:image.*/g, '')
     .replace('undefined', '')
   }
+
+  const [processedPostsForSession, setProcessedPostsForSession] = createSignal('')
+
   return (
     <main>
       <PageHeader>Nostr Global</PageHeader>
@@ -54,9 +58,8 @@ const NostrPosts = (props: {
         {(post) => {
           return (
             <Show when={post.mlText != ''}>
-              <Show when={() => props.nostrPosts().map((post: any) => post.mlText).indexOf(post.mlText) != -1}>
                 {
-                  <Collapsible.Root defaultOpen={true}>
+                  <Collapsible.Root defaultOpen={!processedPostsForSession().includes(post.mlText)}>
                     <Collapsible.Content class="collapsible__content pr-5">
                       <div class='flex flex-row'>
                         <Button
@@ -128,7 +131,6 @@ const NostrPosts = (props: {
                   </Collapsible.Root>  
                 }
               </Show>
-            </Show>
           )
         }}
       </For>

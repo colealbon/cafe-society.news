@@ -18,6 +18,7 @@ const PostTrain = (props: {
   // const handleComplete = () => props.markComplete( )
   const handleTrain = (mlClass: string) => {
     props.train(mlClass)
+    props.markComplete() 
   }
   const handleComplete = () => {
       props.markComplete()    
@@ -27,40 +28,16 @@ const PostTrain = (props: {
     <div class='bg-transparent bg-red border-none'>
       <Button 
         label='↓'
-        onClick={() => {
-          // setTimeout(() => {
-            handleComplete()
-            handleTrain('suppress')
-          // }, 300)
-        }}
+        onClick={() => handleTrain('suppress')}
       />
-      <Tooltip.Root>
-        <Tooltip.Trigger class='tooltip__trogger border-none p-o bg-transparent'>
-          <Button label={`${(0.0 + (props.prediction && props.prediction['promote']) || 0.0).toFixed(2).replace('NaN', '-')}`} onClick={() => handleComplete()} />
-        </Tooltip.Trigger>
-        <Tooltip.Portal>
-          <Tooltip.Content class="tooltip__content p-0">
-            <pre>
-              <div>
-                {props.docCount ? `ML document count: ${props.docCount}` : `more training required for predictions ${JSON.stringify(props.prediction, null, 2)}`}
-              </div>
-              <div>
-                {`prediction: ${(0.0 + props.prediction['promote'] || 0.0) > 0 ? 'promote' : 'suppress'} ${(0.0 + props.prediction['promote'] || 0.0)
-                .toFixed(2)
-                .replace('NaN', '-')}`}
-              </div>
-            </pre>
-          </Tooltip.Content>
-        </Tooltip.Portal>
-      </Tooltip.Root>
+      <Button 
+        label={`${(0.0 + (props.prediction && props.prediction['promote']) || 0.0).toFixed(2).replace('NaN', '-')}`} 
+        onClick={() => handleComplete()}
+      />
       <Button
         label='↑'
-        onClick={() => {
-          // setTimeout(() => {
-            handleComplete()
-            handleTrain('promote')
-          // }, 300)
-        }} />
+        onClick={() => handleTrain('promote')} 
+      />
     </div>
   )
 }

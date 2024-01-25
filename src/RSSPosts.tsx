@@ -1,7 +1,8 @@
 import {
   For,
   Show,
-  createEffect
+  createEffect,
+  createSignal
 } from 'solid-js'
 import {
   useParams
@@ -38,6 +39,7 @@ const Posts = (props: {
   markComplete: any,
   setSelectedTrainLabel: any,
 }) => {
+  const [processedPostsForSession, setProcessedPostsForSession] = createSignal('')
   createEffect(() => {
     try {
       if (`${useParams().trainlabel}` === 'undefined') {
@@ -50,9 +52,7 @@ const Posts = (props: {
       return
     }
   })
-  // createEffect(() => {
-  //   console.log(useSearchParams())
-  // })
+
   return (
     <>
       <Title>{`cafe-society.news - ${props.trainLabel}`}</Title>
@@ -64,33 +64,33 @@ const Posts = (props: {
         {(post) => {
           const processedPostsID = `${post.feedLink}` === "" ? shortGuid(post.guid) : shortUrl(`${post.feedLink}`)
           return (
-              <Collapsible.Root defaultOpen={true}>
-                <Collapsible.Content class="collapsible__content pr-2">
-                  <PostDisplay {...post}/>
-                  <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
-                    <Show when={props.trainLabel != ''}>
-                      <div class='justify-center'>
-                        <PostTrain
-                          trainLabel={props.trainLabel}
-                          train={(mlClass: string) => {
-                              props.train({
-                                mlClass: mlClass,
-                                mlText: post.mlText
-                              })
-                          }}
-                          mlText={post.mlText}
-                          prediction={post.prediction}
-                          docCount={post.docCount}
-                          markComplete={() => setTimeout(() => {
-                            props.markComplete(post.mlText, processedPostsID)
-                          }, 300)
-                          }
-                        />
-                      </div>
-                    </Show>
-                  </Collapsible.Trigger>
-                </Collapsible.Content>
-              </Collapsible.Root>      
+            <Collapsible.Root defaultOpen={!processedPostsForSession().includes(post.mlText)}>
+              <Collapsible.Content class="collapsible__content pr-2">
+                <PostDisplay {...post}/>
+                <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
+                  <Show when={props.trainLabel != ''}>
+                    <div class='justify-center'>
+                      <PostTrain
+                        trainLabel={props.trainLabel}
+                        train={(mlClass: string) => {
+                            props.train({
+                              mlClass: mlClass,
+                              mlText: post.mlText
+                            })
+                        }}
+                        mlText={post.mlText}
+                        prediction={post.prediction}
+                        docCount={post.docCount}
+                        markComplete={() => {
+                          props.markComplete(post.mlText, processedPostsID)
+                          setProcessedPostsForSession(processedPostsForSession().concat(post.mlText))
+                        }}
+                      />
+                    </div>
+                  </Show>
+                </Collapsible.Trigger>
+              </Collapsible.Content>
+            </Collapsible.Root>   
           )}}       
       </For>
     </>

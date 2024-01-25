@@ -17,8 +17,9 @@ import WinkClassifier from 'wink-naive-bayes-text-classifier';
 import {
   Routes,
   Route,
-  useParams,
-  useSearchParams
+  useParams
+  // ,
+  // useSearchParams
 } from "@solidjs/router";
 import { NostrFetcher } from "nostr-fetch";
 import Payment from './Payment';
@@ -36,7 +37,7 @@ import defaultNostrRelays from './defaultNostrRelays';
 import defaultNostrKeys from './defaultNostrKeys';
 import defaultClassifiers from './defaultClassifiers';
 import defaultTrainLabels from './defaultTrainLabels';
-import defaultProcessed from './defaultProcessed';
+// import defaultProcessed from './defaultProcessed';
 import defaultRSSFeeds from './defaultRSSFeeds';
 import {
   DbFixture,
@@ -45,7 +46,7 @@ import {
   RSSFeed,
   CorsProxy,
   Classifier,
-  ProcessedPost
+  // ProcessedPost
 } from "./db-fixture";
 import {
   nHoursAgo,
@@ -58,6 +59,7 @@ import {
   fetchRssPosts,
   htmlInnerText
 } from './util';
+
 import * as Y from 'yjs'
 import { WebrtcProvider } from 'y-webrtc'
 
@@ -70,7 +72,7 @@ db.on("populate", () => {
   db.corsproxies.bulkAdd(defaultCorsProxies as CorsProxy[]);
   db.trainlabels.bulkAdd(defaultTrainLabels as TrainLabel[]);
   db.classifiers.bulkAdd(defaultClassifiers as Classifier[]);
-  db.processedposts.bulkAdd(defaultProcessed as ProcessedPost[]);
+  // db.processedposts.bulkAdd(defaultProcessed as ProcessedPost[]);
 });
 
 const App: Component = () => {
@@ -327,18 +329,25 @@ const App: Component = () => {
   const processedPostsProvider = new IndexeddbPersistence('processedposts', ydocProcessedPosts)
   const yProcessedPosts = ydocProcessedPosts.getMap();
 
+  yProcessedPosts.observe(event => {
+      console.log('yarray was modified')
+    })
+
   const ydocMelds = new Y.Doc()
   const meldsProvider = new IndexeddbPersistence('melds', ydocMelds)
   const yMelds = ydocMelds.getMap();
 
-  const putProcessedPost = async (newProcessedPost: ProcessedPost) => {
-    await db.processedposts.put(newProcessedPost)
-  }
+  // const putProcessedPost = async (newProcessedPost: ProcessedPost) => {
+  //   await db.processedposts.put(newProcessedPost)
+  // }
+
   const markComplete = (postId: string, feedId: string) => {
-    const newProcessedPostsForFeed: string[] = yProcessedPosts.get(feedId) as string[]
+    const newProcessedPostsForFeed: string[] = yProcessedPosts.get(feedId) as string[] || []
+    // console.log(newProcessedPostsForFeed)
     yProcessedPosts.set(feedId, Array.from(new Set([...newProcessedPostsForFeed, postId])))
     // yProcessedPosts.get(feedId)
   }
+
   const ignoreNostrKeys = createDexieArrayQuery(() => db.nostrkeys
     .filter(nostrKey => nostrKey.ignore === true)
     .toArray()
@@ -640,7 +649,7 @@ const App: Component = () => {
                   }}
                   nostrPosts={nostrPosts}
                   putNostrKey={putNostrKey}
-                  putProcessedPost={putProcessedPost}
+                  // putProcessedPost={putProcessedPost}
                   putClassifier={putClassifier}
                   markComplete={(postId: string) => markComplete(postId, 'nostr')}
                 />

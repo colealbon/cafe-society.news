@@ -1,7 +1,6 @@
 import Dexie, { Table } from "dexie";
 import {NostrKey } from './NostrKeys'
 
-
 export interface Classifier {
   "id": string,
   "thresholdSuppressOdds"?: string
