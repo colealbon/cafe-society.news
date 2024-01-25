@@ -152,17 +152,17 @@ const defaultRSSFeeds =
   },
   {
     "id": "https://njump.me/npub1q6mcr8tlr3l4gus3sfnw6772s7zae6hqncmw5wj27ejud5wcxf7q0nx7d5.rss",
-    "checked": true,
+    "checked": false,
     "trainLabels": ["shadowysupercoders"]
   },
   {
     "id": "https://njump.me/npub1l2vyh47mk2p0qlsku7hg0vn29faehy9hy34ygaclpn66ukqp3afqutajft.rss",
-    "checked": true,
+    "checked": false,
     "trainLabels": ["shadowysupercoders"]
   },
   {
     "id": "https://njump.me/npub1gcxzte5zlkncx26j68ez60fzkvtkm9e0vrwdcvsjakxf9mu9qewqlfnj5z.rss",
-    "checked": true,
+    "checked": false,
     "trainLabels": ["shadowysupercoders"]
   },
   {

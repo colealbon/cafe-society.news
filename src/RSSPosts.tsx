@@ -62,11 +62,12 @@ const Posts = (props: {
       <PageHeader>{props.trainLabel || 'all rss posts'}</PageHeader>
       <For each={props.rssPosts} fallback={<div class="pl-6"><SkeletonPost /> <SkeletonPost /> </div>}>
         {(post) => {
+          const [isShrinking, setIsShrinking] = createSignal(false);
           const processedPostsID = `${post.feedLink}` === "" ? shortGuid(post.guid) : shortUrl(`${post.feedLink}`)
           return (
             <Collapsible.Root defaultOpen={!processedPostsForSession().includes(post.mlText)}>
-              <Collapsible.Content class="collapsible__content pr-2">
-                <PostDisplay {...post}/>
+              <Collapsible.Content class='collapsible__content pr-2'>
+                <PostDisplay {...post} isShrinking={isShrinking}/>
                 <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
                   <Show when={props.trainLabel != ''}>
                     <div class='justify-center'>
@@ -82,8 +83,11 @@ const Posts = (props: {
                         prediction={post.prediction}
                         docCount={post.docCount}
                         markComplete={() => {
-                          props.markComplete(post.mlText, processedPostsID)
+                          setIsShrinking(true)
                           setProcessedPostsForSession(processedPostsForSession().concat(post.mlText))
+                          setTimeout(() => {
+                            props.markComplete(post.mlText, processedPostsID)
+                          }, 300)
                         }}
                       />
                     </div>

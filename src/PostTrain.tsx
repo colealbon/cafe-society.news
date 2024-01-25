@@ -18,14 +18,12 @@ const PostTrain = (props: {
   // const handleComplete = () => props.markComplete( )
   const handleTrain = (mlClass: string) => {
     props.train(mlClass)
-    props.markComplete() 
+    props.markComplete()
   }
-  const handleComplete = () => {
-      props.markComplete()    
-  }
-
+  const handleComplete = () => setTimeout(() => props.markComplete(), 300)
+  
   return(
-    <div class='bg-transparent bg-red border-none'>
+    <div class='bg-transparent border-none'>
       <Button 
         label='↓'
         onClick={() => handleTrain('suppress')}

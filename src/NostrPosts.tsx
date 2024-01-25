@@ -23,7 +23,6 @@ const NostrPosts = (props: {
   nostrPosts: any,
   putNostrKey: any,
   putClassifier: any,
-  putProcessedPost: any,
   markComplete: any
 }) => {
   
@@ -56,8 +55,9 @@ const NostrPosts = (props: {
         fallback={<div><SkeletonPost /><SkeletonPost /></div> }
       >
         {(post) => {
+          const [visible, setVisible] = createSignal(true)
           return (
-            <Show when={post.mlText != ''}>
+            <Show when={post.mlText != '' && visible() == true}>
                 {
                   <Collapsible.Root defaultOpen={!processedPostsForSession().includes(post.mlText)}>
                     <Collapsible.Content class="collapsible__content pr-5">
@@ -67,6 +67,7 @@ const NostrPosts = (props: {
                           title='ignore author'
                           onClick={() => {
                             handleIgnore(post.pubkey)
+                            setVisible(false)
                             setTimeout(() => {
                               props.markComplete(post.mlText)
                             }, 300)
@@ -122,6 +123,7 @@ const NostrPosts = (props: {
                             prediction={post.prediction}
                             docCount={post.docCount}
                             markComplete={() => {
+                              setProcessedPostsForSession(processedPostsForSession().concat(post.mlText))
                               props.markComplete(post.mlText)
                             }}
                           />

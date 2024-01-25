@@ -1,6 +1,6 @@
 import { Button } from './components/Button';
 import { NavBar } from './components/NavBar';
-import { IndexeddbPersistence } from 'y-indexeddb'
+import { IndexeddbPersistence } from 'y-indexeddb';
 import {
   createSignal,
   createResource,
@@ -18,8 +18,6 @@ import {
   Routes,
   Route,
   useParams
-  // ,
-  // useSearchParams
 } from "@solidjs/router";
 import { NostrFetcher } from "nostr-fetch";
 import Payment from './Payment';
@@ -37,7 +35,6 @@ import defaultNostrRelays from './defaultNostrRelays';
 import defaultNostrKeys from './defaultNostrKeys';
 import defaultClassifiers from './defaultClassifiers';
 import defaultTrainLabels from './defaultTrainLabels';
-// import defaultProcessed from './defaultProcessed';
 import defaultRSSFeeds from './defaultRSSFeeds';
 import {
   DbFixture,
@@ -45,8 +42,7 @@ import {
   TrainLabel,
   RSSFeed,
   CorsProxy,
-  Classifier,
-  // ProcessedPost
+  Classifier
 } from "./db-fixture";
 import {
   nHoursAgo,
@@ -72,11 +68,9 @@ db.on("populate", () => {
   db.corsproxies.bulkAdd(defaultCorsProxies as CorsProxy[]);
   db.trainlabels.bulkAdd(defaultTrainLabels as TrainLabel[]);
   db.classifiers.bulkAdd(defaultClassifiers as Classifier[]);
-  // db.processedposts.bulkAdd(defaultProcessed as ProcessedPost[]);
 });
 
 const App: Component = () => {
-  // const [params, setParams] = useSearchParams();
   const [navIsOpen, setNavIsOpen] = createSignal(false);
   const [albyCodeVerifier, setAlbyCodeVerifier] = createStoredSignal('albyCodeVerifier', '')
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
@@ -154,10 +148,6 @@ const App: Component = () => {
     const winkClassifier = WinkClassifier()
     winkClassifier.definePrepTasks( [ prepNLPTask ] );
     winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
- 
-    // const modelOverride = params['model'] ? decodeURIComponent(atob(params['model'])) : null
-    // console.log(modelOverride)
-
     const classifierModel: string = classifiers.find((classifierEntry: any) => classifierEntry?.id == selectedTrainLabel())?.model || ''
     if (classifierModel != '') {
       winkClassifier.importJSON(classifierModel)
@@ -198,7 +188,6 @@ const App: Component = () => {
     .filter((postItem: any) => {
       const processedPostsID = postItem.feedLink === "" ? postItem.guid : shortUrl(postItem.feedLink)
       const processedPostsForFeedLink = yProcessedPosts.get(processedPostsID) as Array<string>
-      //.find((processedPostsEntry) => processedPostsEntry?.id == processedPostsID)?.processedPosts
       if (processedPostsForFeedLink == undefined) { 
         return true
       }
@@ -323,8 +312,6 @@ const App: Component = () => {
   }
   const [nostrQuery, setNostrQuery] = createSignal('')
   const [fetchRssParams, setFetchRssParams] = createSignal('')
-  // const processedPosts = createDexieArrayQuery(() => db.processedposts.toArray());
-
   const ydocProcessedPosts = new Y.Doc()
   const processedPostsProvider = new IndexeddbPersistence('processedposts', ydocProcessedPosts)
   const yProcessedPosts = ydocProcessedPosts.getMap();
@@ -337,15 +324,10 @@ const App: Component = () => {
   const meldsProvider = new IndexeddbPersistence('melds', ydocMelds)
   const yMelds = ydocMelds.getMap();
 
-  // const putProcessedPost = async (newProcessedPost: ProcessedPost) => {
-  //   await db.processedposts.put(newProcessedPost)
-  // }
-
   const markComplete = (postId: string, feedId: string) => {
     const newProcessedPostsForFeed: string[] = yProcessedPosts.get(feedId) as string[] || []
     // console.log(newProcessedPostsForFeed)
     yProcessedPosts.set(feedId, Array.from(new Set([...newProcessedPostsForFeed, postId])))
-    // yProcessedPosts.get(feedId)
   }
 
   const ignoreNostrKeys = createDexieArrayQuery(() => db.nostrkeys
@@ -382,11 +364,7 @@ const App: Component = () => {
         { since: nHoursAgo(6) }
       )
       .then((allThePosts: any) => {
-        // const newProcessedPostsForFeed = yProcessedPosts.get(feedId)
-        // yProcessedPosts.set(feedId, Array.from(new Set([newProcessedPostsForFeed, postId].flat())) as string[])
         const processedNostrPosts = yProcessedPosts.get('nostr') as string[]
-         // .map((post: string) => post?.toString().split(' ').slice(0, 50).join(' '))
-
         const suppressOdds = parseFloat(classifiers.find((classifierEntry) => classifierEntry?.id == 'nostr')?.thresholdSuppressOdds || '999')
         const filteredPosts = allThePosts
           .filter((nostrPost: any) => `${nostrPost.mlText}`.replace(' ','') != '')
@@ -452,7 +430,6 @@ const App: Component = () => {
 
   // onMount(async () => {
     //clients connected to the same room-name share document updates
-
     // const rtcProvider = new WebrtcProvider('default', ydoc, {})
     // const yProcessedPosts = ydoc.get('array', Y.Array)
     // const yMapProcessedPosts = ydoc.getMap()
@@ -533,7 +510,6 @@ const App: Component = () => {
               handleFeedToggleChecked={(id: string) => handleFeedToggleChecked(id)}
             />
           }}/>
-
           <Route path='/rssposts' component={() => {
             const RSSPosts = lazy(() => import("./RSSPosts"))
             return <RSSPosts
@@ -576,7 +552,6 @@ const App: Component = () => {
               rssPosts={dedupedRSSPosts() && JSON.parse(dedupedRSSPosts())}
             />
           }} />
-
           <Route path='/rssposts/:trainlabel' component={() => {
             const RSSPosts = lazy(() => import("./RSSPosts"))
             const {trainlabel} = useParams()
@@ -599,7 +574,6 @@ const App: Component = () => {
               setSelectedTrainLabel={setSelectedTrainLabel}
             />
           }} />
-
           <Route path='/rssposts/:trainlabel/:model' component={() => {
             const RSSPosts = lazy(() => import("./RSSPosts"))
             const {trainlabel} = useParams()
@@ -628,7 +602,6 @@ const App: Component = () => {
               setSelectedTrainLabel={setSelectedTrainLabel}
             />
           }} />
-
           <Route 
             path='/nostrposts'
             component={() => {
@@ -649,7 +622,6 @@ const App: Component = () => {
                   }}
                   nostrPosts={nostrPosts}
                   putNostrKey={putNostrKey}
-                  // putProcessedPost={putProcessedPost}
                   putClassifier={putClassifier}
                   markComplete={(postId: string) => markComplete(postId, 'nostr')}
                 />
@@ -680,7 +652,6 @@ const App: Component = () => {
               removeNostrKey={removeNostrKey}
               />}} />
           <Route path='/nostrkeys/raw' component={() => <pre>{JSON.stringify(nostrKeys, null, 2)}</pre>}/>
-
           <Route path='/classifiers' component={() => {
             return <Classifiers
               classifiers={classifiers}
@@ -695,7 +666,6 @@ const App: Component = () => {
               removeClassifier={removeClassifier}
               />}}
           />
-
           <Route path='/classifiers/raw' component={() => {
             return <pre>
               {JSON.stringify(classifiers, null, 2)}
