@@ -1,16 +1,17 @@
 import { Button } from './components/Button';
 import { NavBar } from './components/NavBar';
 import { IndexeddbPersistence } from 'y-indexeddb';
+import { WebsocketProvider } from 'y-websocket'
 import {
   createSignal,
   createResource,
   lazy,
-  createEffect,
-  onMount
+  createEffect
 } from 'solid-js';
 import type {
   Component
 } from 'solid-js';
+
 import stringSimilarity from 'string-similarity';
 import { createDexieArrayQuery } from "solid-dexie";
 import WinkClassifier from 'wink-naive-bayes-text-classifier';
@@ -57,6 +58,17 @@ import {
 } from './util';
 
 import * as Y from 'yjs'
+
+import {
+  getPublicKey,
+} from "nostr-tools";
+
+const thePrivateKey = '823f7e95b15dd638cd662e799b23677926b705e429b3da517236a09d829470c0'
+console.log(`public: ${getPublicKey(thePrivateKey)}`)
+
+// generatePrivateKey();
+console.log(`private: ${thePrivateKey}`)
+
 import { WebrtcProvider } from 'y-webrtc'
 
 const fetcher = NostrFetcher.init();
@@ -141,6 +153,7 @@ const App: Component = () => {
     }))
   })
   createEffect(() => {
+    
     if (dedupedRSSPosts() == '') {
       return
     }
@@ -312,17 +325,16 @@ const App: Component = () => {
   }
   const [nostrQuery, setNostrQuery] = createSignal('')
   const [fetchRssParams, setFetchRssParams] = createSignal('')
+
   const ydocProcessedPosts = new Y.Doc()
-  const processedPostsProvider = new IndexeddbPersistence('processedposts', ydocProcessedPosts)
+  const processedPostsIndexeDBProvider = new IndexeddbPersistence('processedposts', ydocProcessedPosts)
+  const processedPostsWsProvider = new WebsocketProvider('ws://localhost:1234', 'processedposts', ydocProcessedPosts)
   const yProcessedPosts = ydocProcessedPosts.getMap();
 
   yProcessedPosts.observe(event => {
-      console.log('yarray was modified')
-    })
-
-  const ydocMelds = new Y.Doc()
-  const meldsProvider = new IndexeddbPersistence('melds', ydocMelds)
-  const yMelds = ydocMelds.getMap();
+    console.log('yarray was modified')
+    console.log(event)
+  })
 
   const markComplete = (postId: string, feedId: string) => {
     const newProcessedPostsForFeed: string[] = yProcessedPosts.get(feedId) as string[] || []
@@ -427,34 +439,6 @@ const App: Component = () => {
   const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts);
   const [fetchedRSSPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
   const toggleNav = () => setNavIsOpen(!navIsOpen())
-
-  // onMount(async () => {
-    //clients connected to the same room-name share document updates
-    // const rtcProvider = new WebrtcProvider('default', ydoc, {})
-    // const yProcessedPosts = ydoc.get('array', Y.Array)
-    // const yMapProcessedPosts = ydoc.getMap()
-    // yProcessedPosts.observe(event => {
-    //   const processedPostsObj = Object.fromEntries(Array.from(yMapProcessedPosts))
-    //   console.log(processedPostsObj)
-    // })
-    // const yarray = ydoc.get('array', Y.Array)
-    // yarray.observe(event => {
-    //   console.log('yarray was modified')
-    // })
-// const wsProvider = new WebsocketProvider('ws://localhost:1234', 'park-demo', ydoc, [{wsOpts: {
-//     WebsocketPolyfill: ws
-// }}])
-    // const wsProvider = new WebsocketProvider('ws://localhost:1234', 'my-roomname', doc, { WebSocketPolyfill: require('ws') })
-    // const doc = new Y.Doc();
-    // const yarray = doc.getArray('my-array')
-    // yarray.observe(event => {
-    //   console.log('yarray was modified')
-    // })
-    // // every time a local or remote client modifies yarray, the observer is called
-    // yarray.insert(0, ['val']) // => "yarray was modified"
-  // })
-  //console.log(scoredRSSPosts())
-
   return (
     <div class='flex justify-start font-sans mr-30px'>
       <div 
