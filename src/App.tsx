@@ -1,7 +1,8 @@
 import { Button } from './components/Button';
 import { NavBar } from './components/NavBar';
 import { IndexeddbPersistence } from 'y-indexeddb';
-import { WebsocketProvider } from 'y-websocket'
+import { WebrtcProvider} from 'y-webrtc'
+
 import {
   createSignal,
   createResource,
@@ -60,16 +61,16 @@ import {
 import * as Y from 'yjs'
 
 import {
-  getPublicKey,
+  getPublicKey
 } from "nostr-tools";
+import * as nip19 from 'nostr-tools/nip19'
 
 const thePrivateKey = '823f7e95b15dd638cd662e799b23677926b705e429b3da517236a09d829470c0'
-console.log(`public: ${getPublicKey(thePrivateKey)}`)
+// console.log(`public: ${getPublicKey(thePrivateKey)}`)
+// console.log(`npub: ${nip19.nsecEncode(thePrivateKey)}`)
 
 // generatePrivateKey();
-console.log(`private: ${thePrivateKey}`)
-
-import { WebrtcProvider } from 'y-webrtc'
+// console.log(`private: ${thePrivateKey}`)
 
 const fetcher = NostrFetcher.init();
 const db = new DbFixture();
@@ -112,6 +113,10 @@ const App: Component = () => {
     await db.nostrrelays.where('id').equals(nostrRelayToRemove?.id).delete()
   };
   const nostrKeys = createDexieArrayQuery(() => db.nostrkeys.toArray());
+  const npubsWithSecretKey = createDexieArrayQuery(() => db.nostrkeys
+  .filter(nostrKey => !!nostrKey.secretKey)
+  .toArray()
+  );
   const putNostrKey = async (newKey: NostrKey) => {
     await db.nostrkeys.put(newKey)
   }
@@ -153,7 +158,6 @@ const App: Component = () => {
     }))
   })
   createEffect(() => {
-    
     if (dedupedRSSPosts() == '') {
       return
     }
@@ -277,6 +281,8 @@ const App: Component = () => {
   }
   const rssFeeds = createDexieArrayQuery(() => db.rssfeeds.toArray());
   const putRSSFeed = async (newRSSFeed: RSSFeed) => {
+    const newTrainLabels = newRSSFeed.trainLabels.slice()
+    newRSSFeed.trainLabels = newTrainLabels
     await db.rssfeeds.put(newRSSFeed)
   }
   const removeRSSFeed = async (rssFeedToRemove: RSSFeed) => {
@@ -328,12 +334,13 @@ const App: Component = () => {
 
   const ydocProcessedPosts = new Y.Doc()
   const processedPostsIndexeDBProvider = new IndexeddbPersistence('processedposts', ydocProcessedPosts)
-  const processedPostsWsProvider = new WebsocketProvider('ws://localhost:1234', 'processedposts', ydocProcessedPosts)
+  //const processedPostsWsProvider = new WebsocketProvider('ws://localhost:1234', 'processedposts', ydocProcessedPosts)
+  const processedPostsWebRtcProvider = new WebrtcProvider(`${getPublicKey(thePrivateKey)}-processedposts`, ydocProcessedPosts, { signaling: ['ws://fictionmachine:4444'] })
   const yProcessedPosts = ydocProcessedPosts.getMap();
 
   yProcessedPosts.observe(event => {
-    console.log('yarray was modified')
-    console.log(event)
+    // console.log('yarray was modified')
+    // console.log(event)
   })
 
   const markComplete = (postId: string, feedId: string) => {
@@ -488,6 +495,7 @@ const App: Component = () => {
             const RSSFeeds = lazy(() => import("./RSSFeeds"))
             return <RSSFeeds
               rssFeeds={rssFeeds}
+              nPubOptions={npubsWithSecretKey}
               putFeed={putRSSFeed}
               removeFeed={removeRSSFeed}
               trainLabels={trainLabels}

@@ -9,6 +9,7 @@ export interface Classifier {
 
 export interface RSSFeed {
     "id": string,
+    "npub": string,
     "checked": boolean,
     "trainLabels": string[]
 }
@@ -41,6 +42,22 @@ export class DbFixture extends Dexie {
   nostrrelays!: Table<NostrRelay>;
   constructor() {
     super("db-fixture");
+    this.version(2).stores({
+      nostrkeys: "&publicKey",
+      rssfeeds: "&id, npub, checked, *trainLabels",
+      corsproxies: "&id",
+      trainlabels: "&id",
+      classifiers: "&id",
+      processedposts: "&id",
+      nostrrelays: "&id"
+    })
+    // .upgrade (tx => {
+    //   return tx.table("rssfeeds").toCollection().modify (rssFeed => {
+    //     rssFeed.npub = '';
+    //   });
+    // });
+
+
     this.version(1).stores({
       nostrkeys: "&publicKey",
       rssfeeds: "&id, checked, *trainLabels",
