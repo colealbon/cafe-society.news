@@ -98,7 +98,6 @@ const RSSFeeds = (props: {
       if (newFeedObj.id === '') {
         return
       }
-      console.log(newFeedObj)
       props.putFeed(newFeedObj)
     })
     group.setValue({
@@ -143,7 +142,6 @@ const RSSFeeds = (props: {
     setNpubValue('')
     const valuesForSelectedFeed = props.rssFeeds
       .find(feedEdit => feedEdit['id'] === id)
-    console.log(valuesForSelectedFeed)
     group.setValue(Object.assign({
         id:'',
         npub: '',
@@ -210,6 +208,8 @@ const RSSFeeds = (props: {
         </Combobox.Content>
       </Combobox.Portal>
       </Combobox.Root>
+
+      
       <Combobox.Root<string>
         multiple={false}
         options={props.nPubOptions.map((nostrKey => nostrKey.publicKey ? nip19.npubEncode(nostrKey.publicKey): ''))}

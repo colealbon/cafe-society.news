@@ -6,10 +6,26 @@ import type { Signal } from 'solid-js';
 import { createSignal } from 'solid-js';
 import axios from 'axios';
 import { RSSFeed } from "./db-fixture";
+import winkSimilarity from 'wink-nlp/utilities/similarity';
 
 const nlp = winkNLP( model );
 const its = nlp.its;
+const as = nlp.as;
 const parser = new XMLParser();
+
+export const similarity: (a: string, b: string) => number = (a: string, b: string) => {
+  const aDoc = nlp.readDoc( a );
+  const bDoc = nlp.readDoc( b );
+  const bowA = aDoc.tokens().out(its.value, as.bow);
+  const bowB = bDoc.tokens().out(its.value, as.bow);
+  return winkSimilarity.bow.cosine(bowA, bowB)
+
+  // const similarity = stringSimilarity.compareTwoStrings(
+  //   `${processedPost}`,
+  //   `${postItem.mlText}`
+  // );
+  // return similarity
+}
 
 export const htmlInnerText = (input: string) => {
   return input

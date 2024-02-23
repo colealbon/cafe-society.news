@@ -7,13 +7,12 @@ import {
   createSignal,
   createResource,
   lazy,
-  createEffect
+  createEffect,
+  onMount
 } from 'solid-js';
 import type {
   Component
 } from 'solid-js';
-
-import stringSimilarity from 'string-similarity';
 import { createDexieArrayQuery } from "solid-dexie";
 import WinkClassifier from 'wink-naive-bayes-text-classifier';
 import {
@@ -55,7 +54,8 @@ import {
   applyPrediction,
   parsePosts,
   fetchRssPosts,
-  htmlInnerText
+  htmlInnerText,
+  similarity
 } from './util';
 
 import * as Y from 'yjs'
@@ -65,10 +65,9 @@ import {
 } from "nostr-tools";
 import * as nip19 from 'nostr-tools/nip19'
 
-const thePrivateKey = '823f7e95b15dd638cd662e799b23677926b705e429b3da517236a09d829470c0'
+// const thePrivateKey = '823f7e95b15dd638cd662e799b23677926b705e429b3da517236a09d829470c0'
 // console.log(`public: ${getPublicKey(thePrivateKey)}`)
 // console.log(`npub: ${nip19.nsecEncode(thePrivateKey)}`)
-
 // generatePrivateKey();
 // console.log(`private: ${thePrivateKey}`)
 
@@ -87,6 +86,7 @@ const App: Component = () => {
   const [navIsOpen, setNavIsOpen] = createSignal(false);
   const [albyCodeVerifier, setAlbyCodeVerifier] = createStoredSignal('albyCodeVerifier', '')
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
+  const [processedPostsRoomId, setProcessedPostsRoomId] = createStoredSignal('processedPostsRoomId', '')
   const [albyTokenReadInvoice, setAlbyTokenReadInvoice] = createStoredSignal('albyTokenReadInvoice', '')
   const [selectedTrainLabel, setSelectedTrainLabel] = createStoredSignal('selectedTrainLabel', '')
   const [selectedMetadata, setSelectedMetadata] = createStoredSignal('selectedMetadata', {title:'', description:'', keywords: ''})
@@ -138,8 +138,8 @@ const App: Component = () => {
   }
   const trainLabels = createDexieArrayQuery(() => db.trainlabels.toArray());
   const checkedTrainLabels = createDexieArrayQuery(() => db.trainlabels
-  .filter(label => label.checked === true)
-  .toArray()
+    .filter(label => label.checked === true)
+    .toArray()
   );
   const removeClassifier = async (classifierToRemove: Classifier) => {
     await db.classifiers.where('id').equals(classifierToRemove?.id).delete()
@@ -209,15 +209,12 @@ const App: Component = () => {
         return true
       }
       return !processedPostsForFeedLink.find((processedPost: string) => {
-        // replace this with winkNLP version of string similarity
-        const similarity = stringSimilarity.compareTwoStrings(
+        return similarity(
           `${processedPost}`,
           `${postItem.mlText}`
-        );
-        return similarity > 0.8;
+        ) > 0.8;
       });
     })
-    // console.log(newDedupedRSSPosts)
     setDedupedRSSPosts(JSON.stringify(newDedupedRSSPosts))
   })
   createEffect(() => {
@@ -333,14 +330,12 @@ const App: Component = () => {
   const [fetchRssParams, setFetchRssParams] = createSignal('')
 
   const ydocProcessedPosts = new Y.Doc()
+  const processedPostsWebRtcProvider = processedPostsRoomId() != '' ? new WebrtcProvider(processedPostsRoomId(), ydocProcessedPosts, { signaling: ['wss://fictionmachine.io/websocket'] }) : ''
   const processedPostsIndexeDBProvider = new IndexeddbPersistence('processedposts', ydocProcessedPosts)
-  //const processedPostsWsProvider = new WebsocketProvider('ws://localhost:1234', 'processedposts', ydocProcessedPosts)
-  const processedPostsWebRtcProvider = new WebrtcProvider(`${getPublicKey(thePrivateKey)}-processedposts`, ydocProcessedPosts, { signaling: ['ws://fictionmachine:4444'] })
   const yProcessedPosts = ydocProcessedPosts.getMap();
-
+ 
   yProcessedPosts.observe(event => {
-    // console.log('yarray was modified')
-    // console.log(event)
+    console.log(event)
   })
 
   const markComplete = (postId: string, feedId: string) => {
@@ -409,11 +404,10 @@ const App: Component = () => {
           })
           .filter((postItem: {mlText: string}) => {
             return ![processedNostrPosts].flat()?.find((processedPost) => {
-              const similarity = stringSimilarity.compareTwoStrings(
+              return similarity(
                 `${processedPost}`,
                 `${postItem.mlText}`
               );
-              return similarity > 0.8;
             });
           })
           .map((post: any) => applyPrediction({
@@ -489,6 +483,9 @@ const App: Component = () => {
               setAlbyCode={setAlbyCode}
               albyTokenReadInvoice={albyTokenReadInvoice}
               setAlbyTokenReadInvoice={setAlbyTokenReadInvoice}
+              nPubOptions={npubsWithSecretKey}
+              setProcessedPostsRoomId={setProcessedPostsRoomId}
+              processedPostsRoomId={processedPostsRoomId}
             />
           }}/>
           <Route path='/rssfeeds' component={() => {
