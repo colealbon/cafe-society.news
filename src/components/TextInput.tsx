@@ -1,17 +1,27 @@
 import {
   Show,
   For,
-  // mergeProps,
+  mergeProps,
   type Component } from "solid-js";
 import {
-  IFormControl
+  IFormControl,
+  createFormControl
 } from "solid-forms";
+
+export const DEFAULT_CLASS=""            
 
 export const TextInput: Component<{
   control?: IFormControl<string>;
   name?: string;
   type?: string;
+  testid?: string;
 }> = (props) => {
+  props = mergeProps(
+    {
+      class: DEFAULT_CLASS,
+      testid: 'textinput',
+      control: createFormControl("")
+    }, props);
   // here we provide a default form control in case the user doesn't supply one
   // props = mergeProps({ control: createFormControl(""), type: "text" }, props);
 
@@ -35,6 +45,7 @@ export const TextInput: Component<{
         onBlur={() => props.control?.markTouched(true)}
         required={props.control?.isRequired}
         disabled={props.control?.isDisabled}
+        data-testid={props.testid}
       />
       <Show when={props.control?.isTouched && !props.control.isValid}>
         <For each={Object.values({...props.control?.errors})}>

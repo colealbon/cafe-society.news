@@ -5,12 +5,12 @@ import {
 import { Switch } from './components/Switch'
 import { PageHeader } from './components/PageHeader'
 import { Button } from './components/Button'
+import { TextInput } from './components/TextInput'
 
 import {
   createFormGroup,
   createFormControl,
 } from "solid-forms";
-import TextInput from './TextInput'
 
 import {
   VsAdd

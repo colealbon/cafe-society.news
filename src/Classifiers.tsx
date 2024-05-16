@@ -15,7 +15,7 @@ import {
   createFormGroup,
   createFormControl,
 } from "solid-forms";
-import TextInput from './TextInput'
+import { TextInput } from './components/TextInput'
 
 import {
   VsCopy
