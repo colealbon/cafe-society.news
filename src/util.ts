@@ -242,7 +242,7 @@ export const parseAtom = (content: any) => {
       )
       .map((itemEntry: any) => ({
         ...itemEntry,
-        postId: content.feed.generator === 'https://njump.me' ? `https://njump.me/${itemEntry?.id}` : itemEntry.id,
+        postId: `${itemEntry.id}`,
         postTitle: `${itemEntry.title}`,
         mlText: prepNLPTask(convert(`${itemEntry.title} ${itemEntry.postSummary}`))
           .filter((word) => word.length < 30)

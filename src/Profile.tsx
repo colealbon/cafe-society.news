@@ -141,7 +141,10 @@ const Profile = (props: {
         multiple={false}
         options={props.nPubOptions.map((nostrKey => nostrKey.publicKey ? nip19.npubEncode(nostrKey.publicKey): ''))}
         value={props.processedPostsRoomId()}
-        onChange={props.setProcessedPostsRoomId}
+        onChange={(theValue) => {
+          console.log(theValue)
+          props.setProcessedPostsRoomId(theValue)
+        }}
         // onInputChange={onInputChangeNpub}
         // onOpenChange={onOpenChangeNpub}
         placeholder="click label to remove..."
@@ -160,7 +163,6 @@ const Profile = (props: {
         >
         {state => (
           <> 
-          
             <Combobox.Trigger class='border-none bg-transparent align-middle text-3xl transition-all hover-text-white hover:bg-black rounded-full'>
             sync&nbsp;
             </Combobox.Trigger>

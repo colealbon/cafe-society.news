@@ -60,11 +60,10 @@ import {
 
 import * as Y from 'yjs'
 
-import {
-  getPublicKey
-} from "nostr-tools";
-import * as nip19 from 'nostr-tools/nip19'
-
+// import {
+//   getPublicKey
+// } from "nostr-tools";
+// // import * as nip19 from 'nostr-tools/nip19'
 // const thePrivateKey = '823f7e95b15dd638cd662e799b23677926b705e429b3da517236a09d829470c0'
 // console.log(`public: ${getPublicKey(thePrivateKey)}`)
 // console.log(`npub: ${nip19.nsecEncode(thePrivateKey)}`)
@@ -330,12 +329,12 @@ const App: Component = () => {
   const [fetchRssParams, setFetchRssParams] = createSignal('')
 
   const ydocProcessedPosts = new Y.Doc()
-  const processedPostsWebRtcProvider = processedPostsRoomId() != '' ? new WebrtcProvider(processedPostsRoomId(), ydocProcessedPosts, { signaling: ['wss://fictionmachine.io/websocket'] }) : ''
+  // const processedPostsWebRtcProvider = processedPostsRoomId() != '' ? new WebrtcProvider(processedPostsRoomId(), ydocProcessedPosts, { signaling: ['wss://fictionmachine.io/websocket'] }) : ''
   const processedPostsIndexeDBProvider = new IndexeddbPersistence('processedposts', ydocProcessedPosts)
   const yProcessedPosts = ydocProcessedPosts.getMap();
  
-  yProcessedPosts.observe(event => {
-    console.log(event)
+  yProcessedPosts.observeDeep(event => {
+    // console.log(event)
   })
 
   const markComplete = (postId: string, feedId: string) => {
@@ -432,7 +431,6 @@ const App: Component = () => {
             return ( 0.0 + post.prediction?.suppress || 0.0) != 0.0
           })
           .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
-
         resolve(filteredPosts)
       })
     })
