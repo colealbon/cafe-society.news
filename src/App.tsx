@@ -1,50 +1,50 @@
-import { Button } from './components/Button';
-import { NavBar } from './components/NavBar';
-import { IndexeddbPersistence } from 'y-indexeddb';
-import { WebrtcProvider} from 'y-webrtc'
+import { Button } from './components/Button.tsx'
+import { NavBar } from './components/NavBar.tsx'
+import { IndexeddbPersistence } from 'y-indexeddb'
 
 import {
   createSignal,
   createResource,
   lazy,
-  createEffect,
-  onMount
-} from 'solid-js';
+  createEffect
+} from 'solid-js'
 import type {
   Component
-} from 'solid-js';
-import { createDexieArrayQuery } from "solid-dexie";
-import WinkClassifier from 'wink-naive-bayes-text-classifier';
+} from 'solid-js'
+import { createDexieArrayQuery } from "solid-dexie"
+import WinkClassifier from 'wink-naive-bayes-text-classifier'
 import {
   Routes,
   Route,
   useParams
-} from "@solidjs/router";
-import { NostrFetcher } from "nostr-fetch";
-import Payment from './Payment';
-import Contact from './Contact';
-import NostrRelays from './NostrRelays';
-import NostrKeys, { NostrKey } from './NostrKeys';
-import Classifiers from './Classifiers';
-import TrainLabels from './TrainLabels';
-import NostrPosts from './NostrPosts';
-import Prompt from './Prompt';
-import Melds from './Melds'
-import defaultMetadata from './defaultMetadata';
-import defaultCorsProxies from './defaultCorsProxies';
-import defaultNostrRelays from './defaultNostrRelays';
-import defaultNostrKeys from './defaultNostrKeys';
-import defaultClassifiers from './defaultClassifiers';
-import defaultTrainLabels from './defaultTrainLabels';
-import defaultRSSFeeds from './defaultRSSFeeds';
+} from "@solidjs/router"
+import { NostrFetcher } from "nostr-fetch"
+import Payment from './Payment'
+import Contact from './Contact'
+import NostrRelays from './NostrRelays'
+import NostrKeys, { NostrKey } from './NostrKeys'
+import Classifiers from './Classifiers'
+import TrainLabels from './TrainLabels'
+import NostrPosts from './NostrPosts'
+import Prompt from './Prompt'
+import Topics from './Topics'
+import defaultMetadata from './defaultMetadata'
+import defaultCorsProxies from './defaultCorsProxies'
+import defaultNostrRelays from './defaultNostrRelays'
+import defaultNostrKeys from './defaultNostrKeys'
+import defaultClassifiers from './defaultClassifiers'
+import defaultTrainLabels from './defaultTrainLabels'
+import defaultRSSFeeds from './defaultRSSFeeds'
+import defaultTopics from './defaultTopics'
 import {
   DbFixture,
   NostrRelay,
   TrainLabel,
   RSSFeed,
   CorsProxy,
-  Classifier
-} from "./db-fixture";
+  Classifier,
+  Topic
+} from "./db-fixture"
 import {
   nHoursAgo,
   prepNostrPost,
@@ -56,33 +56,24 @@ import {
   fetchRssPosts,
   htmlInnerText,
   similarity
-} from './util';
+} from './util'
 
 import * as Y from 'yjs'
 
-// import {
-//   getPublicKey
-// } from "nostr-tools";
-// // import * as nip19 from 'nostr-tools/nip19'
-// const thePrivateKey = '823f7e95b15dd638cd662e799b23677926b705e429b3da517236a09d829470c0'
-// console.log(`public: ${getPublicKey(thePrivateKey)}`)
-// console.log(`npub: ${nip19.nsecEncode(thePrivateKey)}`)
-// generatePrivateKey();
-// console.log(`private: ${thePrivateKey}`)
-
-const fetcher = NostrFetcher.init();
-const db = new DbFixture();
+const fetcher = NostrFetcher.init()
+const db = new DbFixture()
 db.on("populate", () => {
-  db.nostrkeys.bulkAdd(defaultNostrKeys as NostrKey[]);
-  db.nostrrelays.bulkAdd(defaultNostrRelays as NostrRelay[]);
-  db.rssfeeds.bulkAdd(defaultRSSFeeds as RSSFeed[]);
-  db.corsproxies.bulkAdd(defaultCorsProxies as CorsProxy[]);
-  db.trainlabels.bulkAdd(defaultTrainLabels as TrainLabel[]);
-  db.classifiers.bulkAdd(defaultClassifiers as Classifier[]);
-});
+  db.nostrkeys.bulkAdd(defaultNostrKeys as NostrKey[])
+  db.nostrrelays.bulkAdd(defaultNostrRelays as NostrRelay[])
+  db.rssfeeds.bulkAdd(defaultRSSFeeds as RSSFeed[])
+  db.corsproxies.bulkAdd(defaultCorsProxies as CorsProxy[])
+  db.trainlabels.bulkAdd(defaultTrainLabels as TrainLabel[])
+  db.classifiers.bulkAdd(defaultClassifiers as Classifier[])
+  db.topics.bulkAdd(defaultTopics as Topic[])
+})
 
 const App: Component = () => {
-  const [navIsOpen, setNavIsOpen] = createSignal(false);
+  const [navIsOpen, setNavIsOpen] = createSignal(false)
   const [albyCodeVerifier, setAlbyCodeVerifier] = createStoredSignal('albyCodeVerifier', '')
   const [albyCode, setAlbyCode] = createStoredSignal('albyCode', '')
   const [processedPostsRoomId, setProcessedPostsRoomId] = createStoredSignal('processedPostsRoomId', '')
@@ -93,40 +84,55 @@ const App: Component = () => {
   const [preppedRSSPosts, setPreppedRSSPosts] = createSignal('')
   const [dedupedRSSPosts, setDedupedRSSPosts] = createSignal('')
   const [scoredRSSPosts, setScoredRSSPosts] = createSignal('')
-  const corsProxies = createDexieArrayQuery(() => db.corsproxies.toArray());
+  const corsProxies = createDexieArrayQuery(() => db.corsproxies.toArray())
   const putCorsProxy = async (newCorsProxy: CorsProxy) => {
     await db.corsproxies.put(newCorsProxy)
   }
   const removeCorsProxy = async (corsProxyToRemove: CorsProxy) => {
     await db.corsproxies.where('id').equals(corsProxyToRemove?.id).delete()
   }
-  const nostrRelays = createDexieArrayQuery(() => db.nostrrelays.toArray());
+
+  const topics = createDexieArrayQuery(() => db.topics.toArray())
+  const putTopic = async (newTopic: Topic) => {
+    const newSubscribers = newTopic.subscribers.slice()
+    newTopic.subscribers = newSubscribers
+    await db.topics.put(newTopic)
+  }
+  const removeTopic = async (topicToRemove: Topic) => {
+    await db.topics.where('id').equals(topicToRemove?.id).delete()
+  }
+  const checkedTopics = createDexieArrayQuery(() => db.topics
+    .filter(topic => topic.checked === true)
+    .toArray())
+  
+  const nostrRelays = createDexieArrayQuery(() => db.nostrrelays.toArray())
   const checkedNostrRelays = createDexieArrayQuery(() => db.nostrrelays
     .filter(relay => relay.checked === true)
     .toArray()
-    );
+    )
   const putNostrRelay = async (newNostrRelay: NostrRelay) => {
     await db.nostrrelays.put(newNostrRelay)
-  };
+  }
   const removeNostrRelay = async (nostrRelayToRemove: NostrRelay) => {
     await db.nostrrelays.where('id').equals(nostrRelayToRemove?.id).delete()
-  };
-  const nostrKeys = createDexieArrayQuery(() => db.nostrkeys.toArray());
+  }
+  const nostrKeys = createDexieArrayQuery(() => db.nostrkeys.toArray())
+  
   const npubsWithSecretKey = createDexieArrayQuery(() => db.nostrkeys
   .filter(nostrKey => !!nostrKey.secretKey)
   .toArray()
-  );
+  )
   const putNostrKey = async (newKey: NostrKey) => {
     await db.nostrkeys.put(newKey)
   }
   const removeNostrKey = async (nostrKeyRemove: NostrKey) => {
     await db.nostrkeys.where('publicKey').equals(nostrKeyRemove.publicKey).delete()
   }
-  const classifiers = createDexieArrayQuery(() => db.classifiers.toArray());
+  const classifiers: Classifier[] = createDexieArrayQuery(() => db.classifiers.toArray())
   const putClassifier = async (newClassifierEntry: Classifier) => {
     const winkClassifier = WinkClassifier()
-    winkClassifier.definePrepTasks( [ prepNLPTask ] );
-    winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
+    winkClassifier.definePrepTasks( [ prepNLPTask ] )
+    winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } )
     if (newClassifierEntry.model != '') {
       winkClassifier.importJSON(newClassifierEntry.model)
     }
@@ -135,11 +141,11 @@ const App: Component = () => {
     }
     await db.classifiers.put(newClassifierEntry)
   }
-  const trainLabels = createDexieArrayQuery(() => db.trainlabels.toArray());
+  const trainLabels = createDexieArrayQuery(() => db.trainlabels.toArray())
   const checkedTrainLabels = createDexieArrayQuery(() => db.trainlabels
     .filter(label => label.checked === true)
     .toArray()
-  );
+  )
   const removeClassifier = async (classifierToRemove: Classifier) => {
     await db.classifiers.where('id').equals(classifierToRemove?.id).delete()
   }
@@ -162,8 +168,8 @@ const App: Component = () => {
     }
     const suppressOdds: number = parseFloat(classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds || '999')
     const winkClassifier = WinkClassifier()
-    winkClassifier.definePrepTasks( [ prepNLPTask ] );
-    winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
+    winkClassifier.definePrepTasks( [ prepNLPTask ] )
+    winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } )
     const classifierModel: string = classifiers.find((classifierEntry: any) => classifierEntry?.id == selectedTrainLabel())?.model || ''
     if (classifierModel != '') {
       winkClassifier.importJSON(classifierModel)
@@ -211,8 +217,8 @@ const App: Component = () => {
         return similarity(
           `${processedPost}`,
           `${postItem.mlText}`
-        ) > 0.8;
-      });
+        ) > 0.8
+      })
     })
     setDedupedRSSPosts(JSON.stringify(newDedupedRSSPosts))
   })
@@ -275,7 +281,7 @@ const App: Component = () => {
   const removeTrainLabel = async (trainLabelToRemove: TrainLabel) => {
     await db.trainlabels.where('id').equals(trainLabelToRemove?.id).delete()
   }
-  const rssFeeds = createDexieArrayQuery(() => db.rssfeeds.toArray());
+  const rssFeeds = createDexieArrayQuery(() => db.rssfeeds.toArray())
   const putRSSFeed = async (newRSSFeed: RSSFeed) => {
     const newTrainLabels = newRSSFeed.trainLabels.slice()
     newRSSFeed.trainLabels = newTrainLabels
@@ -286,11 +292,11 @@ const App: Component = () => {
   }
   const checkedFeeds = createDexieArrayQuery(() => db.rssfeeds
     .filter(rssfeed => rssfeed.checked === true)
-    .toArray());
+    .toArray())
 
   const checkedCorsProxies = createDexieArrayQuery(() => db.corsproxies
     .filter(corsProxy => corsProxy.checked === true)
-    .toArray());
+    .toArray())
 
   const handleFeedToggleChecked = (id: string) => {
     const valuesForSelectedFeed = rssFeeds.find(feed => feed['id'] === id)
@@ -300,6 +306,16 @@ const App: Component = () => {
     }
     putRSSFeed({...newValueObj} as RSSFeed)
   }
+
+  const handleTopicToggleChecked = (id: string) => {
+    const valuesForSelectedTopic = topics.find(topic => topic['id'] === id)
+    const newValueObj = {
+      ...valuesForSelectedTopic
+      , checked: !valuesForSelectedTopic?.checked
+    }
+    putTopic({...newValueObj} as Topic)
+  }
+
   const train = (params: {
     mlText: string,
     mlClass: string,
@@ -308,8 +324,8 @@ const App: Component = () => {
     const oldModel: string = classifiers.find((classifierEntry) => classifierEntry?.id == params.trainLabel)?.model || ''
     const thresholdSuppressOdds: string = classifiers.find((classifierEntry) => classifierEntry?.id == params.trainLabel)?.thresholdSuppressOdds || '999'
     const winkClassifier = WinkClassifier()
-    winkClassifier.definePrepTasks( [ prepNLPTask ] );
-    winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
+    winkClassifier.definePrepTasks( [ prepNLPTask ] )
+    winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } )
     if (oldModel != '') {
       winkClassifier.importJSON(oldModel)
     }
@@ -331,7 +347,7 @@ const App: Component = () => {
   const ydocProcessedPosts = new Y.Doc()
   // const processedPostsWebRtcProvider = processedPostsRoomId() != '' ? new WebrtcProvider(processedPostsRoomId(), ydocProcessedPosts, { signaling: ['wss://fictionmachine.io/websocket'] }) : ''
   const processedPostsIndexeDBProvider = new IndexeddbPersistence('processedposts', ydocProcessedPosts)
-  const yProcessedPosts = ydocProcessedPosts.getMap();
+  const yProcessedPosts = ydocProcessedPosts.getMap()
  
   yProcessedPosts.observeDeep(event => {
     // console.log(event)
@@ -346,7 +362,7 @@ const App: Component = () => {
   const ignoreNostrKeys = createDexieArrayQuery(() => db.nostrkeys
     .filter(nostrKey => nostrKey.ignore === true)
     .toArray()
-  );
+  )
   createEffect(() => {
     const nostrRelayList = checkedNostrRelays.map((relay: NostrRelay) => relay.id)
     const newQuery = JSON.stringify({
@@ -365,8 +381,8 @@ const App: Component = () => {
         kinds: [ 1, 30023 ]
       }
       const winkClassifier = WinkClassifier()
-      winkClassifier.definePrepTasks( [ prepNLPTask ] );
-      winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } );
+      winkClassifier.definePrepTasks( [ prepNLPTask ] )
+      winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } )
       const classifierModel: string = classifiers.find((classifierEntry: any) => classifierEntry?.id == 'nostr')?.model || ''
       if (classifierModel != '') {
         winkClassifier.importJSON(classifierModel)
@@ -406,8 +422,8 @@ const App: Component = () => {
               return similarity(
                 `${processedPost}`,
                 `${postItem.mlText}`
-              );
-            });
+              )
+            })
           })
           .map((post: any) => applyPrediction({
             post: post,
@@ -435,8 +451,8 @@ const App: Component = () => {
       })
     })
   }
-  const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts);
-  const [fetchedRSSPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts);
+  const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts)
+  const [fetchedRSSPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts)
   const toggleNav = () => setNavIsOpen(!navIsOpen())
   return (
     <div class='flex justify-start font-sans mr-30px'>
@@ -490,7 +506,7 @@ const App: Component = () => {
             const RSSFeeds = lazy(() => import("./RSSFeeds"))
             return <RSSFeeds
               rssFeeds={rssFeeds}
-              nPubOptions={npubsWithSecretKey}
+              nostrKeys={nostrKeys}
               putFeed={putRSSFeed}
               removeFeed={removeRSSFeed}
               trainLabels={trainLabels}
@@ -618,10 +634,14 @@ const App: Component = () => {
           <Route path='/contact' component={() => <Contact/>} />
           <Route path='/subscriptions' component={() => <Payment />} />
           <Route
-            path='/melds'
+            path='/topics'
             component={() => {
-              return <Melds 
+              return <Topics
+                topics={topics}
                 nostrKeys={nostrKeys}
+                putTopic={putTopic}
+                removeTopic={removeTopic}
+                handleTopicToggleChecked={handleTopicToggleChecked}
               />
             }}
           />
@@ -668,5 +688,5 @@ const App: Component = () => {
       </div>
     </div>
   )
-};
-export default App;
+}
+export default App

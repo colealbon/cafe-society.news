@@ -143,7 +143,7 @@ const NostrKeys = (props: {
         <TextInput name="lightning" control={group.controls.lightning} />
         <div class='flex flex-row'>
         <div>
-          <Link.Root onClick={(event) => {
+          <Link.Root onClick={(event: Event) => {
             event.preventDefault()
             onSubmit(event)
           }}>
@@ -151,7 +151,7 @@ const NostrKeys = (props: {
           </Link.Root>
         </div>
         <div >
-          <Link.Root onClick={(event) => {
+          <Link.Root onClick={(event: Event) => {
             event.preventDefault()
             handleEraseClick()
           }}>

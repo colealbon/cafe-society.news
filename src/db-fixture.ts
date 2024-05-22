@@ -1,5 +1,5 @@
 import Dexie, { Table } from "dexie";
-import {NostrKey } from './NostrKeys'
+import { NostrKey } from './NostrKeys'
 
 export interface Classifier {
   "id": string,
@@ -12,6 +12,13 @@ export interface RSSFeed {
     "npub": string,
     "checked": boolean,
     "trainLabels": string[]
+}
+
+export interface Topic {
+  "id": string,
+  "label": string,
+  "checked": boolean,
+  "subscribers": string[]
 }
 
 export interface CorsProxy {
@@ -40,6 +47,7 @@ export class DbFixture extends Dexie {
   classifiers!: Table<Classifier>;
   processedposts!: Table<ProcessedPost>;
   nostrrelays!: Table<NostrRelay>;
+  topics!: Table<Topic>;
   constructor() {
     super("db-fixture");
     this.version(2).stores({
@@ -49,15 +57,23 @@ export class DbFixture extends Dexie {
       trainlabels: "&id",
       classifiers: "&id",
       processedposts: "&id",
-      nostrrelays: "&id"
+      nostrrelays: "&id",
+    })
+    this.version(3).stores({
+      nostrkeys: "&publicKey",
+      rssfeeds: "&id, npub, checked, *trainLabels",
+      corsproxies: "&id",
+      trainlabels: "&id",
+      classifiers: "&id",
+      processedposts: "&id",
+      nostrrelays: "&id",
+      topics: "&id, label, checked, *subscribers",
     })
     // .upgrade (tx => {
     //   return tx.table("rssfeeds").toCollection().modify (rssFeed => {
     //     rssFeed.npub = '';
     //   });
     // });
-
-
     this.version(1).stores({
       nostrkeys: "&publicKey",
       rssfeeds: "&id, checked, *trainLabels",
@@ -65,7 +81,7 @@ export class DbFixture extends Dexie {
       trainlabels: "&id",
       classifiers: "&id",
       processedposts: "&id",
-      nostrrelays: "&id"
+      nostrrelays: "&id",
     });
   }
 }

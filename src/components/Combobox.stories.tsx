@@ -1,44 +1,36 @@
 import type { Meta, StoryObj } from "storybook-solidjs";
 import { within, userEvent } from "@storybook/test";
 import "virtual:uno.css";
-import { Router } from "@solidjs/router";
-import { NavLink, DEFAULT_CLASS } from "./NavLink";
+import { DEFAULT_CLASS, Combobox } from "./Combobox";
 
 // More on how to set up stories at: https://storybook.js.org/docs/7.0/solid/writing-stories/introduction
 const meta = {
-  title: "components/NavLink",
+  title: "components/Combobox",
   parameters: {
     layout: "centered",
   },
-  component: NavLink,
-  decorators: [
-    (Story) => (
-      <div>
-        <Router>
-          <Story />
-        </Router>
-      </div>
-    ),
-  ],
-
+  component: Combobox,
   tags: ["autodocs"],
-  argTypes: {
-    onClick: { action: "clicked" },
-  },
-} satisfies Meta<typeof NavLink>;
+  //  ,
+  //   argTypes: {
+  //     name: {action: "clicked"}
+  //   },
+} satisfies Meta<typeof Combobox>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 // More on writing stories with args: https://storybook.js.org/docs/7.0/solid/writing-stories/args
-export const Basic: Story = {
+export const Generic: Story = {
   args: {
-    href: "/",
-    class: "font-sans",
-    children: "home",
+    name: "test name",
+    ariaLabel: "test areaLabel",
+    options: ["one", "two", "three"],
+    class: `${DEFAULT_CLASS}`,
+    multiple: true,
+    placeholder: '...search'
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const link = await canvas.getByRole("link");
-    await userEvent.click(link);
+    await userEvent.type(canvas.getByTestId("combobox"), "test input");
   },
 };

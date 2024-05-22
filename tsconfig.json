@@ -3,13 +3,23 @@
     "strict": true,
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "resolvePackageJsonExports": true,
     "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "types": ["vite/client"],
     "noEmit": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "paths": {
+      "@/*": [
+          "./src/*",
+          "./node_modules/*",
+      ],
+      "@app/*": ["./src/*"],
+      "solid-dexie": ["./node_modules/solid-dexie/dist/index.d.ts"]
+    }
   }
 }

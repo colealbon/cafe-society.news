@@ -16,15 +16,15 @@ import {
 } from "solid-forms";
 import { TextInput } from './components/TextInput'
 import { FaSolidCheck  as CheckIcon} from 'solid-icons/fa'
-import { RSSFeed , TrainLabel} from './db-fixture'
+import { RSSFeed, TrainLabel} from './db-fixture'
 import { Button } from './components/Button'
 import { NostrKey } from './NostrKeys'
 import * as nip19 from 'nostr-tools/nip19'
 
 const RSSFeeds = (props: {
     rssFeeds: RSSFeed[],
+    nostrKeys: NostrKey[],
     trainLabels: TrainLabel[],
-    nPubOptions: NostrKey[],
     // eslint-disable-next-line no-unused-vars
     putFeed: (feed: RSSFeed) => void,
     // eslint-disable-next-line no-unused-vars
@@ -50,7 +50,7 @@ const RSSFeeds = (props: {
   const onOpenChangeNpub = (isOpen: boolean, triggerMode?: Combobox.ComboboxTriggerMode) => {
     // Show all options on ArrowDown/ArrowUp and button click.
     if (isOpen && triggerMode === "manual") {
-      setOptionsNpub(props.nPubOptions.map(nPubOption => nPubOption.publicKey))
+      setOptionsNpub(props.nostrKeys.map(nostrKey => nostrKey.publicKey))
     }
   };
   const onInputChangeNpub = (value: string) => {
@@ -156,8 +156,9 @@ const RSSFeeds = (props: {
     <>
       <PageHeader>RSS Feeds</PageHeader>
       <form onSubmit={onSubmit}>
-        <label for="id">Feed URL</label>
-        <TextInput name="id" control={group.controls.id} />
+        <label>Feed URL
+          <TextInput name="id" control={group.controls.id} />
+        </label>
         <Combobox.Root<string>
         multiple
         options={props.trainLabels.map(trainLabel => trainLabel.id)}
@@ -212,7 +213,7 @@ const RSSFeeds = (props: {
       
       <Combobox.Root<string>
         multiple={false}
-        options={props.nPubOptions.map((nostrKey => nostrKey.publicKey ? nip19.npubEncode(nostrKey.publicKey): ''))}
+        options={props.nostrKeys.map((nostrKey => nostrKey.publicKey ? nip19.npubEncode(nostrKey.publicKey): ''))}
         value={npubValue()}
         onChange={setNpubValue}
         onInputChange={onInputChangeNpub}

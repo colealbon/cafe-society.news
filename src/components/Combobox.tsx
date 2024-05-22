@@ -4,17 +4,39 @@ import {
   splitProps,
   createSignal,
   For,
-} from 'solid-js';
-import { Combobox as kobalteCombobox} from "@kobalte/core";
+  Setter
+} from 'solid-js'
+import {
+  Combobox as KobalteCombobox
+} from "@kobalte/core/combobox"
+import {
+  Control,
+  Input,
+  Trigger,
+  Icon,
+  Portal,
+  Content,
+  Listbox,
+  Item,
+  ItemIndicator,
+  ItemLabel
+} from "@kobalte/core/combobox"
+
 import { FaSolidCheck  as CheckIcon} from 'solid-icons/fa'
 import { TiArrowUnsorted } from 'solid-icons/ti'
-import { Button } from './Button'
+// import { Button } from './Button'
 
 export interface ComboboxProps {
   options: any[],
   placeholder: string,
-  children?: string | Element;
-  class?: string;
+  children?: string | Element
+  class?: string
+  ariaLabel?: string
+  testid?: string
+  multiple: boolean
+  onChange?: any
+  onOpenChange?: any
+  onInputChange?: any
 }
 
 export const DEFAULT_CLASS=""
@@ -23,73 +45,48 @@ export const Combobox: Component<ComboboxProps> = (props) => {
   props = mergeProps(
     {
       class: DEFAULT_CLASS,
-    }, props);
+      testid: 'combobox'
+    }, props)
 
   const [local, rest] = splitProps(props, [
     'class',
-    'children'
-  ]);
-// export const Combobox: Component<> = (props) => {
-  const [values, setValues] = createSignal(["Blueberry", "Grapes"]);
+    'children',
+    'multiple',
+    'options',
+    'ariaLabel',
+    'testid',
+    'placeholder',
+    'onChange',
+    'onOpenChange',
+    'onInputChange'
+  ])
   return (
-    <>
-      <kobalteCombobox.Root<string>
-        class="combobox"
-        multiple
-        options={props.options}
-        value={values()}
-        onChange={setValues}
-        placeholder={props.placeholder}
-        itemComponent={props => (
-          <kobalteCombobox.Item item={props.item} class="combobox__item w-200px">
-            <kobalteCombobox.ItemLabel>{props.item.rawValue}</kobalteCombobox.ItemLabel>
-            <kobalteCombobox.ItemIndicator class="combobox__item-indicator">
-              <CheckIcon />
-            </kobalteCombobox.ItemIndicator>
-          </kobalteCombobox.Item>
-        )}
-      >
-        <kobalteCombobox.Control<string>
-          aria-label="Fruits"
-          class="bg-white combobox__control" 
-        >
-          {state => (
-            <>
-              <div>
-                <For each={state.selectedOptions()}>
-                  {option => (
-                  <div class='align-bottom flex flex-row' onPointerDown={e => e.stopPropagation()}>
-                    <Button
-                      title={`remove ${option}`}
-                      onClick={() => {
-                        state.remove(option)
-                      }}
-                      label={option}
-                    />
-                  </div>
-                  )}
-                </For>
-                <kobalteCombobox.Input />
-              </div>
-              <Button onPointerDown={e => e.stopPropagation()} onClick={state.clear}>
-                <span>x</span>
-              </Button>
-              <kobalteCombobox.Trigger
-                class='border-none bg-transparent align-middle text-3xl transition-all hover-text-white hover:bg-black rounded-full'
-              >
-                <kobalteCombobox.Icon>
-                  <TiArrowUnsorted />
-                </kobalteCombobox.Icon>
-              </kobalteCombobox.Trigger>
-            </>
-          )}
-        </kobalteCombobox.Control>
-        <kobalteCombobox.Portal>
-          <kobalteCombobox.Content  class="combobox__content">
-            <kobalteCombobox.Listbox class="combobox__listbox font-sans"/>
-          </kobalteCombobox.Content>
-        </kobalteCombobox.Portal>
-      </kobalteCombobox.Root>
-    </>
-  );
+    <KobalteCombobox 
+      {...local}
+      data-testid={local.testid}
+      itemComponent={props => (
+        <Item item={props.item} class="combobox__item">
+          <ItemLabel>{props.item.rawValue}</ItemLabel>
+          <ItemIndicator class="combobox__item-indicator">
+            <CheckIcon />
+          </ItemIndicator>
+        </Item>
+      )}
+    >
+      <Control class="combobox__control" aria-label={local.ariaLabel}>
+        <Input class="combobox__input" />
+        <Trigger class="combobox__trigger">
+          <Icon class="combobox__icon">
+            <TiArrowUnsorted />
+          </Icon>
+        </Trigger>
+      </Control>
+      <Portal>
+        <Content class="combobox__content">
+          <Listbox class="combobox__listbox" />
+        </Content>
+      </Portal>
+    </KobalteCombobox>
+  )
 }
+export default Combobox

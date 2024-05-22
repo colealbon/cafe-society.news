@@ -1,7 +1,7 @@
 import { Component, mergeProps, splitProps} from 'solid-js';
 export interface ButtonProps {
   title?: string;
-  label: Element | any;
+  label?: Element | any;
   disabled?: boolean;
   onClick: () => void;
   onPointerDown?: (e: any) => any;
