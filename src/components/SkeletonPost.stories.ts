@@ -21,9 +21,10 @@ type Story = StoryObj<typeof meta>;
 export const Generic: Story = {
   args: {
     class: `${DEFAULT_CLASS}`,
+    testid: 'skeleton_post'
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const button = await canvas.getByRole("div");
+    const button = await canvas.getByTestId("skeleton_post");
   },
 };

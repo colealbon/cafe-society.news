@@ -5,6 +5,7 @@ import {
 
 export interface SkeletonProps {
   class?: string;
+  testid?: string;
 }
 
 export const DEFAULT_CLASS="skeleton w-full pl-5"
@@ -16,11 +17,12 @@ export const SkeletonPost: Component<SkeletonProps> = (props) => {
     }, props);
 
   const [local, rest] = splitProps(props, [
-    'class'
+    'class',
+    'testid'
   ]);
 
   return (
-    <div>
+    <div data-testid={local.testid}>
       <Skeleton.Root class="skeleton w-full p-2 mt-3"  height={20} radius={10} />
       <Skeleton.Root class="skeleton w-full p-4  mt-3"  height={20} radius={10}  />
       <div class='flex flex-row  mt-3'>

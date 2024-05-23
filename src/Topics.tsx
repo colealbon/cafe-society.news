@@ -19,7 +19,6 @@ import {
   createFormControl,
 } from "solid-forms"
 import { TextInput } from './components/TextInput'
-import { FaSolidCheck  as CheckIcon} from 'solid-icons/fa'
 import { Topic } from './db-fixture'
 import { Button } from './components/Button'
 import { NostrKey } from './NostrKeys'
@@ -34,33 +33,20 @@ const Topics = (props: {
     removeTopic: (topic: Topic) => void
     handleTopicToggleChecked: any
   }) => {
+
+  // a "Topic" is a CRDT (y-ndk compatible) with
+  // - a list of subscribers (nostr pubkeys)
+  // - roomId (nostr event generated with y-ndk )
+  // - the roomId is an event id from the inaugural nostr message
+  // - the inaugural message should contain a session key encrypted to subscribers
+  // - somehow, the yjs provider will be encrypted to the session key
+
   const [subscribers, setSubscribers] = createSignal<string[]>([])
   const [labelText, setLabelText] = createSignal('')
   const filter = createFilter({ sensitivity: "base" })
-  const [options, setOptions] = createSignal<NostrKey[]>()
   const [optionsNpub, setOptionsNpub] = createSignal<string[]>([])
-  const onOpenChange = (isOpen: boolean, triggerMode: any) => {
-    // Show all options on ArrowDown/ArrowUp and button click.
-    //if (isOpen && triggerMode === "manual") {
-      setOptionsNpub(props.nostrKeys.map(nostrKey => nip19.npubEncode(nostrKey.publicKey)))
-    //}
-  }
-
-  // const onOpenChange = (isOpen: boolean, triggerMode?: any) => {
-  //   // Show all options on ArrowDown/ArrowUp and button click.
-  //   if (isOpen && triggerMode === "manual") {
-  //     setOptions(props.nostrKeys)
-  //   }
-  // }
-  const onInputChange = (value: string) => {
-    setOptions(options()?.filter(option => filter.contains(option.publicKey, value)))
-  }
-
   const onOpenChangeNpub = (isOpen: boolean, triggerMode?: any) => {
-    // Show all options on ArrowDown/ArrowUp and button click.
-    //if (isOpen && triggerMode === "manual") {
-      setOptionsNpub(props.nostrKeys.map(nPubOption => nPubOption.publicKey))
-    //}
+    setOptionsNpub(props.nostrKeys.map(nostrKey => nip19.npubEncode(nostrKey.publicKey)))
   }
   const onInputChangeNpub = (value: string) => {
     setOptionsNpub(optionsNpub()?.filter(option => !filter.contains(option, value)))
@@ -121,27 +107,24 @@ const Topics = (props: {
   const handleToggleChecked = (id: string, newVal: boolean) => {
     const valuesForSelectedTopic = props.topics.slice()
     .find(topicEdit => topicEdit['id'] === id)
+    const saveSubscribers = valuesForSelectedTopic?.subscribers.slice()
+    const saveChecked = valuesForSelectedTopic?.checked
     const newValueObj = (Object.assign(
       {
         id: '',
         label: '',
-        subscribers: []
+        subscribers: [],
+        checked: true
       },
       {
         ...valuesForSelectedTopic
       },
-      {checked: newVal}
+      {
+        checked: !saveChecked,
+        subscribers: saveSubscribers
+      }
     ))
-    group.setValue(newValueObj)
-
-    // const subscriberPubKeys: string[] = valuesForSelectedTopic?.subscribers as string[] || ['1','2','3'] as string[]
-    // setSubscribers([])
-    // setLabelText(valuesForSelectedTopic?.label as string)
-    // newValueObj.subscribers = subscriberPubKeys as string[]
-    // newValueObj.label = labelText()
-    // if (newValueObj.id === '') {
-    //   return
-    // }
+    // group.setValue(newValueObj)
     const newClone = structuredClone(newValueObj)
     props.putTopic(newClone)
   }
@@ -175,8 +158,9 @@ const Topics = (props: {
           ariaLabel='subscribers'
           options={props.nostrKeys.map(nostrKey => nip19.npubEncode(nostrKey.publicKey))}
           onChange={setSubscribers}
+          onOpenChange={onOpenChangeNpub}
           onInputChange={onInputChangeNpub}
-          placeholder="enter subscribers"
+          placeholder="select subscribers"
         />
       <div />
       <Button
@@ -192,7 +176,11 @@ const Topics = (props: {
           {(topic) => (
             <Show when={topic.id != ''}>
               <div class='flex justify-between'>
-                <div class='pt-2'>{topic.subscribers.join(', ').slice(0, 100)}</div>
+                <label>
+                  {`${topic.id} subscribers:`}
+                <div class='pt-2'><pre>{JSON.stringify(topic.subscribers, null, 2)}</pre></div>
+
+                </label>
                 <div class="flex justify-start">
                   <div class="flex justify-start">
                     <Button

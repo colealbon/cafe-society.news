@@ -21,9 +21,10 @@ export const Generic: Story = {
   args: {
     class: `${DEFAULT_CLASS}`,
     children: "test page header",
+    testid: "page_header",
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const button = await canvas.getByRole("h1");
+    const button = await canvas.getByTestId("page_header");
   },
 };

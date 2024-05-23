@@ -8,7 +8,6 @@ import {
 } from "solid-forms";
 import { TextInput }  from './components/TextInput'
 import { Link } from "@kobalte/core";
-import { nip19 } from 'nostr-tools'
 
 import {
   VsAdd
@@ -20,8 +19,7 @@ import {
 } from 'nostr-tools'
 
 import { PageHeader } from './components/PageHeader'
-import { Button } from './components/Button'
-import { NostrKey } from './db-fixture'
+import { NostrKey } from './NostrKeys'
 
 const NostrKeyEdit = (props: {
   nostrKeys: NostrKey[],
