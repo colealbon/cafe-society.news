@@ -323,7 +323,7 @@ export function fetchNostrPosts(params: string) {
     fetcher.fetchAllEvents(
       [...paramsObj.nostrRelayList],
       filterOptions,
-      { since: nHoursAgo(1) }
+      { since: nHoursAgo(6) }
     )
     .then((allThePosts: any) => {
       const filteredPosts = allThePosts
