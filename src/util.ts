@@ -1,5 +1,5 @@
 import { convert } from 'html-to-text'
-import winkNLP from 'wink-nlp';
+import winkNLP, { Bow } from 'wink-nlp';
 import model from 'wink-eng-lite-web-model';
 import { XMLParser } from 'fast-xml-parser'
 import type { Signal } from 'solid-js';
@@ -7,24 +7,20 @@ import { createSignal } from 'solid-js';
 import axios from 'axios';
 import { RSSFeed } from "./db-fixture";
 import winkSimilarity from 'wink-nlp/utilities/similarity';
+import { NostrFetcher } from "nostr-fetch"
 
 const nlp = winkNLP( model );
 const its = nlp.its;
 const as = nlp.as;
 const parser = new XMLParser();
+const fetcher = NostrFetcher.init()
 
 export const similarity: (a: string, b: string) => number = (a: string, b: string) => {
   const aDoc = nlp.readDoc( a );
   const bDoc = nlp.readDoc( b );
-  const bowA = aDoc.tokens().out(its.value, as.bow);
-  const bowB = bDoc.tokens().out(its.value, as.bow);
-  return winkSimilarity.bow.cosine(bowA, bowB)
-
-  // const similarity = stringSimilarity.compareTwoStrings(
-  //   `${processedPost}`,
-  //   `${postItem.mlText}`
-  // );
-  // return similarity
+  const bowA: Bow = aDoc.tokens().out(its.value, as.bow) as Bow;
+  const bowB: Bow = bDoc.tokens().out(its.value, as.bow) as Bow;
+  return winkSimilarity.bow.cosine(bowA, bowB);
 }
 
 export const htmlInnerText = (input: string) => {
@@ -269,38 +265,69 @@ export const parseAtom = (content: any) => {
     return Promise.all(parseQueue)
   }
 export function fetchRssPosts(params: string) {
-    if (params == '') {
-      return
-    }
-    const paramsObj = JSON.parse(params)
-    if (paramsObj.feedsForTrainLabel.length < 1) {
-      return
-    }
-    return new Promise((resolve) => {
-      const fetchQueue: any[] = []
-      paramsObj.feedsForTrainLabel.forEach((feed: RSSFeed) => {
-        fetchQueue.push(new Promise((resolve) => {
-          try {
-            paramsObj.corsProxies?.slice().forEach((corsProxy: any) => {
-              try {
-                axios.get(`${corsProxy}${feed}`)
-                .then(response => {
-                  resolve(response)
-                })
-              } catch(error) {
-                console.log(`${corsProxy}${feed} failed`)
-                console.log(error)
-              }
-            })
-          } catch (error) {
-            resolve('')
-          }
-        }))
-      })
-      Promise.all(fetchQueue)
-      .then(fetchedPosts => {
-        const fetchedPostsStr = JSON.stringify(fetchedPosts)
-        resolve(fetchedPostsStr)
-      })
-    })
+  if (params == '') {
+    return
   }
+  const paramsObj = JSON.parse(params)
+  if (paramsObj.feedsForTrainLabel.length < 1) {
+    return
+  }
+  return new Promise((resolve) => {
+    const fetchQueue: any[] = []
+    paramsObj.feedsForTrainLabel.forEach((feed: RSSFeed) => {
+      fetchQueue.push(new Promise((resolve) => {
+        try {
+          paramsObj.corsProxies?.slice().forEach((corsProxy: any) => {
+            try {
+              axios.get(`${corsProxy}${feed}`)
+              .then(response => {
+                resolve(response)
+              })
+            } catch(error) {
+              console.log(`${corsProxy}${feed} failed`)
+              console.log(error)
+            }
+          })
+        } catch (error) {
+          resolve('')
+        }
+      }))
+    })
+    Promise.all(fetchQueue)
+    .then(fetchedPosts => {
+      const fetchedPostsStr = JSON.stringify(fetchedPosts)
+      resolve(fetchedPostsStr)
+    })
+  })
+}
+
+export function prePrepNostrPosts(nostrEvents : any) {
+  return new Promise((resolve, reject) => {
+    if (nostrEvents.length === 0) {
+      reject(new Error('attempted to prePrep empty set of nostr messages'))
+    }
+    resolve(nostrEvents)
+  })
+}
+
+
+export function fetchNostrPosts(params: string) {
+  return new Promise((resolve) => {
+    const paramsObj = JSON.parse(params)
+    if (paramsObj.nostrRelayList?.length == 0) {
+      return
+    }
+    const filterOptions = {
+      kinds: [ 1, 30023 ]
+    }
+    fetcher.fetchAllEvents(
+      [...paramsObj.nostrRelayList],
+      filterOptions,
+      { since: nHoursAgo(1) }
+    )
+    .then((allThePosts: any) => {
+      const filteredPosts = allThePosts
+      resolve(filteredPosts)
+    })
+  })
+}

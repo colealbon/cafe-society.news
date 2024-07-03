@@ -48,6 +48,7 @@ const NostrPosts = (props: {
   const [processedPostsForSession, setProcessedPostsForSession] = createSignal('')
 
   return (
+    
     <main>
       <PageHeader>Nostr Global</PageHeader>
       <For

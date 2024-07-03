@@ -18,7 +18,6 @@ import {
   Route,
   useParams
 } from "@solidjs/router"
-import { NostrFetcher } from "nostr-fetch"
 import Payment from './Payment'
 import Contact from './Contact'
 import NostrRelays from './NostrRelays'
@@ -27,7 +26,6 @@ import Classifiers from './Classifiers'
 import TrainLabels from './TrainLabels'
 import NostrPosts from './NostrPosts'
 import Prompt from './Prompt'
-import Topics from './Topics'
 import defaultMetadata from './defaultMetadata'
 import defaultCorsProxies from './defaultCorsProxies'
 import defaultNostrRelays from './defaultNostrRelays'
@@ -35,19 +33,16 @@ import defaultNostrKeys from './defaultNostrKeys'
 import defaultClassifiers from './defaultClassifiers'
 import defaultTrainLabels from './defaultTrainLabels'
 import defaultRSSFeeds from './defaultRSSFeeds'
-import defaultTopics from './defaultTopics'
+
 import {
   DbFixture,
   NostrRelay,
   TrainLabel,
   RSSFeed,
   CorsProxy,
-  Classifier,
-  Topic
+  Classifier
 } from "./db-fixture"
 import {
-  nHoursAgo,
-  prepNostrPost,
   prepNLPTask,
   shortUrl,
   createStoredSignal,
@@ -55,12 +50,13 @@ import {
   parsePosts,
   fetchRssPosts,
   htmlInnerText,
-  similarity
+  similarity,
+  fetchNostrPosts,
+  prepNostrPost
 } from './util'
 
 import * as Y from 'yjs'
 
-const fetcher = NostrFetcher.init()
 const db = new DbFixture()
 db.on("populate", () => {
   db.nostrkeys.bulkAdd(defaultNostrKeys as NostrKey[])
@@ -69,7 +65,6 @@ db.on("populate", () => {
   db.corsproxies.bulkAdd(defaultCorsProxies as CorsProxy[])
   db.trainlabels.bulkAdd(defaultTrainLabels as TrainLabel[])
   db.classifiers.bulkAdd(defaultClassifiers as Classifier[])
-  db.topics.bulkAdd(defaultTopics as Topic[])
 })
 
 const App: Component = () => {
@@ -84,6 +79,12 @@ const App: Component = () => {
   const [preppedRSSPosts, setPreppedRSSPosts] = createSignal('')
   const [dedupedRSSPosts, setDedupedRSSPosts] = createSignal('')
   const [scoredRSSPosts, setScoredRSSPosts] = createSignal('')
+  const [prePrepedNostrPosts, setPrePrepedNostrPosts] = createSignal('')
+  const [prepedNostrPosts, setPrepedNostrPosts] = createSignal('')
+  const [dedupedNostrPosts, setDedupedNostrPosts] = createSignal('')
+  const [scoredNostrPosts, setScoredNostrPosts] = createSignal('')
+  const [nostrPosts, setNostrPosts] = createSignal('')
+
   const corsProxies = createDexieArrayQuery(() => db.corsproxies.toArray())
   const putCorsProxy = async (newCorsProxy: CorsProxy) => {
     await db.corsproxies.put(newCorsProxy)
@@ -91,19 +92,6 @@ const App: Component = () => {
   const removeCorsProxy = async (corsProxyToRemove: CorsProxy) => {
     await db.corsproxies.where('id').equals(corsProxyToRemove?.id).delete()
   }
-
-  const topics = createDexieArrayQuery(() => db.topics.toArray())
-  const putTopic = async (newTopic: Topic) => {
-    const newSubscribers = newTopic.subscribers.slice()
-    newTopic.subscribers = newSubscribers
-    await db.topics.put(newTopic)
-  }
-  const removeTopic = async (topicToRemove: Topic) => {
-    await db.topics.where('id').equals(topicToRemove?.id).delete()
-  }
-  const checkedTopics = createDexieArrayQuery(() => db.topics
-    .filter(topic => topic.checked === true)
-    .toArray())
   
   const nostrRelays = createDexieArrayQuery(() => db.nostrrelays.toArray())
   const checkedNostrRelays = createDexieArrayQuery(() => db.nostrrelays
@@ -214,6 +202,7 @@ const App: Component = () => {
         return true
       }
       return !processedPostsForFeedLink.find((processedPost: string) => {
+        // todo do not hardcode .8, use some statistics - or understand how .8 is derived from stats
         return similarity(
           `${processedPost}`,
           `${postItem.mlText}`
@@ -223,27 +212,27 @@ const App: Component = () => {
     setDedupedRSSPosts(JSON.stringify(newDedupedRSSPosts))
   })
   createEffect(() => {
-  if (`${parsedRSSPosts()}` === '') {
-    return
-  }
-  const newPreppedRSSPosts = JSON.parse(parsedRSSPosts()).flat() && JSON.parse(parsedRSSPosts()).flat()
-    .filter((post: {mlText: string}) => post && `${post.mlText}`.trim() != '')
-    .filter((post: {postTitle: string}) => {
-      return post.postTitle != null
-    })
-    .map((post: {postTitle: string})  => {
-      // replace this big replace with html innerText?
-      return {
-        ...post,
-        postTitle: htmlInnerText(post?.postTitle)
-      }
-    })
-    .filter((post: {
-      feedLink?: string,
-      guid: string
-    }) => post?.feedLink || post?.guid != null)
-      setPreppedRSSPosts(JSON.stringify(newPreppedRSSPosts))
-    })
+    if (`${parsedRSSPosts()}` === '') {
+      return
+    }
+    const newPreppedRSSPosts = JSON.parse(parsedRSSPosts()).flat() && JSON.parse(parsedRSSPosts()).flat()
+      .filter((post: {mlText: string}) => post && `${post.mlText}`.trim() != '')
+      .filter((post: {postTitle: string}) => {
+        return post.postTitle != null
+      })
+      .map((post: {postTitle: string})  => {
+        return {
+          ...post,
+          postTitle: htmlInnerText(post?.postTitle)
+        }
+      })
+      .filter((post: {
+        feedLink?: string,
+        guid: string
+      }) => post?.feedLink || post?.guid != null)
+    setPreppedRSSPosts(JSON.stringify(newPreppedRSSPosts))
+  })
+    
   createEffect(() => {
     if (fetchedRSSPosts() == undefined) {
       return
@@ -275,6 +264,127 @@ const App: Component = () => {
     const newSelectedMetadata: {description: string, title:string, keywords: string} = defaultMetadata[`${selectedTrainLabel()}`] || {description: '', title:'cafe-society.news', keywords: ''}
     setSelectedMetadata(newSelectedMetadata)
   })
+  createEffect(() => {
+    if (fetchedNostrPosts() == '') {
+      return
+    }
+    if (fetchedNostrPosts() == undefined) {
+      return
+    }
+    // @ts-ignore
+    const newPrePrepedNostrPosts = fetchedNostrPosts()
+    .filter((nostrPost: any) => {
+        return Object.fromEntries(nostrPost.tags)['e'] == null
+      })
+      .filter((nostrPost: any) => {
+        return nostrPost.content.replace('vmess:','').length == nostrPost.content.length
+      })
+      .filter((nostrPost: any) => !ignoreNostrKeys.find((ignoreKey: {publicKey: string}) => ignoreKey.publicKey == nostrPost.pubkey))
+    setPrePrepedNostrPosts(JSON.stringify(newPrePrepedNostrPosts))
+  })
+  createEffect(() => {
+    if (prePrepedNostrPosts() === undefined) {
+      return
+    }
+    if (prePrepedNostrPosts() === '') {
+      return
+    }
+    const newPrepedNostrPosts = JSON.parse(prePrepedNostrPosts())
+      .map((nostrPost: any) => prepNostrPost(nostrPost))
+        .map((post: any) => {
+          const shortmlText = post.mlText.split(' ').slice(0, 50).join(' ')
+          const newPost = {
+            ...post, 
+            ...{ mlText: shortmlText}
+          }
+          return newPost
+        })
+    setPrepedNostrPosts(JSON.stringify(newPrepedNostrPosts))
+  })
+
+  createEffect(() => {
+    if (prepedNostrPosts() == '') {
+      return
+    }
+    const processedNostrPosts = yProcessedPosts.get('nostr') as string[]
+    const newDedupedNostrPosts = JSON.parse(prepedNostrPosts()) && JSON.parse(prepedNostrPosts())
+      .filter((nostrPost: any) => {
+        return (nostrPost.mlText != '')
+      })
+      .filter((nostrPost: any) => {
+        return [processedNostrPosts]
+        .flat()?.indexOf(nostrPost.mlText) == -1
+      })
+      .filter((postItem: {mlText: string}) => {
+        return ![processedNostrPosts].flat()?.find((processedPost) => {
+          return similarity(
+            `${processedPost}`,
+            `${postItem.mlText}`
+          )
+        })
+      })
+    setDedupedNostrPosts(JSON.stringify(newDedupedNostrPosts))
+  })
+
+  createEffect(() => {
+    if (dedupedNostrPosts() === undefined) {
+      return
+    }
+
+    if (dedupedNostrPosts() == '') {
+      return
+    }
+    const suppressOdds: number = parseFloat(classifiers.find((classifierEntry) => classifierEntry?.id == selectedTrainLabel())?.thresholdSuppressOdds || '999')
+    const winkClassifier = WinkClassifier()
+    winkClassifier.definePrepTasks( [ prepNLPTask ] )
+    winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } )
+    const classifierModel: string = classifiers.find((classifierEntry: any) => classifierEntry?.id == selectedTrainLabel())?.model || ''
+    if (classifierModel != '') {
+      winkClassifier.importJSON(classifierModel)
+    }
+    const newScoredNostrPosts = (JSON.parse(dedupedNostrPosts()) && JSON.parse(dedupedNostrPosts()))
+      .map((post: {
+        prediction: any,
+        classifier: any
+      }) => applyPrediction({
+        post: post,
+        classifier: winkClassifier
+      }))
+      .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
+      .filter((post: {
+        prediction: {
+          promote: number
+        }
+      }) => {
+        if (`${selectedTrainLabel}` == '') {
+          return true
+        }
+        if (suppressOdds == undefined ) {
+          return true
+        }
+        if (post.prediction.promote == undefined) {
+          return true
+        }
+        return post.prediction.promote >= suppressOdds * -1
+      })
+    
+    setScoredNostrPosts(JSON.stringify(newScoredNostrPosts))
+  })
+
+  createEffect(() =>{
+    if (scoredNostrPosts() === '') {
+      return
+    }
+    if (scoredNostrPosts() === undefined) {
+      return
+    }
+    const newNostrPosts = JSON.parse(scoredNostrPosts())
+    setNostrPosts(newNostrPosts)
+  })
+
+
+
+
   const putTrainLabel = async (newTrainLabel: TrainLabel) => {
     await db.trainlabels.put(newTrainLabel)
   }
@@ -307,15 +417,6 @@ const App: Component = () => {
     putRSSFeed({...newValueObj} as RSSFeed)
   }
 
-  const handleTopicToggleChecked = (id: string) => {
-    const valuesForSelectedTopic = topics.find(topic => topic['id'] === id)
-    const newValueObj = {
-      ...valuesForSelectedTopic
-      , checked: !valuesForSelectedTopic?.checked
-    }
-    putTopic({...newValueObj} as Topic)
-  }
-
   const train = (params: {
     mlText: string,
     mlClass: string,
@@ -338,7 +439,6 @@ const App: Component = () => {
       thresholdPromoteDocCount: '10',
       thresholdSuppressOdds: thresholdSuppressOdds
     }
-    // console.log(newClassifierEntry)
     putClassifier(newClassifierEntry)
   }
   const [nostrQuery, setNostrQuery] = createSignal('')
@@ -355,7 +455,6 @@ const App: Component = () => {
 
   const markComplete = (postId: string, feedId: string) => {
     const newProcessedPostsForFeed: string[] = yProcessedPosts.get(feedId) as string[] || []
-    // console.log(newProcessedPostsForFeed)
     yProcessedPosts.set(feedId, Array.from(new Set([...newProcessedPostsForFeed, postId])))
   }
 
@@ -363,6 +462,7 @@ const App: Component = () => {
     .filter(nostrKey => nostrKey.ignore === true)
     .toArray()
   )
+
   createEffect(() => {
     const nostrRelayList = checkedNostrRelays.map((relay: NostrRelay) => relay.id)
     const newQuery = JSON.stringify({
@@ -371,88 +471,11 @@ const App: Component = () => {
     })
     setNostrQuery(newQuery)
   })
-  function fetchNostrPosts(params: string) {
-    return new Promise((resolve) => {
-      const paramsObj = JSON.parse(params)
-      if (paramsObj.nostrRelayList?.length == 0) {
-        return
-      }
-      const filterOptions = {
-        kinds: [ 1, 30023 ]
-      }
-      const winkClassifier = WinkClassifier()
-      winkClassifier.definePrepTasks( [ prepNLPTask ] )
-      winkClassifier.defineConfig( { considerOnlyPresence: true, smoothingFactor: 0.5 } )
-      const classifierModel: string = classifiers.find((classifierEntry: any) => classifierEntry?.id == 'nostr')?.model || ''
-      if (classifierModel != '') {
-        winkClassifier.importJSON(classifierModel)
-      }
-      fetcher.fetchAllEvents(
-        [...paramsObj.nostrRelayList],
-        filterOptions,
-        { since: nHoursAgo(6) }
-      )
-      .then((allThePosts: any) => {
-        const processedNostrPosts = yProcessedPosts.get('nostr') as string[]
-        const suppressOdds = parseFloat(classifiers.find((classifierEntry) => classifierEntry?.id == 'nostr')?.thresholdSuppressOdds || '999')
-        const filteredPosts = allThePosts
-          .filter((nostrPost: any) => `${nostrPost.mlText}`.replace(' ','') != '')
-          .filter((nostrPost: any) => {
-            return Object.fromEntries(nostrPost.tags)['e'] == null
-          })
-          .filter((nostrPost: any) => {
-            return nostrPost.content.replace('vmess:','').length == nostrPost.content.length
-          })
-          .filter((nostrPost: any) => !ignoreNostrKeys.find((ignoreKey: {publicKey: string}) => ignoreKey.publicKey == nostrPost.pubkey))
-          .map((nostrPost: any) => prepNostrPost(nostrPost))
-          .map((post: any) => {
-            const shortmlText = post.mlText.split(' ').slice(0, 50).join(' ')
-            const newPost = {
-              ...post, 
-              ...{ mlText: shortmlText}
-            }
-            return newPost
-          })
-          .filter((nostrPost: any) => {
-            return [processedNostrPosts]
-            .flat()?.indexOf(nostrPost.mlText) == -1
-          })
-          .filter((postItem: {mlText: string}) => {
-            return ![processedNostrPosts].flat()?.find((processedPost) => {
-              return similarity(
-                `${processedPost}`,
-                `${postItem.mlText}`
-              )
-            })
-          })
-          .map((post: any) => applyPrediction({
-            post: post,
-            classifier: winkClassifier
-          }))
-          .filter((post: any) => {
-            return (post.mlText != '')
-          })
-          .map((post: any) => {
-            const shortmlText = post.mlText.split(' ').slice(0, 50).join(' ')
-            const newPost = {
-              ...post, 
-              ...{ mlText: shortmlText}
-            }
-            return newPost
-          })
-          .filter((post: any) => {
-            return (post.prediction?.suppress || 0) <= (suppressOdds || 0)
-          })
-          .filter((post: any) => {
-            return ( 0.0 + post.prediction?.suppress || 0.0) != 0.0
-          })
-          .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
-        resolve(filteredPosts)
-      })
-    })
-  }
-  const [nostrPosts] = createResource(nostrQuery, fetchNostrPosts)
+
+  const [fetchedNostrPosts] = createResource(nostrQuery, fetchNostrPosts)
+
   const [fetchedRSSPosts, {mutate: mutateRssPosts}] = createResource(fetchRssParams, fetchRssPosts)
+  
   const toggleNav = () => setNavIsOpen(!navIsOpen())
   return (
     <div class='flex justify-start font-sans mr-30px'>
@@ -633,18 +656,6 @@ const App: Component = () => {
           />
           <Route path='/contact' component={() => <Contact/>} />
           <Route path='/subscriptions' component={() => <Payment />} />
-          <Route
-            path='/topics'
-            component={() => {
-              return <Topics
-                topics={topics}
-                nostrKeys={nostrKeys}
-                putTopic={putTopic}
-                removeTopic={removeTopic}
-                handleTopicToggleChecked={handleTopicToggleChecked}
-              />
-            }}
-          />
           <Route path='/nostrrelays' component={() => {
             return <NostrRelays
               nostrRelays={nostrRelays}
