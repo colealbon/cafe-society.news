@@ -8,6 +8,7 @@ import axios from 'axios';
 import { RSSFeed } from "./db-fixture";
 import winkSimilarity from 'wink-nlp/utilities/similarity';
 import { NostrFetcher } from "nostr-fetch"
+import WinkClassifier from 'wink-naive-bayes-text-classifier'
 
 const nlp = winkNLP( model );
 const its = nlp.its;
@@ -101,91 +102,88 @@ export function createStoredSignal<T>(
     return [value, setValueAndStore];
   }
 
-
 export const prepNostrPost = (post: any) => {
-    return {
-      mlText: prepNLPTask(convert(
-        `${post.content}`
-        .replace(/\d+/g, '')
-        .replace(/#/g, ''),
-        {
-          ignoreLinks: true,
-          ignoreHref: true,
-          ignoreImage: true,
-          linkBrackets: false,
-          wordwrap: false
-        }
-      )
-      )
-      .filter((word: string) => word.length < 30)
-      .filter((word: string) => word!='nostr')
-      .filter((word: string) => word!='vmess')
-      .join(' ')
-      .toLowerCase() || '',
-  
-      links: convert(
-        `${post.content}`,
-        {
-          ignoreLinks: true,
-          ignoreHref: true,
-          ignoreImage: true,
-          linkBrackets: false,
-          wordwrap: false
-        }
-        ).toLowerCase().match(/((file|http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g),
-      ...post
-    }
-  }
-
-  export const parseRSS: (
-    content: {rss: any}
-  ) => {
-    feedTitle: string,
-    feedLink: string,
-    feedDescription: string,
-    postId: string,
-    postTitle: string,
-    mlText: string
-  }[] = (content: {rss: any}) => {
-    const feedTitle = content.rss.channel.title
-    const feedLink = content.rss.channel.link
-    const feedDescription = content.rss.channel.description
-    const feedPosts = content.rss.channel.item?.length == null ?
-      [content.rss.channel.item] :
-      content.rss.channel.item
-  
-    return [...feedPosts]
-      .map((itemEntry) => ({
-        feedTitle: feedTitle,
-        feedLink: `${feedLink}`,
-        feedDescription: feedDescription,
-        ...itemEntry
-      }))
-      .map(itemEntry => ({
-        postSummary: convert(
-          itemEntry.description,
-          {
-            ignoreLinks: true,
-            ignoreHref: true,
-            ignoreImage: true,
-            linkBrackets: false
-          })
-        .replace(/\[.*?\]/g, '')
-        .replace(/\n/g,' ')?.toString()
-        .trim(),
-        ...itemEntry
-      }))
-      .map(itemEntry => ({
-        ...itemEntry,
-        postId: itemEntry.link || itemEntry.guid,
-        postTitle: itemEntry.title,
-        mlText: prepNLPTask(convert(`${itemEntry.title} ${itemEntry.postSummary}`))
-          .filter((word) => word.length < 30)
-          .join(' ')
-          .toLowerCase()
-      })
+  return {
+    mlText: prepNLPTask(convert(
+      `${post.content}`
+      .replace(/\d+/g, '')
+      .replace(/#/g, ''),
+      {
+        ignoreLinks: true,
+        ignoreHref: true,
+        ignoreImage: true,
+        linkBrackets: false,
+        wordwrap: false
+      }
     )
+    )
+    .filter((word: string) => word.length < 30)
+    .filter((word: string) => word!='nostr')
+    .filter((word: string) => word!='vmess')
+    .join(' ')
+    .toLowerCase() || '',
+
+    links: convert(
+      `${post.content}`,
+      {
+        ignoreLinks: true,
+        ignoreHref: true,
+        ignoreImage: true,
+        linkBrackets: false,
+        wordwrap: false
+      }
+      ).toLowerCase().match(/((file|http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g),
+    ...post
   }
+}
+
+export const parseRSS: ( content: {rss: any} ) => {
+  feedTitle: string,
+  feedLink: string,
+  feedDescription: string,
+  postId: string,
+  postTitle: string,
+  mlText: string
+}[] = (content: {rss: any}) => {
+  const feedTitle = content.rss.channel.title
+  const feedLink = content.rss.channel.link
+  const feedDescription = content.rss.channel.description
+  const feedPosts = content.rss.channel.item?.length == null ?
+    [content.rss.channel.item] :
+    content.rss.channel.item
+
+  return [...feedPosts]
+    .map((itemEntry) => ({
+      feedTitle: feedTitle,
+      feedLink: `${feedLink}`,
+      feedDescription: feedDescription,
+      ...itemEntry
+    }))
+    .map(itemEntry => ({
+      postSummary: convert(
+        itemEntry.description,
+        {
+          ignoreLinks: true,
+          ignoreHref: true,
+          ignoreImage: true,
+          linkBrackets: false
+        })
+      .replace(/\[.*?\]/g, '')
+      .replace(/\n/g,' ')?.toString()
+      .trim(),
+      ...itemEntry
+    }))
+    .map(itemEntry => ({
+      ...itemEntry,
+      postId: itemEntry.link || itemEntry.guid,
+      postTitle: itemEntry.title,
+      mlText: prepNLPTask(convert(`${itemEntry.title} ${itemEntry.postSummary}`))
+        .filter((word) => word.length < 30)
+        .join(' ')
+        .toLowerCase()
+    })
+  )
+}
 
 export const applyPrediction = (params: {
     post: any,
@@ -247,23 +245,23 @@ export const parseAtom = (content: any) => {
       })
     )
   }
-  export const parsePosts = (postsXML: any[]) => {
-    const parseQueue: any[] = []
-    postsXML.forEach(xmlEntry => {
-      parseQueue.push(new Promise(resolve => {
-        try {
-          const content = parser.parse(xmlEntry.data)
-          const parsed = content.rss ? parseRSS(content) : parseAtom(content)
-          resolve(parsed)
-        } catch (error) {
-          console.log(error)
-          console.log(xmlEntry)
-          resolve([])
-        }
-      }))
-    })
-    return Promise.all(parseQueue)
-  }
+export const parsePosts = (postsXML: any[]) => {
+  const parseQueue: any[] = []
+  postsXML.forEach(xmlEntry => {
+    parseQueue.push(new Promise(resolve => {
+      try {
+        const content = parser.parse(xmlEntry.data)
+        const parsed = content.rss ? parseRSS(content) : parseAtom(content)
+        resolve(parsed)
+      } catch (error) {
+        console.log(error)
+        console.log(xmlEntry)
+        resolve([])
+      }
+    }))
+  })
+  return Promise.all(parseQueue)
+}
 export function fetchRssPosts(params: string) {
   if (params == '') {
     return
@@ -306,10 +304,26 @@ export function prePrepNostrPosts(nostrEvents : any) {
     if (nostrEvents.length === 0) {
       reject(new Error('attempted to prePrep empty set of nostr messages'))
     }
-    resolve(nostrEvents)
+    const newNostrEvents = nostrEvents.filter((nostrPost: any) => {
+      return Object.fromEntries(nostrPost.tags)['e'] == null
+    })
+    .filter((nostrPost: any) => {
+      return nostrPost.content.replace('vmess:','').length == nostrPost.content.length
+    })
+    resolve(newNostrEvents)
   })
 }
 
+export function scoreRSSPosts(RSSPosts : any, winkClassifier: any) {
+  return RSSPosts
+  .map((post: {
+    prediction: any,
+    classifier: any
+  }) => applyPrediction({
+    post: post,
+    classifier: winkClassifier
+  }))
+}
 
 export function fetchNostrPosts(params: string) {
   return new Promise((resolve) => {

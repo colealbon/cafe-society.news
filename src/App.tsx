@@ -52,7 +52,9 @@ import {
   htmlInnerText,
   similarity,
   fetchNostrPosts,
-  prepNostrPost
+  prePrepNostrPosts,
+  prepNostrPost,
+  scoreRSSPosts
 } from './util'
 
 import * as Y from 'yjs'
@@ -150,6 +152,7 @@ const App: Component = () => {
       corsProxies: corsProxyList
     }))
   })
+
   createEffect(() => {
     if (dedupedRSSPosts() == '') {
       return
@@ -162,15 +165,8 @@ const App: Component = () => {
     if (classifierModel != '') {
       winkClassifier.importJSON(classifierModel)
     }
-
-    const newScoredRSSPosts = JSON.parse(dedupedRSSPosts()) && JSON.parse(dedupedRSSPosts())
-      .map((post: {
-        prediction: any,
-        classifier: any
-      }) => applyPrediction({
-        post: post,
-        classifier: winkClassifier
-      }))
+    const RSSPosts = JSON.parse(dedupedRSSPosts())
+    const newScoredRSSPosts = scoreRSSPosts(RSSPosts(), winkClassifier)
       .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
       .filter((post: {
         prediction: {
@@ -271,16 +267,10 @@ const App: Component = () => {
     if (fetchedNostrPosts() == undefined) {
       return
     }
-    // @ts-ignore
-    const newPrePrepedNostrPosts = fetchedNostrPosts()
-    .filter((nostrPost: any) => {
-        return Object.fromEntries(nostrPost.tags)['e'] == null
-      })
-      .filter((nostrPost: any) => {
-        return nostrPost.content.replace('vmess:','').length == nostrPost.content.length
-      })
-      .filter((nostrPost: any) => !ignoreNostrKeys.find((ignoreKey: {publicKey: string}) => ignoreKey.publicKey == nostrPost.pubkey))
-    setPrePrepedNostrPosts(JSON.stringify(newPrePrepedNostrPosts))
+    prePrepNostrPosts(fetchedNostrPosts())
+    .then(prePrepedNostrPosts => {
+      setPrePrepedNostrPosts(JSON.stringify(prePrepedNostrPosts))
+    })
   })
   createEffect(() => {
     if (prePrepedNostrPosts() === undefined) {
@@ -291,14 +281,14 @@ const App: Component = () => {
     }
     const newPrepedNostrPosts = JSON.parse(prePrepedNostrPosts())
       .map((nostrPost: any) => prepNostrPost(nostrPost))
-        .map((post: any) => {
-          const shortmlText = post.mlText.split(' ').slice(0, 50).join(' ')
-          const newPost = {
-            ...post, 
-            ...{ mlText: shortmlText}
-          }
-          return newPost
-        })
+      .map((post: any) => {
+        const shortmlText = post.mlText.split(' ').slice(0, 50).join(' ')
+        const newPost = {
+          ...post, 
+          ...{ mlText: shortmlText}
+        }
+        return newPost
+      })
     setPrepedNostrPosts(JSON.stringify(newPrepedNostrPosts))
   })
 
@@ -367,7 +357,6 @@ const App: Component = () => {
         }
         return post.prediction.promote >= suppressOdds * -1
       })
-    
     setScoredNostrPosts(JSON.stringify(newScoredNostrPosts))
   })
 
@@ -381,9 +370,6 @@ const App: Component = () => {
     const newNostrPosts = JSON.parse(scoredNostrPosts())
     setNostrPosts(newNostrPosts)
   })
-
-
-
 
   const putTrainLabel = async (newTrainLabel: TrainLabel) => {
     await db.trainlabels.put(newTrainLabel)
