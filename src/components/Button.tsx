@@ -8,7 +8,7 @@ export interface ButtonProps {
   class?: string;
   children?: any;
 }
-export const DEFAULT_CLASS="prose dark:prose-invert text-3xl border-none transition-colors bg-transparent hover-text-slate-500"            
+export const DEFAULT_CLASS="prose dark:prose-invert text-3xl border-none transition-colors bg-inherit hover-text-slate-500"            
 
 export const Button: Component<ButtonProps> = (props) => {
   props = mergeProps(

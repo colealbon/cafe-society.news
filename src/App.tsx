@@ -166,7 +166,7 @@ const App: Component = () => {
       winkClassifier.importJSON(classifierModel)
     }
     const RSSPosts = JSON.parse(dedupedRSSPosts())
-    const newScoredRSSPosts = scoreRSSPosts(RSSPosts(), winkClassifier)
+    const newScoredRSSPosts = scoreRSSPosts(RSSPosts, winkClassifier)
       .sort((a: any, b: any) => (a.prediction.suppress > b.prediction.suppress) ? 1 : -1)
       .filter((post: {
         prediction: {
@@ -427,6 +427,7 @@ const App: Component = () => {
     }
     putClassifier(newClassifierEntry)
   }
+  
   const [nostrQuery, setNostrQuery] = createSignal('')
   const [fetchRssParams, setFetchRssParams] = createSignal('')
 
@@ -466,28 +467,33 @@ const App: Component = () => {
   return (
     <div class='flex justify-start font-sans mr-30px'>
       <div 
-        class={` bg-black overflow-visible ease-in-out duration-500 transform-translate-x  ${navIsOpen() ? 'w-200px' : 'w-0 mr-30px'}`}
+        class={`bg-inherit overflow-visible ease-in-out duration-500 transform-translate-x  ${navIsOpen() ? 'w-200px' : 'w-0 mr-30px'}`}
       >
-          <Button
-              class={`sticky top-25px   ${navIsOpen() ? 'text-white' : ''}`}
-              onClick={() => toggleNav()} 
-              title='menu'
-              label='☰'
-          />
-          <div class={`${navIsOpen() ? 'w-200px sticky top-20 mt-10 pb-20' : 'w-0 overflow-hidden'}`}>
-            <NavBar
-              toggleNav={() => toggleNav()}
-              mutateRssPosts={() => {
-                mutateRssPosts(()=> [])
-                setDedupedRSSPosts('')
-                setScoredRSSPosts('')
-              }}
-              setSelectedTrainLabel={(newLabel: string) => setSelectedTrainLabel(newLabel)}
-              checkedTrainLabels={() => checkedTrainLabels}
-            />
-          </div>
+      <div class='sticky top-0px h-30px bg-inherit'>
+      <div class='h-20px pt-5 pb-8 bg-white'>
+        <Button
+            class={`${navIsOpen() ? 'text-white' : ''} bg-inherit`}
+            onClick={() => toggleNav()} 
+            title='menu'
+            label='☰'
+        />
       </div>
-      <div class='w-auto pl-3 mr-2'>
+      <div class='bg-gradient-to-b from-white p-6' />
+    </div>
+      <div class={`${navIsOpen() ? 'w-200px pb-20 pt-20' : 'w-0 overflow-hidden'}`}>
+        <NavBar
+          toggleNav={() => toggleNav()}
+          mutateRssPosts={() => {
+            mutateRssPosts(()=> [])
+            setDedupedRSSPosts('')
+            setScoredRSSPosts('')
+          }}
+          setSelectedTrainLabel={(newLabel: string) => setSelectedTrainLabel(newLabel)}
+          checkedTrainLabels={() => checkedTrainLabels}
+        />
+        </div>
+      </div>
+      <div class={`w-auto pl-3 mr-2 ${navIsOpen() ? 'sticky' : ''}`}>
         <Routes>
           <Route path='/cors' component={() => {
             const CorsProxies = lazy(() => import("./CorsProxies"))
