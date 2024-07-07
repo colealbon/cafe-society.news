@@ -6,7 +6,6 @@ const PostDisplay = (props: {
   postTitle: string;
   postSummary: string;
   postId: string;
-  isShrinking: any;
 }) => {
   return(
     <div>
@@ -15,7 +14,7 @@ const PostDisplay = (props: {
           props.postTitle
         }</a>
       </h2>
-      <div class='break-word block'>
+      <div class='break-word block text-xl'>
         {props.postSummary}
       </div>
   </div>

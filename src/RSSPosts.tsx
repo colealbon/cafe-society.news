@@ -15,9 +15,7 @@ import {PageHeader} from './components/PageHeader'
 import PostDisplay from './PostDisplay'
 import PostTrain from './PostTrain'
 
-import {
-  Collapsible
-} from "@kobalte/core";
+import { Collapsible } from "@kobalte/core/collapsible"
 import {
   SkeletonPost
 } from './components/SkeletonPost'
@@ -65,7 +63,7 @@ const Posts = (props: {
           const [isShrinking, setIsShrinking] = createSignal(false);
           const processedPostsID = `${post.feedLink}` === "" ? shortGuid(post.guid) : shortUrl(`${post.feedLink}`)
           return (
-            <Collapsible.Root defaultOpen={!processedPostsForSession().includes(post.mlText)}>
+            <Collapsible class="collapsible" defaultOpen={!processedPostsForSession().includes(post.mlText)}>
               <Collapsible.Content class='collapsible__content pr-2'>
                 <PostDisplay {...post} isShrinking={isShrinking}/>
                 <Collapsible.Trigger class="collapsible__trigger bg-white border-none">
@@ -83,7 +81,6 @@ const Posts = (props: {
                         prediction={post.prediction}
                         docCount={post.docCount}
                         markComplete={() => {
-                          setIsShrinking(true)
                           setProcessedPostsForSession(processedPostsForSession().concat(post.mlText))
                           setTimeout(() => {
                             props.markComplete(post.mlText, processedPostsID)
@@ -94,7 +91,7 @@ const Posts = (props: {
                   </Show>
                 </Collapsible.Trigger>
               </Collapsible.Content>
-            </Collapsible.Root>   
+            </Collapsible>   
           )}}       
       </For>
     </>
