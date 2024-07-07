@@ -490,7 +490,7 @@ const App: Component = () => {
           </Collapsible.Content>
         </Collapsible>
       </span>
-      <span class="ml-4">        
+      <span class="ml-4 mr4">        
           <Routes>
               <Route path='/cors' component={() => {
                 const CorsProxies = lazy(() => import("./CorsProxies"))

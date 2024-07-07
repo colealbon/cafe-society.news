@@ -23,16 +23,19 @@ const PostTrain = (props: {
   const handleComplete = () => setTimeout(() => props.markComplete(), 300)
   
   return(
-    <div class='bg-transparent border-none'>
+    <div class='bg-transparent border-none overflow-scroll'>
       <Button 
+        class='ml-0 pl-0'
         label='↓'
         onClick={() => handleTrain('suppress')}
       />
       <Button 
+        class='text-xl text-center ml-0 mr-0 pl-3 pr-3'
         label={`${(0.0 + (props.prediction && props.prediction['promote']) || 0.0).toFixed(2).replace('NaN', '-')}`} 
         onClick={() => handleComplete()}
       />
       <Button
+        class='mr-0 pr-0'
         label='↑'
         onClick={() => handleTrain('promote')} 
       />
