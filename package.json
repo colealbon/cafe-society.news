@@ -43,7 +43,6 @@
   },
   "dependencies": {
     "@kobalte/core": "^0.13.3",
-    "@picocss/pico": "^2.0.6",
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.8.4",
     "@unocss/preset-uno": "^0.55.7",

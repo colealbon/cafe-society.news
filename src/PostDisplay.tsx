@@ -14,7 +14,7 @@ const PostDisplay = (props: {
           props.postTitle
         }</a>
       </h2>
-      <div class='break-word block text-xl'>
+      <div class='block text-xl'>
         {props.postSummary}
       </div>
   </div>

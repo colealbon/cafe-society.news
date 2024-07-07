@@ -58,7 +58,6 @@ const Posts = (props: {
       <PageHeader>{props.trainLabel || 'all rss posts'}</PageHeader>
       <For each={props.rssPosts} fallback={<div class="pl-6"><SkeletonPost /> <SkeletonPost /> </div>}>
         {(post) => {
-          const [isShrinking, setIsShrinking] = createSignal(false);
           const processedPostsID = `${post.feedLink}` === "" ? shortGuid(post.guid) : shortUrl(`${post.feedLink}`)
           return (
             <Show when={!processedPostsForSession().includes(post.mlText)}>

@@ -8,9 +8,6 @@ dependencies:
   '@kobalte/core':
     specifier: ^0.13.3
     version: 0.13.3(solid-js@1.8.18)
-  '@picocss/pico':
-    specifier: ^2.0.6
-    version: 2.0.6
   '@solidjs/meta':
     specifier: ^0.29.4
     version: 0.29.4(solid-js@1.8.18)
@@ -2475,11 +2472,6 @@ packages:
   /@nothing-but/utils@0.3.2:
     resolution: {integrity: sha512-y7ynAt3lVjvXF7+xVVezGnq4pJliX/ducCa9/AV6iB03M1JUcV0iq/9qK6h+4ieFPXhTAX2a/VuBNgksjnUQZw==}
     dev: true
-
-  /@picocss/pico@2.0.6:
-    resolution: {integrity: sha512-/d8qsykowelD6g8k8JYgmCagOIulCPHMEc2NC4u7OjmpQLmtSetLhEbt0j1n3fPNJVcrT84dRp0RfJBn3wJROA==}
-    engines: {node: '>=18.19.0'}
-    dev: false
 
   /@pkgjs/parseargs@0.11.0:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
