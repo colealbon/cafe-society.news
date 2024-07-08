@@ -479,9 +479,10 @@ const App: Component = () => {
             <NavBar
                 toggleNav={() => toggleNav()}
                 mutateRssPosts={() => {
-                  mutateRssPosts(()=> [])
                   setDedupedRSSPosts('')
                   setScoredRSSPosts('')
+                  mutateRssPosts(()=> [])
+                  
                 }}
                 setSelectedTrainLabel={(newLabel: string) => setSelectedTrainLabel(newLabel)}
                 checkedTrainLabels={() => checkedTrainLabels}
