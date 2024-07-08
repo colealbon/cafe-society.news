@@ -77,23 +77,21 @@ export const Combobox: Component<ComboboxProps> = (props) => {
         </Item>
       )}
     >
-      <Control class="combobox__control" aria-label={local.ariaLabel}>
-      <div>
-								<For each={props.value}>
-									{option => (
-										<span onPointerDown={e => e.stopPropagation()}>
-											{option}
-											<button onClick={() => props.remove(option)}>
-												X
-											</button>
-										</span>
-									)}
-								</For>
-								<Input />
-							</div>
+      <Control class="combobox__control bg-inherit border-none" aria-label={local.ariaLabel}>
+        <div>
+          <For each={props.value}>
+            {option => (
+              <span onPointerDown={e => e.stopPropagation()}>
+                {option}
+                <button onClick={() => props.remove(option)} class='bg-inherit'>
+                  X
+                </button>
+              </span>
+            )}
+          </For>
+          <Input />
+        </div>
         <Input class="combobox__input" />
-
-
         <Trigger class="combobox__trigger">
           <Icon class="combobox__icon">
             <TiArrowUnsorted />

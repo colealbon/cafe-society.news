@@ -168,7 +168,7 @@ const RSSFeeds = (props: {
         onOpenChange={onOpenChange}
         placeholder="click label to remove..."
         itemComponent={props => (
-          <Combobox.Item item={props.item} class='combobox__item w-200px'>
+          <Combobox.Item item={props.item} class='combobox__item w-200px bg-inherit'>
             <Combobox.ItemLabel>{props.item.rawValue}</Combobox.ItemLabel>
             <Combobox.ItemIndicator class="combobox__item-indicator">
               <CheckIcon />

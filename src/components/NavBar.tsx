@@ -33,13 +33,13 @@ export const NavBar: Component<NavBarProps> = (props) => {
                 props.setSelectedTrainLabel('nostr')
               }}
             >
-              RSS&nbsp;Posts
+              Posts
             </NavLink>
           </Collapsible.Trigger>
           <For each={props.checkedTrainLabels()}>
             {
               (trainLabel) => (
-                <div class="ml-4">
+                <div class="ml-2">
                   <NavLink
                     testid={`rssposts-${trainLabel.id}-link`}
                     href={`/rssposts/${trainLabel.id}`}
@@ -51,21 +51,22 @@ export const NavBar: Component<NavBarProps> = (props) => {
               )
             }
           </For>
-          <div>
-            <Collapsible.Trigger as='a' >
-              <NavLink 
-                testid='nostrposts-link'
-                href='/nostrposts'
-                onClick={() => {
-                  props.setSelectedTrainLabel('nostr')
-                }}
-              >
-                Nostr&nbsp;Global
-              </NavLink>
-            </Collapsible.Trigger>
+          <div class="ml-2">
+            <NavLink 
+              testid='nostrposts-link'
+              href='/nostrposts'
+              onClick={() => {
+                props.setSelectedTrainLabel('nostr')
+              }}
+            >
+              Nostr&nbsp;Global
+            </NavLink>
           </div>
           <div>
-          <Collapsible.Trigger as='a' >
+            Settings
+          </div>
+          <div class="ml-2">
+            <Collapsible.Trigger as='a' >
               <NavLink
                 testid='rssfeeds-link'
                 href='/rssfeeds'
@@ -75,56 +76,56 @@ export const NavBar: Component<NavBarProps> = (props) => {
               </NavLink>
             </Collapsible.Trigger>
           </div>
-          <div>
+          <div class="ml-2">
             <Collapsible.Trigger as='a' >
               <NavLink testid='alby-link' href='/alby' onClick={() => handleClickNavLink()}>
                 Profile
               </NavLink>
             </Collapsible.Trigger>
           </div>
-          <div>
+          <div class="ml-2">
             <Collapsible.Trigger as='a' >
               <NavLink testid='cors-link' href='/cors'onClick={() => handleClickNavLink()}>
                 Cors&nbsp;Proxies
               </NavLink>
             </Collapsible.Trigger>
           </div>
-          <div>
+          <div class="ml-2">
             <Collapsible.Trigger as='a' >
               <NavLink testid='contact-link' href='/contact' onClick={() => handleClickNavLink()}>
                 Contact
               </NavLink>
             </Collapsible.Trigger>
           </div>
-          <div>
+          <div class="ml-2">
             <Collapsible.Trigger as='a' >
               <NavLink testid='subscriptions-link' href='/subscriptions' onClick={() => handleClickNavLink()}>
                 Subscriptions
               </NavLink>
             </Collapsible.Trigger>
           </div>
-          <div>
+          <div class="ml-2">
             <Collapsible.Trigger as='a' >
               <NavLink testid='nostrrelays-link' href='/nostrrelays' onClick={() => handleClickNavLink()}>
                 Nostr&nbsp;Relays
               </NavLink>
               </Collapsible.Trigger>
           </div>
-          <div>
+          <div class="ml-2">
             <Collapsible.Trigger as='a' >
               <NavLink testid='nostrkeys-link' href='/nostrkeys' onClick={() => handleClickNavLink()}>
                 Nostr&nbsp;Keys
               </NavLink>
             </Collapsible.Trigger>
           </div>
-          <div>
+          <div class="ml-2">
             <Collapsible.Trigger as='a' >
               <NavLink testid='classifiers-link' href='/classifiers' onClick={() => handleClickNavLink()}>
                 Classifiers
               </NavLink>
             </Collapsible.Trigger>
           </div>
-          <div>
+          <div class="ml-2">
             <Collapsible.Trigger as='a' >
               <NavLink testid='trainlabels-link' href='/trainlabels' onClick={() => handleClickNavLink()}>
                 Train&nbsp;Labels

@@ -7,16 +7,19 @@ const PostDisplay = (props: {
   postSummary: string;
   postId: string;
 }) => {
+  const truncateLongWords = (text: String) => {
+    return text.split(" ").map(word => word.slice(0, 30)).join(' ')
+  }
   return(
     <div>
       <h2>
         <a target="cafe" rel="noreferrer noopener" href={props.postId}>{
-          props.postTitle
+          truncateLongWords(props.postTitle)
         }</a>
       </h2>
-      <div class='block text-xl'>
-        {props.postSummary}
-      </div>
+      <article class='text-xl pr-4'>
+        {truncateLongWords(props.postSummary)}
+      </article>
   </div>
   )
 }
