@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "storybook-solidjs";
 import { within, userEvent } from "@storybook/test";
 import "virtual:uno.css";
 import { Router } from "@solidjs/router";
-import { NavBar } from "./NavBar";
+import { NavBar } from "../NavBar";
 
 // More on how to set up stories at: https://storybook.js.org/docs/7.0/solid/writing-stories/introduction
 const meta = {

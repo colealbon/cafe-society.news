@@ -1,5 +1,5 @@
 import { IndexeddbPersistence } from 'y-indexeddb'
-import { NavBar } from './components/NavBar.tsx'
+import { NavBar } from './NavBar.tsx'
 import { Button } from './components/Button.tsx'
 
 import { Collapsible } from "@kobalte/core/collapsible";
