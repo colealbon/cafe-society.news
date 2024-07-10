@@ -29,6 +29,7 @@
 }
 .collapsible__trigger[data-expanded] .collapsible__trigger-icon {
   transform: rotateZ(180deg);
+  margin-left: 15%;
 }
 .collapsible__content {
   width: 100%;

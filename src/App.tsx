@@ -471,8 +471,8 @@ const App: Component = () => {
     <main class="flex flex-row font-sans">
       <span>
         <Collapsible class="collapsible">
-          <Collapsible.Trigger class="collapsible__trigger top-0px justify-center">
-            <Button onClick={() => {}} label="→" area-label="menu" class="text-xl border-none collapsible__trigger-icon mt-8 color-green justify-center shadow-none"></Button>
+          <Collapsible.Trigger class="collapsible__trigger top-0px">
+            <Button onClick={() => {}} label="➔" area-label="menu" class="align-center text-xl border-none collapsible__trigger-icon mt-8 color-green shadow-none"></Button>
           </Collapsible.Trigger>
           <Collapsible.Content class="collapsible__content">
           <span>
@@ -481,7 +481,7 @@ const App: Component = () => {
                 mutateRssPosts={() => {
                   setDedupedRSSPosts('')
                   setScoredRSSPosts('')
-                  mutateRssPosts(()=> [])
+                  mutateRssPosts(() => [])
                   
                 }}
                 setSelectedTrainLabel={(newLabel: string) => setSelectedTrainLabel(newLabel)}
