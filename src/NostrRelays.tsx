@@ -85,7 +85,7 @@ const NostrRelays = (props: {
           </div>
         </form>
       </div>
-      <div>
+      <div class='h-50 overflow-y-auto'>
       <For each={props.nostrRelays}>
         {(nostrRelay) => (
             <Collapsible.Root class="collapsible" defaultOpen={true}>

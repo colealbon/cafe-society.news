@@ -104,6 +104,7 @@ const TrainLabels = (props: {
         <VsAdd class='align-middle text-xl mt-1 mb-1'/>
       </button>
     </form>
+    <div class='h-50 overflow-y-auto'>
   <For each={props.trainLabels}>
     {(trainLabel) => (
       <div class='flex flex-row'>
@@ -124,6 +125,7 @@ const TrainLabels = (props: {
       </div>
     )}
   </For>
+  </div>
   </div>
   )
 }

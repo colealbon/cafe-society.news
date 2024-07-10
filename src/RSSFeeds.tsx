@@ -64,9 +64,9 @@ const RSSFeeds = (props: {
     trainLabels: createFormControl([])
   });
 
-  const onSubmit = async (event: Event) => {
+  const onSubmit = async (event?: Event ) => {
     try {
-      event.preventDefault()
+      event?.preventDefault()
     } catch (err) {
       //pass
     }
@@ -266,40 +266,42 @@ const RSSFeeds = (props: {
         title='submit'
         label='submit'
         onClick={() => {
-          onSubmit(Event)
+          onSubmit()
         }}/>
       </form>
       <Separator.Root />
       <strong style={{'font-size': 'large'}}>feeds:</strong>
-      <For each={props.rssFeeds}>
-          {(feed) => (
-            <Show when={feed.id != ''}>
-              <div class='flex justify-between'>
-                <div class='pt-2'>{feed.trainLabels.join(', ').slice(0, 100)}</div>
-                <div class="flex justify-start">
+      <div class='h-50 overflow-y-auto'>
+        <For each={props.rssFeeds}>
+            {(feed) => (
+              <Show when={feed.id != ''}>
+                <div class='flex justify-between'>
+                  <div class='pt-2'>{feed.trainLabels.join(', ').slice(0, 100)}</div>
                   <div class="flex justify-start">
-                    <Button
-                      class='text-base pt-0 mt-0'
-                      onClick={() => handleClickFeed(feed.id)}
-                      label={feed.id.replace('http[s?]://', '').slice(0, 25) || ''}
+                    <div class="flex justify-start">
+                      <Button
+                        class='text-base pt-0 mt-0'
+                        onClick={() => handleClickFeed(feed.id)}
+                        label={feed.id.replace('http[s?]://', '').slice(0, 25) || ''}
+                      />
+                    </div>
+                    <Button 
+                      title={`remove ${feed.id}`}
+                      onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}
+                      label='✕'
+                    />
+                    <Switch 
+                      label=''
+                      class="flex display-inline pt-2"
+                      checked={feed.checked}
+                      onChange={() => handleToggleChecked(`${feed.id}`, !feed.checked)}
                     />
                   </div>
-                  <Button 
-                    title={`remove ${feed.id}`}
-                    onClick={() => {setTimeout(() => props.removeFeed(feed), 300)}}
-                    label='✕'
-                  />
-                  <Switch 
-                    label=''
-                    class="flex display-inline pt-2"
-                    checked={feed.checked}
-                    onChange={() => handleToggleChecked(`${feed.id}`, !feed.checked)}
-                  />
                 </div>
-              </div>
-            </Show>
-          )}
-      </For>
+              </Show>
+            )}
+        </For>
+      </div>
     </>
   );
 }

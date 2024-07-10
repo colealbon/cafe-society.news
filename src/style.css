@@ -6,9 +6,10 @@
 .collapsible__trigger {
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: left;
+  padding-top: 14px;
   width: 100%;
-  padding: 14px;
+  padding-left: 40px;
   font-weight: 600;
   border: 0px solid hsl(240 5% 84%);
   color: hsl(240 4% 16%);
@@ -30,6 +31,7 @@
 .collapsible__trigger[data-expanded] .collapsible__trigger-icon {
   transform: rotateZ(180deg);
   margin-left: 15%;
+  padding-bottom: 28px;
 }
 .collapsible__content {
   width: 100%;

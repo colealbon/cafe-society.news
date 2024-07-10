@@ -86,6 +86,10 @@ const NostrKeys = (props: {
     })
   };
 
+  const handleClickAdd = () => {
+    alert("you clicked add")
+  }
+
   const handleKeyClick = (publicKey: string) => {
     const valuesForSelectedKey = props.nostrKeys
       .find(nostrKeyEdit => nostrKeyEdit['publicKey'] === publicKey)
@@ -142,27 +146,32 @@ const NostrKeys = (props: {
         <label for="lightning">Lightning</label>
         <TextInput name="lightning" control={group.controls.lightning} />
         <div class='flex flex-row'>
-        <div>
-          <Link.Root onClick={(event: Event) => {
-            event.preventDefault()
-            onSubmit(event)
-          }}>
-            <VsAdd />
-          </Link.Root>
-        </div>
-        <div >
-          <Link.Root onClick={(event: Event) => {
-            event.preventDefault()
-            handleEraseClick()
-          }}>
-            <CgErase />
-          </Link.Root>
-        </div>
+          <div>
+            <Button label={<VsAdd />} onClick={() => {
+              handleClickAdd()
+            }} />
+          </div>
+          <div >
+            <Link.Root onClick={(event: Event) => {
+              event.preventDefault()
+              handleEraseClick()
+            }}>
+              <CgErase />
+            </Link.Root>
+          </div>
+          <div>
+            <Link.Root onClick={(event: Event) => {
+              event.preventDefault()
+              onSubmit(event)
+            }}>
+              <div>submit</div>
+            </Link.Root>
+          </div>
+
         </div>
       </form>
-
-      <div>
-        <h4 class="text-muted">Keys</h4>
+      <h4 class="text-muted">Keys</h4>
+      <div class='h-50 overflow-y-auto'>
         <For each={props.nostrKeys}>
           {(nostrKey) => (
             <div style={
@@ -199,7 +208,7 @@ const NostrKeys = (props: {
                 }}>
                 <Button 
                   onClick={() => handleKeyClick(nostrKey.publicKey)}
-                  label={nip19.npubEncode(nostrKey.publicKey)}
+                  label={nostrKey.label || nip19.npubEncode(nostrKey.publicKey)}
                 />
               </div>
             </div>

@@ -165,8 +165,9 @@ const Classifiers = (props: {
     </p>
     </Collapsible.Content>
     </Collapsible.Root>
-  <div>
-  <h4 class="text-muted">Classifiers</h4>
+    <h4 class="text-muted">Classifiers</h4>
+  <div class='h-50 overflow-y-auto'>
+  
   <For each={props.classifiers}>
     {(classifier) => (
       <div style={{
