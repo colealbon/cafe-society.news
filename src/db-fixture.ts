@@ -83,8 +83,7 @@ export class DbFixture extends Dexie {
       classifiers: "&id",
       processedposts: "&id",
       nostrrelays: "&id",
-      topics: "&id, label, checked, *subscribers",
-      jumprooms: "&label, signerNpub"
+      consortia: "&id, label, signerNpub, *memberPublicKeys"
     })
     // .upgrade (tx => {
     //   return tx.table("rssfeeds").toCollection().modify (rssFeed => {

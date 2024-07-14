@@ -75,7 +75,8 @@ export const NavBar: Component<NavBarProps> = (props) => {
                 cors: "Cors Proxies",
                 nostrrelays: "Nostr Relays",
                 nostrkeys: "Nostr Keys",
-                classifiers: "Classifiers"
+                classifiers: "Classifiers",
+                consortia: "Consortia"
               }
             ).map((entry) => {
               return (

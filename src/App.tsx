@@ -27,6 +27,7 @@ import NostrKeys, { NostrKey } from './NostrKeys'
 import Classifiers from './Classifiers'
 import TrainLabels from './TrainLabels'
 import NostrPosts from './NostrPosts'
+import Consortia from './Consortia'
 import Prompt from './Prompt'
 import defaultMetadata from './defaultMetadata'
 import defaultCorsProxies from './defaultCorsProxies'
@@ -35,7 +36,7 @@ import defaultNostrKeys from './defaultNostrKeys'
 import defaultClassifiers from './defaultClassifiers'
 import defaultTrainLabels from './defaultTrainLabels'
 import defaultRSSFeeds from './defaultRSSFeeds'
-import defaultJumpRooms from './defaultJumpRooms'
+import defaultConsortia from './defaultConsortia'
 
 import {
   DbFixture,
@@ -44,7 +45,7 @@ import {
   RSSFeed,
   CorsProxy,
   Classifier,
-  JumpRoom
+  Consortium
 } from "./db-fixture"
 import {
   prepNLPTask,
@@ -71,7 +72,7 @@ db.on("populate", () => {
   db.corsproxies.bulkAdd(defaultCorsProxies as CorsProxy[])
   db.trainlabels.bulkAdd(defaultTrainLabels as TrainLabel[])
   db.classifiers.bulkAdd(defaultClassifiers as Classifier[])
-  db.jumprooms.bulkAdd(defaultJumpRooms as JumpRoom[])
+  db.consortia.bulkAdd(defaultConsortia as Consortium[])
 })
 
 const App: Component = () => {
@@ -392,21 +393,19 @@ const App: Component = () => {
     await db.rssfeeds.where('id').equals(rssFeedToRemove?.id).delete()
   }
 
-  const jumpRooms = createDexieArrayQuery(() => db.jumprooms.toArray())
-  const putJumpRoom = async (newJumpRoom: JumpRoom) => {
-    if (newJumpRoom.label === '') {
+  const consortia = createDexieArrayQuery(() => db.consortia.toArray())
+  const putConsortium = async (newConsortium: Consortium) => {
+    if (newConsortium.label === '') {
       return
     }
     // trainLabels will turn into public keys/recipients
     // const newTrainLabels = newRSSFeed.trainLabels.slice()
     // newRSSFeed.trainLabels = newTrainLabels
-    await db.jumprooms.put(newJumpRoom)
+    await db.consortia.put(newConsortium)
   }
-  const removeJumpRoom = async (jumpRoomToRemove: JumpRoom) => {
-    await db.jumprooms.where('label').equals(jumpRoomToRemove?.label).delete()
+  const removeConsortium = async (consortiumToRemove: Consortium) => {
+    await db.consortia.where('label').equals(consortiumToRemove?.label).delete()
   }
-
-
 
   const checkedFeeds = createDexieArrayQuery(() => db.rssfeeds
     .filter(rssfeed => rssfeed.checked === true)
@@ -545,13 +544,13 @@ const App: Component = () => {
                   handleFeedToggleChecked={(id: string) => handleFeedToggleChecked(id)}
                 />
               }}/>
-              <Route path='/jumprooms' component={() => {
-                const JumpRooms = lazy(() => import("./JumpRooms"))
-                return <JumpRooms
-                  jumpRooms={jumpRooms}
+              <Route path='/consortia' component={() => {
+                const Consortia = lazy(() => import("./Consortia.tsx"))
+                return <Consortia
+                  consortia={consortia}
                   nostrKeys ={nostrKeys}
-                  putJumpRoom = {putJumpRoom}
-                  removeJumpRoom = {removeJumpRoom}
+                  putConsortium = {putConsortium}
+                  removeConsortium = {removeConsortium}
                 />
               }}/>
               <Route path='/rssposts' component={() => {
@@ -672,7 +671,12 @@ const App: Component = () => {
                   )
                 }}
               />
-              <Route path='/contact' component={() => <Contact/>} />
+              <Route path='/contact' component={() => <Contact/>}/>
+              <Route path='/consortia' component={() => <Consortia 
+                consortia={consortia}
+                putConsortium={putConsortium}
+                removeConsortium={removeConsortium}
+                />} />
               <Route path='/subscriptions' component={() => <Payment />} />
               <Route path='/nostrrelays' component={() => {
                 return <NostrRelays
