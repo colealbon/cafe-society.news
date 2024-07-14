@@ -35,6 +35,7 @@ import defaultNostrKeys from './defaultNostrKeys'
 import defaultClassifiers from './defaultClassifiers'
 import defaultTrainLabels from './defaultTrainLabels'
 import defaultRSSFeeds from './defaultRSSFeeds'
+import defaultJumpRooms from './defaultJumpRooms'
 
 import {
   DbFixture,
@@ -42,7 +43,8 @@ import {
   TrainLabel,
   RSSFeed,
   CorsProxy,
-  Classifier
+  Classifier,
+  JumpRoom
 } from "./db-fixture"
 import {
   prepNLPTask,
@@ -69,6 +71,7 @@ db.on("populate", () => {
   db.corsproxies.bulkAdd(defaultCorsProxies as CorsProxy[])
   db.trainlabels.bulkAdd(defaultTrainLabels as TrainLabel[])
   db.classifiers.bulkAdd(defaultClassifiers as Classifier[])
+  db.jumprooms.bulkAdd(defaultJumpRooms as JumpRoom[])
 })
 
 const App: Component = () => {
@@ -388,6 +391,23 @@ const App: Component = () => {
   const removeRSSFeed = async (rssFeedToRemove: RSSFeed) => {
     await db.rssfeeds.where('id').equals(rssFeedToRemove?.id).delete()
   }
+
+  const jumpRooms = createDexieArrayQuery(() => db.jumprooms.toArray())
+  const putJumpRoom = async (newJumpRoom: JumpRoom) => {
+    if (newJumpRoom.label === '') {
+      return
+    }
+    // trainLabels will turn into public keys/recipients
+    // const newTrainLabels = newRSSFeed.trainLabels.slice()
+    // newRSSFeed.trainLabels = newTrainLabels
+    await db.jumprooms.put(newJumpRoom)
+  }
+  const removeJumpRoom = async (jumpRoomToRemove: JumpRoom) => {
+    await db.jumprooms.where('label').equals(jumpRoomToRemove?.label).delete()
+  }
+
+
+
   const checkedFeeds = createDexieArrayQuery(() => db.rssfeeds
     .filter(rssfeed => rssfeed.checked === true)
     .toArray())
@@ -519,11 +539,19 @@ const App: Component = () => {
                 const RSSFeeds = lazy(() => import("./RSSFeeds"))
                 return <RSSFeeds
                   rssFeeds={rssFeeds}
-                  nostrKeys={nostrKeys}
                   putFeed={putRSSFeed}
                   removeFeed={removeRSSFeed}
                   trainLabels={trainLabels}
                   handleFeedToggleChecked={(id: string) => handleFeedToggleChecked(id)}
+                />
+              }}/>
+              <Route path='/jumprooms' component={() => {
+                const JumpRooms = lazy(() => import("./JumpRooms"))
+                return <JumpRooms
+                  jumpRooms={jumpRooms}
+                  nostrKeys ={nostrKeys}
+                  putJumpRoom = {putJumpRoom}
+                  removeJumpRoom = {removeJumpRoom}
                 />
               }}/>
               <Route path='/rssposts' component={() => {

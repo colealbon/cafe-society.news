@@ -8,7 +8,6 @@ import {
 } from "solid-forms";
 import { TextInput } from './components/TextInput'
 import { Link } from "@kobalte/core";
-import { nip19 } from 'nostr-tools'
 import * as Y from 'yjs'
 
 import {
@@ -17,7 +16,8 @@ import {
 import { CgErase } from 'solid-icons/cg'
 import {
   generatePrivateKey,
-  getPublicKey
+  getPublicKey,
+  nip19
 } from 'nostr-tools'
 
 import { PageHeader } from './components/PageHeader'
@@ -30,8 +30,6 @@ const NostrKeys = (props: {
   // eslint-disable-next-line no-unused-vars
   removeNostrKey: (newKey: NostrKey) => void
 }) => {
-
-
   const group = createFormGroup({
     publicKey: createFormControl(""),
     secretKey: createFormControl(""),
@@ -86,8 +84,33 @@ const NostrKeys = (props: {
     })
   };
 
+  function bytesToHex(byteArray: any[]) {
+    return Array.prototype.map.call(byteArray, function(byte) {
+      return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+    }).join('');
+  }
+  function hexToBytes(hexString: string) {
+    var result = [];
+    for (var i = 0; i < hexString.length; i += 2) {
+      result.push(parseInt(hexString.substr(i, 2), 16));
+    }
+    return result;
+  }
+
   const handleClickAdd = () => {
-    alert("you clicked add")
+    let nostrSecretKey = generatePrivateKey()
+    let nsec = nip19.nsecEncode(nostrSecretKey)
+    // let { type, data } = nip19.decode(nsec)
+    const npub = nip19.npubEncode(getPublicKey(nostrSecretKey))
+    
+    group.setValue({
+      publicKey:`${npub}`,
+      secretKey:`${nsec}`,
+      label:'',
+      lightning:'',
+      follow: false,
+      ignore: false
+    })
   }
 
   const handleKeyClick = (publicKey: string) => {
@@ -208,7 +231,7 @@ const NostrKeys = (props: {
                 }}>
                 <Button 
                   onClick={() => handleKeyClick(nostrKey.publicKey)}
-                  label={nostrKey.label || nip19.npubEncode(nostrKey.publicKey)}
+                  label={nostrKey.label || nostrKey.publicKey}
                 />
               </div>
             </div>

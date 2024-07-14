@@ -39,6 +39,11 @@ export interface ProcessedPost {
   "processedPosts": string[]
 }
 
+export interface JumpRoom {
+  "label": string,
+  "signerNpub": string
+}
+
 export class DbFixture extends Dexie {
   nostrkeys!: Table<NostrKey>;
   rssfeeds!: Table<RSSFeed>;
@@ -48,6 +53,7 @@ export class DbFixture extends Dexie {
   processedposts!: Table<ProcessedPost>;
   nostrrelays!: Table<NostrRelay>;
   topics!: Table<Topic>;
+  jumprooms!: Table<JumpRoom>;
   constructor() {
     super("db-fixture");
     this.version(2).stores({
@@ -68,6 +74,17 @@ export class DbFixture extends Dexie {
       processedposts: "&id",
       nostrrelays: "&id",
       topics: "&id, label, checked, *subscribers",
+    })
+    this.version(4).stores({
+      nostrkeys: "&publicKey",
+      rssfeeds: "&id, npub, checked, *trainLabels",
+      corsproxies: "&id",
+      trainlabels: "&id",
+      classifiers: "&id",
+      processedposts: "&id",
+      nostrrelays: "&id",
+      topics: "&id, label, checked, *subscribers",
+      jumprooms: "&label, signerNpub"
     })
     // .upgrade (tx => {
     //   return tx.table("rssfeeds").toCollection().modify (rssFeed => {

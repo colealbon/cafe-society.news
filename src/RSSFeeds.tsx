@@ -18,12 +18,9 @@ import { TextInput } from './components/TextInput'
 import { FaSolidCheck  as CheckIcon} from 'solid-icons/fa'
 import { RSSFeed, TrainLabel} from './db-fixture'
 import { Button } from './components/Button'
-import { NostrKey } from './NostrKeys'
-import * as nip19 from 'nostr-tools/nip19'
-
 const RSSFeeds = (props: {
     rssFeeds: RSSFeed[],
-    nostrKeys: NostrKey[],
+    // nostrKeys: NostrKey[],
     trainLabels: TrainLabel[],
     // eslint-disable-next-line no-unused-vars
     putFeed: (feed: RSSFeed) => void,
@@ -47,15 +44,15 @@ const RSSFeeds = (props: {
     setOptions(options()?.filter(option => filter.contains(option, value)));
   };
 
-  const onOpenChangeNpub = (isOpen: boolean, triggerMode?: Combobox.ComboboxTriggerMode) => {
-    // Show all options on ArrowDown/ArrowUp and button click.
-    if (isOpen && triggerMode === "manual") {
-      setOptionsNpub(props.nostrKeys.map(nostrKey => nostrKey.publicKey))
-    }
-  };
-  const onInputChangeNpub = (value: string) => {
-    setOptionsNpub(optionsNpub()?.filter(option => !filter.contains(option, value)));
-  };
+  // const onOpenChangeNpub = (isOpen: boolean, triggerMode?: Combobox.ComboboxTriggerMode) => {
+  //   // Show all options on ArrowDown/ArrowUp and button click.
+  //   if (isOpen && triggerMode === "manual") {
+  //     setOptionsNpub(props.nostrKeys.map(nostrKey => nostrKey.publicKey))
+  //   }
+  // };
+  // const onInputChangeNpub = (value: string) => {
+  //   setOptionsNpub(optionsNpub()?.filter(option => !filter.contains(option, value)));
+  // };
 
   const group = createFormGroup({
     id: createFormControl(""),
@@ -211,9 +208,9 @@ const RSSFeeds = (props: {
       </Combobox.Root>
 
       
-      <Combobox.Root<string>
+      {/* <Combobox.Root<string>
         multiple={false}
-        options={props.nostrKeys.map((nostrKey => nostrKey.publicKey ? nip19.npubEncode(nostrKey.publicKey): ''))}
+        options={props.nostrKeys}
         value={npubValue()}
         onChange={setNpubValue}
         onInputChange={onInputChangeNpub}
@@ -221,7 +218,7 @@ const RSSFeeds = (props: {
         placeholder="click label to remove..."
         itemComponent={props => (
           <Combobox.Item item={props.item} class='combobox__item w-200px'>
-            <Combobox.ItemLabel>{props.item.rawValue}</Combobox.ItemLabel>
+            <Combobox.ItemLabel>{props.item.label || props.item.pubKey}</Combobox.ItemLabel>
             <Combobox.ItemIndicator class="combobox__item-indicator">
               <CheckIcon />
             </Combobox.ItemIndicator>
@@ -260,7 +257,7 @@ const RSSFeeds = (props: {
           <Combobox.Listbox class="combobox__listbox font-sans"/>
         </Combobox.Content>
       </Combobox.Portal>
-      </Combobox.Root>
+      </Combobox.Root> */}
       <div />
       <Button
         title='submit'
