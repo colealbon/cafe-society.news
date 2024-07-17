@@ -1,9 +1,7 @@
 import { IndexeddbPersistence } from 'y-indexeddb'
 import { NavBar } from './NavBar.tsx'
 import { Button } from './components/Button.tsx'
-
 import { Collapsible } from "@kobalte/core/collapsible";
-
 import {
   createSignal,
   createResource,
@@ -29,6 +27,7 @@ import TrainLabels from './TrainLabels'
 import NostrPosts from './NostrPosts'
 import Consortia from './Consortia'
 import Prompt from './Prompt'
+import EncryptionKeys, { EncryptionKey } from './EncryptionKeys'
 import defaultMetadata from './defaultMetadata'
 import defaultCorsProxies from './defaultCorsProxies'
 import defaultNostrRelays from './defaultNostrRelays'
@@ -37,7 +36,7 @@ import defaultClassifiers from './defaultClassifiers'
 import defaultTrainLabels from './defaultTrainLabels'
 import defaultRSSFeeds from './defaultRSSFeeds'
 import defaultConsortia from './defaultConsortia'
-
+import defaultEncryptionKeys from './defaultEncryptionKeys'
 import {
   DbFixture,
   NostrRelay,
@@ -61,8 +60,11 @@ import {
   prepNostrPost,
   scoreRSSPosts
 } from './util'
-
 import * as Y from 'yjs'
+import * as buffer from 'buffer';
+if (!window.Buffer) {
+  window.Buffer = buffer.Buffer; 
+}
 
 const db = new DbFixture()
 db.on("populate", () => {
@@ -73,6 +75,7 @@ db.on("populate", () => {
   db.trainlabels.bulkAdd(defaultTrainLabels as TrainLabel[])
   db.classifiers.bulkAdd(defaultClassifiers as Classifier[])
   db.consortia.bulkAdd(defaultConsortia as Consortium[])
+  db.encryptionkeys.bulkAdd(defaultEncryptionKeys as EncryptionKey[])
 })
 
 const App: Component = () => {
@@ -92,7 +95,6 @@ const App: Component = () => {
   const [dedupedNostrPosts, setDedupedNostrPosts] = createSignal('')
   const [scoredNostrPosts, setScoredNostrPosts] = createSignal('')
   const [nostrPosts, setNostrPosts] = createSignal('')
-
   const corsProxies = createDexieArrayQuery(() => db.corsproxies.toArray())
   const putCorsProxy = async (newCorsProxy: CorsProxy) => {
     await db.corsproxies.put(newCorsProxy)
@@ -124,6 +126,20 @@ const App: Component = () => {
   const removeNostrKey = async (nostrKeyRemove: NostrKey) => {
     await db.nostrkeys.where('publicKey').equals(nostrKeyRemove.publicKey).delete()
   }
+
+  const encryptionKeys = createDexieArrayQuery(() => db.encryptionKeys.toArray())
+  const encryptionKeysWithSecretKey = createDexieArrayQuery(() => db.encryptionKeys
+  .filter(encryptionKey => !!encryptionKey.secretKey)
+  .toArray()
+  )
+
+  const putEncryptionKey = async (newKey: EncryptionKey) => {
+    await db.encryptionkey.put(newKey)
+  }
+  const removeEncryptionKey = async (encryptionKeyRemove: EncryptionKey) => {
+    await db.encryptionkeys.where('publicKey').equals(encryptionKeyRemove.publicKey).delete()
+  }
+
   const classifiers: Classifier[] = createDexieArrayQuery(() => db.classifiers.toArray())
   const putClassifier = async (newClassifierEntry: Classifier) => {
     const winkClassifier = WinkClassifier()
@@ -196,7 +212,7 @@ const App: Component = () => {
     if (preppedRSSPosts() == '') {
       return
     }
-    const newDedupedRSSPosts = JSON.parse(preppedRSSPosts()) && JSON.parse(preppedRSSPosts())
+    const newDedupedRSSPosts = JSON.parse(preppedRSSPosts())
     .filter((postItem: any) => {
       const processedPostsID = postItem.feedLink === "" ? postItem.guid : shortUrl(postItem.feedLink)
       const processedPostsForFeedLink = yProcessedPosts.get(processedPostsID) as Array<string>
@@ -401,6 +417,7 @@ const App: Component = () => {
     // trainLabels will turn into public keys/recipients
     // const newTrainLabels = newRSSFeed.trainLabels.slice()
     // newRSSFeed.trainLabels = newTrainLabels
+    console.log(newConsortium)
     await db.consortia.put(newConsortium)
   }
   const removeConsortium = async (consortiumToRemove: Consortium) => {
@@ -674,6 +691,7 @@ const App: Component = () => {
               <Route path='/contact' component={() => <Contact/>}/>
               <Route path='/consortia' component={() => <Consortia 
                 consortia={consortia}
+                nostrKeys={nostrKeys}
                 putConsortium={putConsortium}
                 removeConsortium={removeConsortium}
                 />} />
@@ -692,6 +710,14 @@ const App: Component = () => {
                   removeNostrKey={removeNostrKey}
                   />}} />
               <Route path='/nostrkeys/raw' component={() => <pre>{JSON.stringify(nostrKeys, null, 2)}</pre>}/>
+              <Route path='/encryptionkeys' component={() => {
+                return <EncryptionKeys
+                  encryptionKeys={encryptionKeys}
+                  putEncryptionKey={putEncryptionKey}
+                  removeEncryptionKey={removeEncryptionKey}
+                  />}} />
+              <Route path='/encryptionkeys/raw' component={() => <pre>{JSON.stringify(encryptionKeys, null, 2)}</pre>}/>
+              
               <Route path='/classifiers' component={() => {
                 return <Classifiers
                   classifiers={classifiers}

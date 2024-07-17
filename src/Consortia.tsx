@@ -1,9 +1,7 @@
 import {
   createFilter,
-  Combobox,
-  Separator
+  Combobox
 } from "@kobalte/core";
-import { Switch } from './components/Switch'
 import { PageHeader } from './components/PageHeader'
 import {
   For,
@@ -23,18 +21,18 @@ type Consortium = any
 
 const Consortia = (props: {
     consortia: any;
-    // nostrKeys: NostrKey[];
+    nostrKeys: NostrKey[];
     // eslint-disable-next-line no-unused-vars
     putConsortium: (consortium?: Consortium) => void,
     // eslint-disable-next-line no-unused-vars
     removeConsortium: (consortium?: Consortium) => void
   }) => {
-    console.log(props.nostrKeys)
     console.log(props.consortia)
-//   const [trainLabelValues, setTrainLabelValues] = createSignal([]);
-  const [npubValue, setNpubValue] = createSignal('');
+    // console.log(props.consortia)
+    // const [trainLabelValues, setTrainLabelValues] = createSignal([]);
+  const [signerNpub, setSignerNpub] = createSignal('');
   const filter = createFilter({ sensitivity: "base" });
-//   const [options, setOptions] = createSignal<string[]>();
+  // const [options, setOptions] = createSignal<string[]>();
   const [optionsNpub, setOptionsNpub] = createSignal<string[]>([]);
 
 //   const onOpenChange = (isOpen: boolean, triggerMode?: Combobox.ComboboxTriggerMode) => {
@@ -51,6 +49,7 @@ const Consortia = (props: {
     // Show all options on ArrowDown/ArrowUp and button click.
     if (isOpen && triggerMode === "manual") {
       setOptionsNpub(props.nostrKeys.map(nostrKey => nostrKey.publicKey))
+      console.log(optionsNpub)
     }
   };
   const onInputChangeNpub = (value: string) => {
@@ -58,13 +57,10 @@ const Consortia = (props: {
   };
 
   const group = createFormGroup({
-    label: createFormControl(""),
-    signerNpub: createFormControl("")
-    // label:'',
-    // npub:''
-    // //,
-    // // checked:true,
-    // // trainLabels:['']
+    id: createFormControl(''),
+    label: createFormControl(''),
+    signerNpub: createFormControl(''),
+    memberPublicKeys: createFormControl([''])
   });
 
   const onSubmit = async (event?: Event ) => {
@@ -94,8 +90,8 @@ const Consortia = (props: {
         ...consortiumTemplate,
         ...newConsortium
       }
-      // newConsortiumObj.trainLabels = trainLabelValues()
-      newConsortiumObj.npub = npubValue()
+      newConsortiumObj.signerNpub = signerNpub()
+      newConsortiumObj.signerNpub = signerNpub()
       if (newConsortiumObj.label === '') {
         return
       }
@@ -103,7 +99,7 @@ const Consortia = (props: {
       props.putConsortium(newConsortiumObj)
     })
     group.setValue(consortiumTemplate)
-    setNpubValue('')
+    setSignerNpub('')
     // setTrainLabelValues([]) 
   };
 
@@ -123,9 +119,9 @@ const Consortia = (props: {
 //     ))
 //     group.setValue (newValueObj)
 //     setTrainLabelValues(valuesForSelectedFeed?.trainLabels as string[])
-//     setNpubValue(valuesForSelectedFeed?.npub as string)
+//     setSignerNpub(valuesForSelectedFeed?.npub as string)
 //     newValueObj.trainLabels = trainLabelValues()
-//     newValueObj.npub = npubValue()
+//     newValueObj.npub = signerNpub()
 //     if (newValueObj.id === '') {
 //       return
 //     }
@@ -136,7 +132,7 @@ const Consortia = (props: {
   const handleClickConsortium = (label: string) => {
     // setTrainLabelValues([])
     setOptionsNpub([])
-    setNpubValue('')
+    setSignerNpub('')
     const valuesForSelectedConsortium = props.consortia
       .find((consortiumEdit: any) => consortiumEdit['label'] === label)
     group.setValue(Object.assign({
@@ -146,21 +142,32 @@ const Consortia = (props: {
         memberPublicKeys: []
       }, valuesForSelectedConsortium))
     // setTrainLabelValues(valuesForSelectedFeed?.trainLabels as string[] || [''])
-    setNpubValue(valuesForSelectedConsortium?.signerNpub as string || '')
+    setSignerNpub(valuesForSelectedConsortium?.signerNpub as string || '')
   }
-  console.log(props.consortia)
+
+  const handleClickCreateRoom = () => {
+    console.log('you clicked create room')
+    console.log(signerNpub())
+  }
+
   return (
     <>
       <PageHeader>Consortia</PageHeader>
       <form onSubmit={onSubmit}>
+        <label>Nostr Room Event ID
+          <TextInput name="id" control={group.controls.id} />
+        </label>
         <label>Label
           <TextInput name="label" control={group.controls.label} />
         </label>
+        <Button
+          onClick={() => handleClickCreateRoom()}
+         label="new nostr room" />
       <Combobox.Root<string>
         multiple={false}
-        options={optionsNpub()}
-        value={npubValue()}
-        onChange={setNpubValue}
+        options={props.nostrKeys.map(nostrKey => nostrKey.label || nostrKey.publicKey)}
+        value={signerNpub()}
+        onChange={setSignerNpub}
         onInputChange={onInputChangeNpub}
         onOpenChange={onOpenChangeNpub}
         placeholder="click label to remove..."
@@ -175,12 +182,12 @@ const Consortia = (props: {
       >
         <Combobox.Control<string> 
           aria-label="nPub"
-          class="bg-white combobox__control" 
+          class="combobox__control" 
         >
         {state => (
           <> 
             <Combobox.Trigger class='border-none bg-transparent align-middle text-3xl transition-all hover-text-white hover:bg-black rounded-full'>
-              &nbsp;+npub&nbsp;
+              &nbsp;signer npub&nbsp;
             </Combobox.Trigger>
             <div class='flex flex-row bg-white '>
               <For each={state.selectedOptions()}>
@@ -215,7 +222,6 @@ const Consortia = (props: {
         }}
         />
       </form>
-
       <strong style={{'font-size': 'large'}}>Consortia:</strong>
       <div class='h-50 overflow-y-auto'>
         <For each={props.consortia}>

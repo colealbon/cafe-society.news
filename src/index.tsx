@@ -4,7 +4,7 @@ import { Router } from "@solidjs/router";
 import "virtual:uno.css"
 import { MetaProvider } from '@solidjs/meta';
 import App from './App';
-import './style.css'
+import './style.css';
 
 const root = document.getElementById('root');
 

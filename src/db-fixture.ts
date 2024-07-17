@@ -1,5 +1,6 @@
 import Dexie, { Table } from "dexie";
 import { NostrKey } from './NostrKeys'
+import { EncryptionKey } from './EncryptionKeys'
 
 export interface Classifier {
   "id": string,
@@ -12,13 +13,6 @@ export interface RSSFeed {
     "npub": string,
     "checked": boolean,
     "trainLabels": string[]
-}
-
-export interface Topic {
-  "id": string,
-  "label": string,
-  "checked": boolean,
-  "subscribers": string[]
 }
 
 export interface CorsProxy {
@@ -39,9 +33,11 @@ export interface ProcessedPost {
   "processedPosts": string[]
 }
 
-export interface JumpRoom {
+export interface Consortium {
+  "id": string,
   "label": string,
-  "signerNpub": string
+  "signerNpub": string,
+  "memberPublicKeys": string[]
 }
 
 export class DbFixture extends Dexie {
@@ -52,8 +48,9 @@ export class DbFixture extends Dexie {
   classifiers!: Table<Classifier>;
   processedposts!: Table<ProcessedPost>;
   nostrrelays!: Table<NostrRelay>;
-  topics!: Table<Topic>;
-  jumprooms!: Table<JumpRoom>;
+  consortia!: Table<Consortium>;
+  encryptionkeys!: Table<EncryptionKey>;
+
   constructor() {
     super("db-fixture");
     this.version(2).stores({
@@ -83,7 +80,8 @@ export class DbFixture extends Dexie {
       classifiers: "&id",
       processedposts: "&id",
       nostrrelays: "&id",
-      consortia: "&id, label, signerNpub, *memberPublicKeys"
+      consortia: "&id, label, signerNpub, *memberPublicKeys",
+      encryptionkeys: "&publicKey, privateKey, label"
     })
     // .upgrade (tx => {
     //   return tx.table("rssfeeds").toCollection().modify (rssFeed => {

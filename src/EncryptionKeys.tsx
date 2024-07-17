@@ -1,7 +1,8 @@
+import chloride from 'chloride'
+
 import {
   For
 } from 'solid-js';
-
 import {
   createFormGroup,
   createFormControl,
@@ -12,29 +13,20 @@ import {
   VsAdd
 } from 'solid-icons/vs'
 import { CgErase } from 'solid-icons/cg'
-import {
-  generatePrivateKey,
-  getPublicKey,
-  nip19
-} from 'nostr-tools'
-
 import { PageHeader } from './components/PageHeader'
 import { Button } from './components/Button'
 
-const NostrKeys = (props: {
-  nostrKeys: NostrKey[],
+const EncryptionKeys = (props: {
+  encryptionKeys: EncryptionKey[],
   // eslint-disable-next-line no-unused-vars
-  putNostrKey: (newKey: NostrKey) => void,
+  putEncryptionKey: (newKey: EncryptionKey) => void,
   // eslint-disable-next-line no-unused-vars
-  removeNostrKey: (newKey: NostrKey) => void
+  removeEncryptionKey: (newKey: EncryptionKey) => void
 }) => {
   const group = createFormGroup({
     publicKey: createFormControl(""),
     secretKey: createFormControl(""),
-    label: createFormControl(""),
-    lightning: createFormControl(""),
-    follow: createFormControl(false),
-    ignore: createFormControl(false)
+    label: createFormControl("")
   });
 
   const onSubmit = async (event: any) => {
@@ -47,80 +39,76 @@ const NostrKeys = (props: {
       Object.entries(Object.assign({
         publicKey:'',
         secretKey:'',
-        label:'',
-        lightning:'',
-        follow: false,
-        ignore: false
+        label:''
       }, group.value))
       .filter(([, value]) => `${value}` !== '')
     )]
-    .map((newKey) => {
-      if (`${newKey.publicKey}${newKey.secretKey}` == 'undefinedundefined') {
-        const secretKey = generatePrivateKey()
-        newKey.secretKey = secretKey
-      }
-      return newKey
-    })
-    .map((newKey) => {
-      if (`${newKey.publicKey}` == 'undefined') {
-          newKey.publicKey = getPublicKey(`${newKey.secretKey}`)
-      }
-      return newKey
-    })
-    .filter((newKey) => `${newKey.publicKey}` != 'undefined')
-    .forEach(newKey => {
-      const newNostrKey: NostrKey = {...{publicKey: '', ...newKey}}
-      props.putNostrKey(newNostrKey)
-    })
+    // .map((newKey) => {
+    // //   if (`${newKey.publicKey}${newKey.secretKey}` == 'undefinedundefined') {
+    // //     const secretKey = generatePrivateKey()
+    // //     newKey.secretKey = secretKey
+    // //   }
+    // //   return newKey
+    // })
+    // .map((newKey) => {
+    //   if (`${newKey.publicKey}` == 'undefined') {
+    //       newKey.publicKey = getPublicKey(`${newKey.secretKey}`)
+    //   }
+    //   return newKey
+    // })
+    // .filter((newKey) => `${newKey.publicKey}` != 'undefined')
+    // .forEach(newKey => {
+    //   const newEncryptionKey: EncryptionKey = {...{publicKey: '', ...newKey}}
+    //   props.putEncryptionKey(newEncryptionKey)
+    // })
     group.setValue({
       publicKey:'',
       secretKey:'',
-      label:'',
-      lightning:'',
-      follow: false,
-      ignore: false
+      label:''
     })
   };
 
-  function bytesToHex(byteArray: any[]) {
-    return Array.prototype.map.call(byteArray, function(byte) {
-      return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-    }).join('');
-  }
-  function hexToBytes(hexString: string) {
-    var result = [];
-    for (var i = 0; i < hexString.length; i += 2) {
-      result.push(parseInt(hexString.substr(i, 2), 16));
-    }
-    return result;
-  }
+//   function bytesToHex(byteArray: any[]) {
+//     return Array.prototype.map.call(byteArray, function(byte) {
+//       return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+//     }).join('');
+//   }
+//   function hexToBytes(hexString: string) {
+//     var result = [];
+//     for (var i = 0; i < hexString.length; i += 2) {
+//       result.push(parseInt(hexString.substr(i, 2), 16));
+//     }
+//     return result;
+//   }
 
-  const handleClickAdd = () => {
-    let nostrSecretKey = generatePrivateKey()
-    let nsec = nip19.nsecEncode(nostrSecretKey)
-    // let { type, data } = nip19.decode(nsec)
-    const npub = nip19.npubEncode(getPublicKey(nostrSecretKey))
-    
+  const handleClickNewEncryptionKey = () => {
+
+    const keypair = chloride.crypto_box_keypair;
+//   identityKeypair = await keypair();
+//   keypairForm["secret-key"].value = identityKeypair.secretKey.toString('hex')
+//   keypairForm["public-key"].value = identityKeypair.publicKey.toString('hex')
+//   addReceiverForm['public-key'].value = identityKeypair.publicKey.toString('hex')
+//   document.querySelector("#display-sender-encryption-secret-key").innerHTML = identityKeypair.secretKey.toString('hex')
+//   document.querySelector("#display-sender-encryption-public-key").innerHTML =identityKeypair.publicKey.toString('hex')
+
+
+    let encryptionSecretKey = 'generatePrivateKey'
+    let encryptionPublicKey = 'generatepublickey'
+
     group.setValue({
-      publicKey:`${npub}`,
-      secretKey:`${nsec}`,
-      label:'',
-      lightning:'',
-      follow: false,
-      ignore: false
+      publicKey:`${encryptionPublicKey}`,
+      secretKey:`${encryptionSecretKey}`,
+      label:'label'
     })
   }
 
   const handleKeyClick = (publicKey: string) => {
-    const valuesForSelectedKey = props.nostrKeys
-      .find(nostrKeyEdit => nostrKeyEdit['publicKey'] === publicKey)
+    const valuesForSelectedKey = props.encryptionKeys
+      .find(encryptionKeyEdit => encryptionKeyEdit['publicKey'] === publicKey)
     group.setValue(Object.assign({
         publicKey:'',
         secretKey:'',
-        label:'',
-        lightning:'',
-        follow: false,
-        ignore: false
+        label:''
       }, valuesForSelectedKey))
   }
 
@@ -128,11 +116,8 @@ const NostrKeys = (props: {
     group.setValue({
         publicKey:'',
         secretKey:'',
-        label:'',
-        lightning:'',
-        follow: false,
-        ignore: false
-      })
+        label:''
+    })
   }
   // const ydoc = new Y.Doc()
   // const ymap = ydoc.getMap()
@@ -151,10 +136,9 @@ const NostrKeys = (props: {
   // // Observe that the changes have merged
   // console.log(ymap.toJSON()) // => { keyA: 'valueA', keyB: 'valueB' }
 
-
   return (
   <div class='fade-in'>
-    <PageHeader>Nostr Keys</PageHeader>
+    <PageHeader>Encryption Keys</PageHeader>
     <div>
       <form onSubmit={onSubmit}>
         <label for="publicKey">Public Key</label>
@@ -164,12 +148,10 @@ const NostrKeys = (props: {
         <div color='orange'>(Not secure - do not paste sensitive keys)</div>
         <label for="label">Label</label>
         <TextInput name="label" control={group.controls.label} />
-        <label for="lightning">Lightning</label>
-        <TextInput name="lightning" control={group.controls.lightning} />
         <div class='flex flex-row'>
           <div>
             <Button label={<VsAdd />} onClick={() => {
-              handleClickAdd()
+              handleClickNewEncryptionKey()
             }} />
           </div>
           <div >
@@ -193,8 +175,8 @@ const NostrKeys = (props: {
       </form>
       <h4 class="text-muted">Keys</h4>
       <div class='h-50 overflow-y-auto'>
-        <For each={props.nostrKeys}>
-          {(nostrKey) => (
+        <For each={props.encryptionKeys}>
+          {(encryptionKey) => (
             <div style={
               {
                 'width': '100%',
@@ -214,7 +196,7 @@ const NostrKeys = (props: {
                   'transition':'0.3s'
                 }}>
                 <Button 
-                  onClick={() => props.removeNostrKey(nostrKey)}
+                  onClick={() => props.removeEncryptionKey(encryptionKey)}
                   label='✕'
                 />
               </div>
@@ -228,8 +210,8 @@ const NostrKeys = (props: {
                   'transition':'0.3s'
                 }}>
                 <Button 
-                  onClick={() => handleKeyClick(nostrKey.publicKey)}
-                  label={nostrKey.label || nostrKey.publicKey}
+                  onClick={() => handleKeyClick(encryptionKey.publicKey)}
+                  label={encryptionKey.label || encryptionKey.publicKey}
                 />
               </div>
             </div>
@@ -240,14 +222,11 @@ const NostrKeys = (props: {
     </div>
   )
 }
-export default NostrKeys;
-export interface NostrKey {
+export default EncryptionKeys;
+export interface EncryptionKey {
   publicKey: string;
   secretKey?: string;
   label?: string;
-  lightningAddress?: string;
-  follow?: boolean;
-  ignore?: boolean;
 }
 
 // const nostrClient = relayInit("ws://0.0.0.0:8080");

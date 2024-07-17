@@ -12,6 +12,10 @@
   <body style=margin:0>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <script type="module">
+      import buffer from 'https://cdn.jsdelivr.net/npm/buffer@6.0.3/+esm'
+      window.Buffer = buffer.Buffer
+    </script>
     <script src="/src/index.tsx" type="module"></script>
   </body>
 </html>
