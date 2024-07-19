@@ -127,14 +127,14 @@ const App: Component = () => {
     await db.nostrkeys.where('publicKey').equals(nostrKeyRemove.publicKey).delete()
   }
 
-  const encryptionKeys = createDexieArrayQuery(() => db.encryptionKeys.toArray())
-  const encryptionKeysWithSecretKey = createDexieArrayQuery(() => db.encryptionKeys
+  const encryptionKeys = createDexieArrayQuery(() => db.encryptionkeys.toArray())
+  const encryptionKeysWithSecretKey = createDexieArrayQuery(() => db.encryptionkeys
   .filter(encryptionKey => !!encryptionKey.secretKey)
   .toArray()
   )
 
   const putEncryptionKey = async (newKey: EncryptionKey) => {
-    await db.encryptionkey.put(newKey)
+    await db.encryptionkeys.put(newKey)
   }
   const removeEncryptionKey = async (encryptionKeyRemove: EncryptionKey) => {
     await db.encryptionkeys.where('publicKey').equals(encryptionKeyRemove.publicKey).delete()
@@ -564,8 +564,9 @@ const App: Component = () => {
               <Route path='/consortia' component={() => {
                 const Consortia = lazy(() => import("./Consortia.tsx"))
                 return <Consortia
-                  consortia={consortia}
-                  nostrKeys ={nostrKeys}
+                  consortia= {consortia}
+                  nostrKeys = {nostrKeys}
+                  encryptionKeys = {encryptionKeys}
                   putConsortium = {putConsortium}
                   removeConsortium = {removeConsortium}
                 />

@@ -76,7 +76,8 @@ export const NavBar: Component<NavBarProps> = (props) => {
                 nostrrelays: "Nostr Relays",
                 nostrkeys: "Nostr Keys",
                 classifiers: "Classifiers",
-                consortia: "Consortia"
+                consortia: "Consortia",
+                encryptionkeys: "Encryption Keys"
               }
             ).map((entry) => {
               return (

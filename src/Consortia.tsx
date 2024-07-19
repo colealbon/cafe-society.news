@@ -16,12 +16,19 @@ import { TextInput } from './components/TextInput'
 import { FaSolidCheck  as CheckIcon} from 'solid-icons/fa'
 import { Button } from './components/Button'
 import { NostrKey } from './NostrKeys'
+import { EncryptionKey } from './EncryptionKeys'
+import {
+  generatePrivateKey,
+  getPublicKey,
+  nip19
+} from 'nostr-tools'
 
 type Consortium = any
 
 const Consortia = (props: {
     consortia: any;
     nostrKeys: NostrKey[];
+    encryptionKeys: EncryptionKey[];
     // eslint-disable-next-line no-unused-vars
     putConsortium: (consortium?: Consortium) => void,
     // eslint-disable-next-line no-unused-vars
@@ -32,7 +39,7 @@ const Consortia = (props: {
     // const [trainLabelValues, setTrainLabelValues] = createSignal([]);
   const [signerNpub, setSignerNpub] = createSignal('');
   const filter = createFilter({ sensitivity: "base" });
-  // const [options, setOptions] = createSignal<string[]>();
+  const [optionsEncryptionKeys, setOptionsEncryptionKeys] = createSignal<string[]>([]);
   const [optionsNpub, setOptionsNpub] = createSignal<string[]>([]);
 
 //   const onOpenChange = (isOpen: boolean, triggerMode?: Combobox.ComboboxTriggerMode) => {
@@ -90,7 +97,6 @@ const Consortia = (props: {
         ...consortiumTemplate,
         ...newConsortium
       }
-      newConsortiumObj.signerNpub = signerNpub()
       newConsortiumObj.signerNpub = signerNpub()
       if (newConsortiumObj.label === '') {
         return
@@ -162,7 +168,8 @@ const Consortia = (props: {
         </label>
         <Button
           onClick={() => handleClickCreateRoom()}
-         label="new nostr room" />
+         label="new nostr room"
+        />
       <Combobox.Root<string>
         multiple={false}
         options={props.nostrKeys.map(nostrKey => nostrKey.label || nostrKey.publicKey)}
@@ -191,17 +198,20 @@ const Consortia = (props: {
             </Combobox.Trigger>
             <div class='flex flex-row bg-white '>
               <For each={state.selectedOptions()}>
-                {option => (
-                  <div class='align-bottom flex flex-row' onPointerDown={e => e.stopPropagation()}>
+                {option => {
+                  let nostrSecretKey = generatePrivateKey()
+                  const npub = nip19.npubEncode(getPublicKey(nostrSecretKey))
+                  return (<div class='align-bottom flex flex-row' onPointerDown={e => e.stopPropagation()}>
                     <Button
                       title={`remove ${option}`}
                       onClick={() => {
                         state.remove(option)
                       }}
                       label={option}
+                      
                     />
                   </div>
-                )}
+                )}}
               </For>
             </div>
           </>
@@ -213,7 +223,65 @@ const Consortia = (props: {
         </Combobox.Content>
       </Combobox.Portal>
       </Combobox.Root>
+
+
+
       <div />
+
+      <Combobox.Root<string[]>
+        multiple={true}
+        options={props.encryptionKeys.map((encryptionKey: {label?: string, publicKey: string}) => encryptionKey.label || encryptionKey.publicKey)}
+        value={optionsEncryptionKeys()}
+        onChange={setOptionsEncryptionKeys}
+        onInputChange={onInputChangeNpub}
+        onOpenChange={onOpenChangeNpub}
+        placeholder="click label to remove..."
+        itemComponent={props => (
+          <Combobox.Item item={props.item} class='combobox__item w-200px'>
+            <Combobox.ItemLabel>{props.item.rawValue}</Combobox.ItemLabel>
+            <Combobox.ItemIndicator class="combobox__item-indicator">
+              <CheckIcon />
+            </Combobox.ItemIndicator>
+          </Combobox.Item>
+        )}
+      >
+        <Combobox.Control<string> 
+          aria-label="nPub"
+          class="combobox__control" 
+        >
+        {state => (
+          <> 
+            <Combobox.Trigger class='border-none bg-transparent align-middle text-3xl transition-all hover-text-white hover:bg-black rounded-full'>
+              &nbsp;member public keys&nbsp;
+            </Combobox.Trigger>
+            <div class='flex flex-row bg-white '>
+              <For each={state.selectedOptions()}>
+                {option => {
+                  let nostrSecretKey = generatePrivateKey()
+                  const npub = nip19.npubEncode(getPublicKey(nostrSecretKey))
+                  return (<div class='align-bottom flex flex-row' onPointerDown={e => e.stopPropagation()}>
+                    <Button
+                      title={`remove ${option}`}
+                      onClick={() => {
+                        state.remove(option)
+                      }}
+                      label={option}
+                      
+                    />
+                  </div>
+                )}}
+              </For>
+            </div>
+          </>
+        )}
+      </Combobox.Control>
+      <Combobox.Portal>
+        <Combobox.Content class="combobox__content">
+          <Combobox.Listbox class="combobox__listbox font-sans"/>
+        </Combobox.Content>
+      </Combobox.Portal>
+      </Combobox.Root>
+      
       <Button
         title='submit'
         label='submit'
