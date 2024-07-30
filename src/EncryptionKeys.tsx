@@ -1,5 +1,4 @@
 import chloride from 'chloride'
-
 import {
   For
 } from 'solid-js';
@@ -15,6 +14,8 @@ import {
 import { CgErase } from 'solid-icons/cg'
 import { PageHeader } from './components/PageHeader'
 import { Button } from './components/Button'
+
+const keypair = chloride.crypto_box_keypair
 
 const EncryptionKeys = (props: {
   encryptionKeys: EncryptionKey[],
@@ -35,74 +36,36 @@ const EncryptionKeys = (props: {
       console.log('already submitted')
       return;
     }
-    [Object.fromEntries(
+    console.log('onSubmit')
+    const submitted = Object.fromEntries(
       Object.entries(Object.assign({
         publicKey:'',
         secretKey:'',
         label:''
-      }, group.value))
-      .filter(([, value]) => `${value}` !== '')
-    )]
-    // .map((newKey) => {
-    // //   if (`${newKey.publicKey}${newKey.secretKey}` == 'undefinedundefined') {
-    // //     const secretKey = generatePrivateKey()
-    // //     newKey.secretKey = secretKey
-    // //   }
-    // //   return newKey
-    // })
-    // .map((newKey) => {
-    //   if (`${newKey.publicKey}` == 'undefined') {
-    //       newKey.publicKey = getPublicKey(`${newKey.secretKey}`)
-    //   }
-    //   return newKey
-    // })
-    // .filter((newKey) => `${newKey.publicKey}` != 'undefined')
-    // .forEach(newKey => {
-    //   const newEncryptionKey: EncryptionKey = {...{publicKey: '', ...newKey}}
-    //   props.putEncryptionKey(newEncryptionKey)
-    // })
+      }, group?.value)).filter(([, value]) => `${value}` !== '')
+    )
+    let newKey = Object.assign(submitted)
+    if (`${newKey.publicKey}${newKey.secretKey}` == 'undefinedundefined') {
+      const newKeyPair = await keypair()
+      newKey.secretKey = newKeyPair.secretKey.toString('hex')
+      newKey.publicKey = newKeyPair.publicKey.toString('hex')
+    }
+    props.putEncryptionKey(newKey)
     group.setValue({
       publicKey:'',
       secretKey:'',
       label:''
-    })
+  })
+
   };
-
-//   function bytesToHex(byteArray: any[]) {
-//     return Array.prototype.map.call(byteArray, function(byte) {
-//       return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-//     }).join('');
-//   }
-//   function hexToBytes(hexString: string) {
-//     var result = [];
-//     for (var i = 0; i < hexString.length; i += 2) {
-//       result.push(parseInt(hexString.substr(i, 2), 16));
-//     }
-//     return result;
-//   }
-
-  const handleClickNewEncryptionKey = () => {
-
-    const keypair = chloride.crypto_box_keypair;
-//   identityKeypair = await keypair();
-//   keypairForm["secret-key"].value = identityKeypair.secretKey.toString('hex')
-//   keypairForm["public-key"].value = identityKeypair.publicKey.toString('hex')
-//   addReceiverForm['public-key'].value = identityKeypair.publicKey.toString('hex')
-//   document.querySelector("#display-sender-encryption-secret-key").innerHTML = identityKeypair.secretKey.toString('hex')
-//   document.querySelector("#display-sender-encryption-public-key").innerHTML =identityKeypair.publicKey.toString('hex')
-
-
-    let encryptionSecretKey = 'generatePrivateKey'
-    let encryptionPublicKey = 'generatepublickey'
-
-    group.setValue({
-      publicKey:`${encryptionPublicKey}`,
-      secretKey:`${encryptionSecretKey}`,
-      label:'label'
-    })
+  function hexToBytes(hexString: string) {
+    var result = [];
+    for (var i = 0; i < hexString.length; i += 2) {
+      result.push(parseInt(hexString.substr(i, 2), 16));
+    }
+    return result;
   }
-
-  const handleKeyClick = (publicKey: string) => {
+  const handleEncryptionKeyClick = (publicKey: string) => {
     const valuesForSelectedKey = props.encryptionKeys
       .find(encryptionKeyEdit => encryptionKeyEdit['publicKey'] === publicKey)
     group.setValue(Object.assign({
@@ -150,9 +113,7 @@ const EncryptionKeys = (props: {
         <TextInput name="label" control={group.controls.label} />
         <div class='flex flex-row'>
           <div>
-            <Button label={<VsAdd />} onClick={() => {
-              handleClickNewEncryptionKey()
-            }} />
+            <Button onClick={() => false} label={<VsAdd />}/>
           </div>
           <div >
             <Link.Root onClick={(event: Event) => {
@@ -162,15 +123,6 @@ const EncryptionKeys = (props: {
               <CgErase />
             </Link.Root>
           </div>
-          <div>
-            <Link.Root onClick={(event: Event) => {
-              event.preventDefault()
-              onSubmit(event)
-            }}>
-              <div>submit</div>
-            </Link.Root>
-          </div>
-
         </div>
       </form>
       <h4 class="text-muted">Keys</h4>
@@ -210,7 +162,7 @@ const EncryptionKeys = (props: {
                   'transition':'0.3s'
                 }}>
                 <Button 
-                  onClick={() => handleKeyClick(encryptionKey.publicKey)}
+                  onClick={() => handleEncryptionKeyClick(encryptionKey.publicKey)}
                   label={encryptionKey.label || encryptionKey.publicKey}
                 />
               </div>
