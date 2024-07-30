@@ -22,8 +22,25 @@ import {
   getPublicKey,
   nip19
 } from 'nostr-tools'
+// import NDK, {
+import {
+  NDKPrivateKeySigner
+} from '@nostr-dev-kit/ndk'
 
 type Consortium = any
+
+function bytesToHex(byteArray: Uint8Array) {
+  return Array.prototype.map.call(byteArray, function(byte) {
+    return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+  }).join('');
+}
+function hexToBytes(hexString: string) {
+  var result = [];
+  for (var i = 0; i < hexString.length; i += 2) {
+    result.push(parseInt(hexString.substr(i, 2), 16));
+  }
+  return result;
+}
 
 const Consortia = (props: {
     consortia: any;
@@ -34,7 +51,7 @@ const Consortia = (props: {
     // eslint-disable-next-line no-unused-vars
     removeConsortium: (consortium?: Consortium) => void
   }) => {
-    console.log(props.consortia)
+    // console.log(props.consortia)
     // console.log(props.consortia)
     // const [trainLabelValues, setTrainLabelValues] = createSignal([]);
   const [signerNpub, setSignerNpub] = createSignal('');
@@ -56,7 +73,7 @@ const Consortia = (props: {
     // Show all options on ArrowDown/ArrowUp and button click.
     if (isOpen && triggerMode === "manual") {
       setOptionsNpub(props.nostrKeys.map(nostrKey => nostrKey.publicKey))
-      console.log(optionsNpub)
+      // console.log(optionsNpub)
     }
   };
   const onInputChangeNpub = (value: string) => {
@@ -85,6 +102,10 @@ const Consortia = (props: {
     if (group.isSubmitted) {
       console.log('already submitted')
       return;
+    }
+    const { id } = group.value
+    if (!id) {
+      return
     }
     [Object.fromEntries(
       Object.entries(Object.assign({
@@ -150,10 +171,37 @@ const Consortia = (props: {
     // setTrainLabelValues(valuesForSelectedFeed?.trainLabels as string[] || [''])
     setSignerNpub(valuesForSelectedConsortium?.signerNpub as string || '')
   }
-
-  const handleClickCreateRoom = () => {
+  const handleClickCreateRoom = async () => {
     console.log('you clicked create room')
-    console.log(signerNpub())
+    const signerNSec = props.nostrKeys.find(nostrKey => nostrKey.publicKey == signerNpub())?.secretKey
+    if (!signerNSec) {
+      return
+    }
+    const {
+      type,
+      data
+    } = nip19.decode(signerNSec)
+    const theData = data
+    console.log(data)
+    const skSigner = new NDKPrivateKeySigner(data)
+    const theUser = await skSigner.user()
+
+    // const relay = document.querySelector("#relays-display").innerText
+    // const ndkOpts = {}
+    // ndkOpts.signer = skSigner
+    // ndkOpts.explicitRelayUrls = [ relay ]
+    // ndkOpts.activeUser = skSigner.user()
+    // const roomNdk = new NDK(ndkOpts)
+    // await roomNdk.connect()
+    // const receivers = getReceiverPublicKeys()                
+    // const encrypt = input => privatebox.multibox(new Uint8Array(input), receivers)
+    // const nostrCRDTCreateEventId = await createNostrCRDTRoom(
+    //     roomNdk,
+    //     'testWebApp',
+    //     initialLocalState,
+    //     getNostrMessageKind(),
+    //     encrypt
+    // )
   }
 
   return (
@@ -167,7 +215,10 @@ const Consortia = (props: {
           <TextInput name="label" control={group.controls.label} />
         </label>
         <Button
-          onClick={() => handleClickCreateRoom()}
+          onClick={(event: Event) => {
+            event.preventDefault
+            handleClickCreateRoom()
+          }}
          label="new nostr room"
         />
       <Combobox.Root<string>

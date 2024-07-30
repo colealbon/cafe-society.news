@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@kobalte/core": "^0.13.3",
+    "@nostr-dev-kit/ndk": "^2.8.2",
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.8.4",
     "@types/chloride": "^2.4.2",
