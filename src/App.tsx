@@ -569,6 +569,8 @@ const App: Component = () => {
                   encryptionKeys = {encryptionKeys}
                   putConsortium = {putConsortium}
                   removeConsortium = {removeConsortium}
+                  nostrRelays = {checkedNostrRelays}
+                  nostrMessageKind = '9001'
                 />
               }}/>
               <Route path='/rssposts' component={() => {

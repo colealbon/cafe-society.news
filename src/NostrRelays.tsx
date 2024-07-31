@@ -15,8 +15,11 @@ import {
   createFormControl,
 } from "solid-forms";
 import { TextInput } from './components/TextInput'
+export interface NostrRelay {
+  "id": string,
+  "checked": boolean
+}
 
-import { NostrRelay } from './db-fixture'
 const NostrRelays = (props: {
   nostrRelays: NostrRelay[],
   // eslint-disable-next-line no-unused-vars

@@ -16,16 +16,22 @@ import { TextInput } from './components/TextInput'
 import { FaSolidCheck  as CheckIcon} from 'solid-icons/fa'
 import { Button } from './components/Button'
 import { NostrKey } from './NostrKeys'
+import { NostrRelay } from './NostrRelays'
 import { EncryptionKey } from './EncryptionKeys'
 import {
   generatePrivateKey,
   getPublicKey,
   nip19
 } from 'nostr-tools'
-// import NDK, {
-import {
+import NDK, {
   NDKPrivateKeySigner
 } from '@nostr-dev-kit/ndk'
+
+import {
+  createNostrCRDTRoom
+} from 'y-ndk'
+
+import * as yjs from 'yjs'
 
 type Consortium = any
 
@@ -46,6 +52,8 @@ const Consortia = (props: {
     consortia: any;
     nostrKeys: NostrKey[];
     encryptionKeys: EncryptionKey[];
+    nostrRelays: NostrRelay[];
+    nostrMessageKind: string;
     // eslint-disable-next-line no-unused-vars
     putConsortium: (consortium?: Consortium) => void,
     // eslint-disable-next-line no-unused-vars
@@ -58,6 +66,8 @@ const Consortia = (props: {
   const filter = createFilter({ sensitivity: "base" });
   const [optionsEncryptionKeys, setOptionsEncryptionKeys] = createSignal<string[]>([]);
   const [optionsNpub, setOptionsNpub] = createSignal<string[]>([]);
+
+  const getNostrMessageKind = () => parseInt(props.nostrMessageKind)
 
 //   const onOpenChange = (isOpen: boolean, triggerMode?: Combobox.ComboboxTriggerMode) => {
 //     // Show all options on ArrowDown/ArrowUp and button click.
@@ -84,15 +94,19 @@ const Consortia = (props: {
     id: createFormControl(''),
     label: createFormControl(''),
     signerNpub: createFormControl(''),
+    nostrMessageKind: createFormControl(['']),
     memberPublicKeys: createFormControl([''])
+    
   });
 
   const onSubmit = async (event?: Event ) => {
     const consortiumTemplate = {
-      "id": 'marsjumproom',
-      "label": "999Sepulveda",
+      "id": "",
+      "label": "",
       "signerNpub": "",
+      "nostrMessageKind": "",
       "memberPublicKeys": [""]
+      
     }
     try {
       event?.preventDefault()
@@ -182,26 +196,33 @@ const Consortia = (props: {
       data
     } = nip19.decode(signerNSec)
     const theData = data
-    console.log(data)
     const skSigner = new NDKPrivateKeySigner(data)
     const theUser = await skSigner.user()
-
-    // const relay = document.querySelector("#relays-display").innerText
-    // const ndkOpts = {}
-    // ndkOpts.signer = skSigner
-    // ndkOpts.explicitRelayUrls = [ relay ]
-    // ndkOpts.activeUser = skSigner.user()
-    // const roomNdk = new NDK(ndkOpts)
-    // await roomNdk.connect()
-    // const receivers = getReceiverPublicKeys()                
+    let ndkOpts = {
+      signer: null,
+      explicitRelayUrls: [''],
+      activeUser: null
+    }
+    ndkOpts.signer = skSigner
+    ndkOpts.explicitRelayUrls = props.nostrRelays.map((nostrRelay => nostrRelay.id))
+    ndkOpts.activeUser = skSigner.user()
+    console.log(ndkOpts)
+    const roomNdk = new NDK(ndkOpts)
+    await roomNdk.connect()
+    // const receivers = getReceiverPublicKeys()
+    const ydoc = new yjs.Doc()
+    const initialLocalState = yjs.encodeStateAsUpdate(ydoc)
     // const encrypt = input => privatebox.multibox(new Uint8Array(input), receivers)
-    // const nostrCRDTCreateEventId = await createNostrCRDTRoom(
-    //     roomNdk,
-    //     'testWebApp',
-    //     initialLocalState,
-    //     getNostrMessageKind(),
-    //     encrypt
-    // )
+    const encrypt = (input: string) => input
+    const nostrCRDTCreateEventId = await createNostrCRDTRoom(
+        roomNdk,
+        'testWebApp',
+        initialLocalState,
+        getNostrMessageKind(),
+        encrypt
+    )
+    console.log(nostrCRDTCreateEventId)
+    group.patchValue({id: `${nostrCRDTCreateEventId}`});
   }
 
   return (
@@ -218,6 +239,7 @@ const Consortia = (props: {
           onClick={(event: Event) => {
             event.preventDefault
             handleClickCreateRoom()
+            return false
           }}
          label="new nostr room"
         />

@@ -1,6 +1,7 @@
 import Dexie, { Table } from "dexie";
 import { NostrKey } from './NostrKeys'
 import { EncryptionKey } from './EncryptionKeys'
+import { NostrRelay } from './NostrRelays'
 
 export interface Classifier {
   "id": string,
@@ -16,10 +17,6 @@ export interface RSSFeed {
 }
 
 export interface CorsProxy {
-  "id": string,
-  "checked": boolean
-}
-export interface NostrRelay {
   "id": string,
   "checked": boolean
 }
